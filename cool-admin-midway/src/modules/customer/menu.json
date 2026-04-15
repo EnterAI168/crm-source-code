@@ -1,0 +1,233 @@
+[
+  {
+    "name": "客户管理",
+    "router": "/crm/customer",
+    "perms": null,
+    "type": 0,
+    "icon": "icon-user",
+    "orderNum": 5,
+    "viewPath": null,
+    "keepAlive": true,
+    "isShow": true,
+    "childMenus": [
+      {
+        "name": "客户列表",
+        "router": "/crm/customer/list",
+        "perms": "crm:customerList:page",
+        "type": 1,
+        "icon": "icon-list",
+        "orderNum": 1,
+        "viewPath": "modules/customer/views/list.vue",
+        "keepAlive": true,
+        "isShow": true,
+        "childMenus": [
+          {
+            "name": "分页",
+            "router": null,
+            "perms": "crm:customerList:page",
+            "type": 2,
+            "icon": null,
+            "orderNum": 1,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "新增",
+            "router": null,
+            "perms": "crm:customerList:add",
+            "type": 2,
+            "icon": null,
+            "orderNum": 2,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "编辑",
+            "router": null,
+            "perms": "crm:customerList:update",
+            "type": 2,
+            "icon": null,
+            "orderNum": 3,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "导入",
+            "router": null,
+            "perms": "crm:customerList:import",
+            "type": 2,
+            "icon": null,
+            "orderNum": 4,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "跟进记录",
+            "router": null,
+            "perms": "crm:customerList:follow",
+            "type": 2,
+            "icon": null,
+            "orderNum": 5,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "查看报价单",
+            "router": null,
+            "perms": "crm:customerList:quotationView",
+            "type": 2,
+            "icon": null,
+            "orderNum": 6,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "新增报价单",
+            "router": null,
+            "perms": "crm:customerList:quotationAdd",
+            "type": 2,
+            "icon": null,
+            "orderNum": 7,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "移入公池",
+            "router": null,
+            "perms": "crm:customerList:moveToPool",
+            "type": 2,
+            "icon": null,
+            "orderNum": 8,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "设为VIP",
+            "router": null,
+            "perms": "crm:customerList:setVip",
+            "type": 2,
+            "icon": null,
+            "orderNum": 9,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "取消VIP",
+            "router": null,
+            "perms": "crm:customerList:cancelVip",
+            "type": 2,
+            "icon": null,
+            "orderNum": 10,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          }
+        ]
+      },
+      {
+        "name": "客户公池",
+        "router": "/crm/customer/pool",
+        "perms": "crm:customerPool:page",
+        "type": 1,
+        "icon": "icon-folder",
+        "orderNum": 2,
+        "viewPath": "modules/customer/views/pool.vue",
+        "keepAlive": true,
+        "isShow": true,
+        "childMenus": [
+          {
+            "name": "分页",
+            "router": null,
+            "perms": "crm:customerPool:page",
+            "type": 2,
+            "icon": null,
+            "orderNum": 1,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "新增",
+            "router": null,
+            "perms": "crm:customerPool:add",
+            "type": 2,
+            "icon": null,
+            "orderNum": 2,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "编辑",
+            "router": null,
+            "perms": "crm:customerPool:update",
+            "type": 2,
+            "icon": null,
+            "orderNum": 3,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "删除",
+            "router": null,
+            "perms": "crm:customerPool:delete",
+            "type": 2,
+            "icon": null,
+            "orderNum": 4,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "导入",
+            "router": null,
+            "perms": "crm:customerPool:import",
+            "type": 2,
+            "icon": null,
+            "orderNum": 5,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "分配业务员",
+            "router": null,
+            "perms": "crm:customerPool:assignSalesman",
+            "type": 2,
+            "icon": null,
+            "orderNum": 6,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          }
+        ]
+      }
+    ]
+  }
+]
