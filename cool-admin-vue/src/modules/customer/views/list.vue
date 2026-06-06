@@ -480,13 +480,6 @@
 					:text="quoteViewContractForm.fileId ? '重新上傳' : '選擇檔案'"
 				/>
 			</el-form-item>
-			<el-form-item label="檔名稱">
-				<el-input
-					v-model="quoteViewContractForm.fileName"
-					clearable
-					placeholder="選填：不填則預設使用檔名"
-				/>
-			</el-form-item>
 			<el-form-item label="備註">
 				<el-input
 					v-model="quoteViewContractForm.remark"
@@ -740,7 +733,6 @@ const quoteViewContractLoading = ref(false);
 const quoteViewContractForm = reactive({
 	id: 0,
 	fileId: '',
-	fileName: '',
 	remark: ''
 });
 
@@ -1196,7 +1188,6 @@ async function submitQuoteViewSend() {
 function openQuoteViewContract(row: any) {
 	quoteViewContractForm.id = Number(row?.id || 0);
 	quoteViewContractForm.fileId = row?.contractFile || '';
-	quoteViewContractForm.fileName = row?.contractFileName || '';
 	quoteViewContractForm.remark = row?.contractRemark || '';
 	quoteViewContractVisible.value = true;
 }
@@ -1213,7 +1204,6 @@ async function submitQuoteViewContract() {
 		await quoteService.uploadContract({
 			id: quoteViewContractForm.id,
 			fileId: quoteViewContractForm.fileId,
-			fileName: quoteViewContractForm.fileName || undefined,
 			remark: quoteViewContractForm.remark || undefined
 		});
 		ElMessage.success('電子合約上傳成功');
