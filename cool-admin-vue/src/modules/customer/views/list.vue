@@ -2097,16 +2097,15 @@ onBeforeUnmount(() => {
 .crm-quote-view-table-scroll {
 	width: 100%;
 	margin-bottom: 8px;
-	overflow-x: auto;
-	overflow-y: hidden;
+	overflow: hidden;
 }
 
 .crm-quote-view-table {
-	min-width: 1620px;
+	width: 100%;
 }
 
 .crm-quote-view-table-scroll :deep(.el-table) {
-	min-width: 1620px;
+	width: 100% !important;
 	max-width: none;
 }
 
