@@ -235,7 +235,7 @@
 						<span v-else class="crm-quote-view-empty">-</span>
 					</template>
 				</el-table-column>
-				<el-table-column label="發票" min-width="260" align="center">
+				<el-table-column label="發票" width="330" align="center">
 					<template #default="{ row }">
 						<div
 							v-if="hasQuoteViewInvoiceActions(row)"
@@ -2097,15 +2097,16 @@ onBeforeUnmount(() => {
 .crm-quote-view-table-scroll {
 	width: 100%;
 	margin-bottom: 8px;
-	overflow: hidden;
+	overflow-x: auto;
+	overflow-y: hidden;
 }
 
 .crm-quote-view-table {
-	width: 100%;
+	min-width: 1620px;
 }
 
 .crm-quote-view-table-scroll :deep(.el-table) {
-	width: 100% !important;
+	min-width: 1620px;
 	max-width: none;
 }
 
