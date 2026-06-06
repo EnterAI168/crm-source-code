@@ -2,18 +2,18 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>config</el-tag>
-			<span>参数配置</span>
+			<span>參數配置</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['form/config.vue']" />
 
-			<!-- 自定义表单组件 -->
+			<!-- 自定義表單元件 -->
 			<cl-form ref="Form">
-				<!-- 按钮插槽 -->
+				<!-- 按鈕插槽 -->
 				<template #slot-btns>
-					<el-button type="danger">按钮插槽</el-button>
+					<el-button type="danger">按鈕插槽</el-button>
 				</template>
 			</cl-form>
 		</div>
@@ -32,78 +32,78 @@ const Form = useForm();
 
 function open() {
 	Form.value?.open({
-		title: '参数配置',
+		title: '參數配置',
 
-		// 打开是否重置表单
+		// 開啟是否重置表單
 		isReset: false,
 
-		// 默认表单值
+		// 預設表單值
 		form: {
-			nickName: '神仙都没用'
+			nickName: '神仙都沒用'
 		},
 
-		// 表单配置
+		// 表單配置
 		props: {
-			// 标签宽度
+			// 標籤寬度
 			labelWidth: '120px',
 
-			// 标签位置
+			// 標籤位置
 			labelPosition: 'top'
 		},
 
-		// 窗口的高。配置后，在窗口内部滚动。默认整个页面滚动
+		// 視窗的高。配置後，在視窗內部滾動。預設整個頁面滾動
 		height: '60vh',
 
-		// 窗口的宽，默认 50%
+		// 視窗的寬，預設 50%
 		width: '60%',
 
-		// 窗口设置
+		// 視窗設定
 		dialog: {
-			// 是否隐藏头部
+			// 是否隱藏頭部
 			hideHeader: false,
 
-			// 顶部操作按钮，默认["fullscreen", "close"]
+			// 頂部操作按鈕，預設["fullscreen", "close"]
 			// fullscreen 全屏
-			// close 关闭
+			// close 關閉
 			controls: ['close']
 		},
 
-		// 底部操作按钮
+		// 底部操作按鈕
 		op: {
-			// 默认靠右布局
+			// 預設靠右佈局
 			justify: 'flex-end',
 
-			// 保存按钮文字
+			// 儲存按鈕文字
 			saveButtonText: '提交',
 
-			// 关闭按钮文字
-			closeButtonText: '关闭',
+			// 關閉按鈕文字
+			closeButtonText: '關閉',
 
-			// 是否隐藏
+			// 是否隱藏
 			hidden: false,
 
-			// 按钮配置
+			// 按鈕配置
 			buttons: [
-				// 自定义
+				// 自定義
 				{
-					label: '自定义按钮',
+					label: '自定義按鈕',
 					onClick() {
-						ElMessage.success('自定义按钮点击');
+						ElMessage.success('自定義按鈕點選');
 					}
 				},
-				// close 关闭
+				// close 關閉
 				'close',
-				// save 保存
+				// save 儲存
 				'save',
-				// 插槽使用，配合 template，往上看 cl-form 组件
+				// 插槽使用，配合 template，往上看 cl-form 元件
 				'slot-btns'
 			]
 		},
 
-		// 表单项配置
+		// 表單項配置
 		items: [
 			{
-				label: '昵称',
+				label: '暱稱',
 				prop: 'nickName',
 				component: {
 					name: 'el-input'

@@ -1,14 +1,14 @@
 /**
- * 插件信息
+ * 外掛資訊
  */
 export interface PluginInfo {
-  /** 名称 */
+  /** 名稱 */
   name?: string;
-  /** 唯一标识 */
+  /** 唯一標識 */
   key?: string;
-  /** 钩子 */
+  /** 鉤子 */
   hook?: string;
-  /** 是否单例 */
+  /** 是否單例 */
   singleton?: boolean;
   /** 版本 */
   version?: string;
@@ -18,7 +18,7 @@ export interface PluginInfo {
   author?: string;
   /** logo */
   logo?: string;
-  /** README 使用说明 */
+  /** README 使用說明 */
   readme?: string;
   /** 配置 */
   config?: any;

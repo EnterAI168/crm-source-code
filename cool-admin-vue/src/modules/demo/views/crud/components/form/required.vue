@@ -2,14 +2,14 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>required</el-tag>
-			<span>必填项配置、动态设置</span>
+			<span>必填項配置、動態設定</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['form/required.vue']" />
 
-			<!-- 自定义表单组件 -->
+			<!-- 自定義表單元件 -->
 			<cl-form ref="Form"></cl-form>
 		</div>
 
@@ -26,19 +26,19 @@ const Form = useForm();
 
 function open() {
 	Form.value?.open({
-		title: '必填项配置',
+		title: '必填項配置',
 		items: [
 			{
-				label: '昵称',
+				label: '暱稱',
 				prop: 'nickname',
 				component: {
 					name: 'el-input'
 				},
-				// 是否必填，默认判断绑定值是否空
+				// 是否必填，預設判斷繫結值是否空
 				required: true
 			},
 			{
-				label: '手机号',
+				label: '手機號',
 				prop: 'phone',
 				component: {
 					name: 'el-input',
@@ -46,17 +46,17 @@ function open() {
 						maxlength: 11
 					}
 				},
-				// 自定义规则
-				// 基础用法可参考：https://element-plus.gitee.io/zh-CN/component/form.html
-				// 高级用法可参考：https://github.com/yiminghe/async-validator
+				// 自定義規則
+				// 基礎用法可參考：https://element-plus.gitee.io/zh-CN/component/form.html
+				// 高階用法可參考：https://github.com/yiminghe/async-validator
 				rules: [
 					{
 						required: true,
 						validator: (rule, value, callback) => {
 							if (value === '') {
-								callback(new Error('手机号不能为空'));
+								callback(new Error('手機號不能為空'));
 							} else if (!/^1[3456789]\d{9}$/.test(value)) {
-								callback(new Error('手机号格式错误'));
+								callback(new Error('手機號格式錯誤'));
 							} else {
 								callback();
 							}
@@ -71,10 +71,10 @@ function open() {
 					name: 'el-switch',
 					props: {
 						onChange(val) {
-							// 【很重要】动态设置
+							// 【很重要】動態設定
 							Form.value.setData('nickname', { required: val });
 
-							// 如果不必填，可以加一步骤清空校验
+							// 如果不必填，可以加一步驟清空校驗
 							if (!val) {
 								Form.value.clearValidate('nickname');
 							}

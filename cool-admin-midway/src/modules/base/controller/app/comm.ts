@@ -12,7 +12,7 @@ import { BaseSysParamService } from '../../service/sys/param';
 import { PluginService } from '../../../plugin/service/info';
 
 /**
- * 不需要登录的后台接口
+ * 不需要登入的後台介面
  */
 @CoolUrlTag()
 @Provide()
@@ -34,7 +34,7 @@ export class BaseAppCommController extends BaseController {
   baseSysParamService: BaseSysParamService;
 
   @CoolTag(TagTypes.IGNORE_TOKEN)
-  @Get('/param', { summary: '参数配置' })
+  @Get('/param', { summary: '參數配置' })
   async param(@Query('key') key: string) {
     if (!this.allowKeys.includes(key)) {
       return this.fail('非法操作');
@@ -43,28 +43,28 @@ export class BaseAppCommController extends BaseController {
   }
 
   /**
-   * 实体信息与路径
+   * 實體資訊與路徑
    * @returns
    */
   @CoolTag(TagTypes.IGNORE_TOKEN)
-  @Get('/eps', { summary: '实体信息与路径' })
+  @Get('/eps', { summary: '實體資訊與路徑' })
   public async getEps() {
     return this.ok(this.eps.app);
   }
 
   /**
-   * 文件上传
+   * 檔案上傳
    */
-  @Post('/upload', { summary: '文件上传' })
+  @Post('/upload', { summary: '檔案上傳' })
   async upload() {
     const file = await this.pluginService.getInstance('upload');
     return this.ok(await file.upload(this.ctx));
   }
 
   /**
-   * 文件上传模式，本地或者云存储
+   * 檔案上傳模式，本地或者雲端儲存
    */
-  @Get('/uploadMode', { summary: '文件上传模式' })
+  @Get('/uploadMode', { summary: '檔案上傳模式' })
   async uploadMode() {
     const file = await this.pluginService.getInstance('upload');
     return this.ok(await file.getMode());

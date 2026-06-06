@@ -2,19 +2,19 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>plugin</el-tag>
-			<span>使用插件</span>
+			<span>使用外掛</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['search/layout.vue']" />
 
-			<!-- 自定义表格组件 -->
-			<cl-dialog v-model="visible" title="使用插件" width="80%">
+			<!-- 自定義表格元件 -->
+			<cl-dialog v-model="visible" title="使用外掛" width="80%">
 				<cl-crud ref="Crud">
 					<cl-row>
 						<cl-flex1 />
-						<!--【很重要】搜索组件 -->
+						<!--【很重要】搜尋元件 -->
 						<cl-search ref="Search" />
 					</cl-row>
 
@@ -66,7 +66,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			minWidth: 140
 		},
@@ -77,7 +77,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '创建时间',
+			label: '建立時間',
 			prop: 'createTime',
 			minWidth: 170,
 			sortable: 'desc'
@@ -87,7 +87,7 @@ const Table = useTable({
 
 // cl-search 配置
 const Search = useSearch({
-	// 【很重要】自动读取 service 下的 search 数据
+	// 【很重要】自動讀取 service 下的 search 資料
 	plugins: [
 		Plugins.Search.setAuto({
 			customComponent(field) {
@@ -97,7 +97,7 @@ const Search = useSearch({
 						props: {
 							options: [
 								{
-									label: '张三',
+									label: '張三',
 									value: '1'
 								},
 								{
@@ -109,7 +109,7 @@ const Search = useSearch({
 					};
 				}
 
-				// null 则不操作，按系统默认操作
+				// null 則不操作，按系統預設操作
 				return null;
 			}
 		})

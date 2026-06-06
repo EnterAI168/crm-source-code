@@ -2,15 +2,15 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>op</el-tag>
-			<span>操作栏</span>
+			<span>操作欄</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['table/op.vue']" />
 
-			<!-- 自定义表格组件 -->
-			<cl-dialog v-model="visible" title="操作栏" width="80%">
+			<!-- 自定義表格元件 -->
+			<cl-dialog v-model="visible" title="操作欄" width="80%">
 				<cl-crud ref="Crud">
 					<cl-row>
 						<cl-table ref="Table">
@@ -22,7 +22,7 @@
 											ElMessage.info(scope.row.name);
 										}
 									"
-									>插槽按钮</el-button
+									>插槽按鈕</el-button
 								>
 							</template>
 						</cl-table>
@@ -33,7 +33,7 @@
 						<cl-pagination />
 					</cl-row>
 
-					<!-- 新增、编辑 -->
+					<!-- 新增、編輯 -->
 					<cl-upsert ref="Upsert" />
 				</cl-crud>
 			</cl-dialog>
@@ -75,7 +75,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			minWidth: 140
 		},
@@ -86,31 +86,31 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '创建时间',
+			label: '建立時間',
 			prop: 'createTime',
 			minWidth: 170,
 			sortable: 'desc'
 		},
 		{
-			//【很重要】type 必须是 op
+			//【很重要】type 必須是 op
 			type: 'op',
 
-			width: 410, // 宽度
+			width: 410, // 寬度
 
-			//【很重要】操作按钮配置，edit 和 info 必须搭配 cl-upsert 实现
-			// edit 编辑，预先获取 service 的 info 接口数据，并带入 cl-upsert 的表单值中
-			// info 详情，cl-upsert 内的组件全部传入 disabled 参数
-			// delete 删除，调用 service 的 delete 接口删除行数据
+			//【很重要】操作按鈕配置，edit 和 info 必須搭配 cl-upsert 實現
+			// edit 編輯，預先獲取 service 的 info 介面資料，並帶入 cl-upsert 的表單值中
+			// info 詳情，cl-upsert 內的元件全部傳入 disabled 參數
+			// delete 刪除，呼叫 service 的 delete 介面刪除行資料
 			buttons: [
 				{
-					label: '编辑',
+					label: '編輯',
 					type: 'primary',
 					onClick({ scope }) {
 						ElMessage.info(scope.row.name);
 					}
 				},
 				{
-					label: '删除',
+					label: '刪除',
 					type: 'danger',
 					onClick({ scope }) {
 						ElMessage.info(scope.row.name);
@@ -121,13 +121,13 @@ const Table = useTable({
 					type: 'success',
 					children: [
 						{
-							label: '查看',
+							label: '檢視',
 							onClick({ scope }) {
 								ElMessage.info(scope.row.name);
 							}
 						},
 						{
-							label: '禁用',
+							label: '停用',
 							onClick({ scope }) {
 								ElMessage.info(scope.row.name);
 							}
@@ -142,7 +142,7 @@ const Table = useTable({
 	]
 });
 
-// cl-upsert 配置，详细移步到 cl-upsert 示例查看
+// cl-upsert 配置，詳細移步到 cl-upsert 示例檢視
 const Upsert = useUpsert({
 	items: [
 		{
@@ -153,7 +153,7 @@ const Upsert = useUpsert({
 			}
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			component: {
 				name: 'el-input'
@@ -165,9 +165,9 @@ const Upsert = useUpsert({
 			component: {
 				name: 'cl-select',
 				props: {
-					tree: true, // 树形方式选择
-					checkStrictly: true, // 任意层级都能点
-					options: dict.get('occupation') // 使用字典数据
+					tree: true, // 樹形方式選擇
+					checkStrictly: true, // 任意層級都能點
+					options: dict.get('occupation') // 使用字典資料
 				}
 			}
 		}

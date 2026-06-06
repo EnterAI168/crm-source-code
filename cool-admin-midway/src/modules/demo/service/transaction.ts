@@ -4,12 +4,12 @@ import { BaseService, CoolTransaction } from '@cool-midway/core';
 import { QueryRunner } from 'typeorm';
 
 /**
- * 操作事务
+ * 操作事務
  */
 @Provide()
 export class DemoTransactionService extends BaseService {
   /**
-   * 事务操作
+   * 事務操作
    */
   @CoolTransaction({
     connectionName: 'default',

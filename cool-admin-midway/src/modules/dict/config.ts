@@ -1,19 +1,19 @@
 import { ModuleConfig } from '@cool-midway/core';
 
 /**
- * 模块配置
+ * 模組配置
  */
 export default () => {
   return {
-    // 模块名称
+    // 模組名稱
     name: '字典管理',
-    // 模块描述
-    description: '数据字典等',
-    // 中间件，只对本模块有效
+    // 模組描述
+    description: '資料字典等',
+    // 中介軟體，只對本模組有效
     middlewares: [],
-    // 中间件，全局有效
+    // 中介軟體，全域性有效
     globalMiddlewares: [],
-    // 模块加载顺序，默认为0，值越大越优先加载
+    // 模組載入順序，預設為0，值越大越優先載入
     order: 0,
   } as ModuleConfig;
 };

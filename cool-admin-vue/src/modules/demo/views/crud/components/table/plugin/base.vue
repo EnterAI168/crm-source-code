@@ -2,15 +2,15 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>plugin</el-tag>
-			<span>插件的使用</span>
+			<span>外掛的使用</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['table/plugin/base.vue']" />
 
-			<!-- 自定义表格组件 -->
-			<cl-dialog v-model="visible" title="插件的使用" width="80%">
+			<!-- 自定義表格元件 -->
+			<cl-dialog v-model="visible" title="外掛的使用" width="80%">
 				<cl-crud ref="Crud">
 					<cl-row>
 						<cl-table ref="Table" />
@@ -37,11 +37,11 @@ import { useDict } from '/$/dict';
 import { merge } from 'lodash-es';
 import { defineComponent } from 'vue';
 
-// 插件：列标签匹配，方便多个列表公用同一个组件
+// 外掛：列標籤匹配，方便多個列表公用同一個元件
 function setColumn(): ClTable.Plugin {
 	const columns = {
 		UserInfo: {
-			label: '用户信息',
+			label: '使用者資訊',
 			minWidth: 200,
 			component: {
 				vm: defineComponent({
@@ -111,14 +111,14 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '创建时间',
+			label: '建立時間',
 			prop: 'createTime',
 			minWidth: 170,
 			sortable: 'desc'
 		}
 	],
 
-	//【很重要】配置插件
+	//【很重要】配置外掛
 	plugins: [setColumn()]
 });
 

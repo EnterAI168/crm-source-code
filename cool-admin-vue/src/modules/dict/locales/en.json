@@ -1,16 +1,16 @@
 {
-  "搜索名称": "Search Name",
-  "请填写值": "Please fill in the value",
-  "使用文件": "Use File",
-  "类型": "Type",
+  "搜尋名稱": "Search Name",
+  "請填寫值": "Please fill in the value",
+  "使用檔案": "Use File",
+  "型別": "Type",
   "字典列表": "Dictionary List",
-  "名称": "Name",
-  "上级节点": "Parent Node",
+  "名稱": "Name",
+  "上級節點": "Parent Node",
   "值": "Value",
   "排序": "Sort",
-  "备注": "Remarks",
+  "備註": "Remarks",
   "新增": "Add",
   "ID": "ID",
-  "创建时间": "Create Time",
-  "更新时间": "Update Time"
+  "建立時間": "Create Time",
+  "更新時間": "Update Time"
 }

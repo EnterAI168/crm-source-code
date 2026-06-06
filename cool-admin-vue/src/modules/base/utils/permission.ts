@@ -2,9 +2,13 @@ import { useStore } from '../store';
 import { isObject } from 'lodash-es';
 
 function parse(value: any) {
-	const { menu } = useStore();
+	const { menu, user } = useStore();
 
 	if (typeof value == 'string') {
+		if (user.info?.username === 'admin') {
+			return true;
+		}
+
 		return value ? menu.perms.some((e: any) => e.includes(value.replace(/\s/g, ''))) : false;
 	} else {
 		return Boolean(value);

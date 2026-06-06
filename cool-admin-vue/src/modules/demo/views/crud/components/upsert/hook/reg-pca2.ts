@@ -1,6 +1,6 @@
 import { registerFormHook } from '@cool-vue/crud';
 
-// 注册 hook
+// 註冊 hook
 registerFormHook('pca2', (value, { method, form, prop }) => {
 	if (method == 'bind') {
 		return [form.province, form.city, form.district];

@@ -2,18 +2,18 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>column-custom</el-tag>
-			<span>自定义列展示</span>
+			<span>自定義列展示</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['table/column-custom.vue']" />
 
-			<!-- 自定义表格组件 -->
-			<cl-dialog v-model="visible" title="自定义列展示" width="80%">
+			<!-- 自定義表格元件 -->
+			<cl-dialog v-model="visible" title="自定義列展示" width="80%">
 				<cl-crud ref="Crud">
 					<cl-row>
-						<!--【很重要】组件配置，设置为 Table 的 columns，也可以自定义 -->
+						<!--【很重要】元件配置，設定為 Table 的 columns，也可以自定義 -->
 						<cl-column-custom :columns="Table?.columns" />
 					</cl-row>
 
@@ -64,7 +64,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			minWidth: 140
 		},
@@ -75,16 +75,16 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '状态',
+			label: '狀態',
 			prop: 'status',
 			dict: [
 				{
-					label: '启用',
+					label: '啟用',
 					value: 1,
 					type: 'success'
 				},
 				{
-					label: '禁用',
+					label: '停用',
 					value: 0,
 					type: 'danger'
 				}
@@ -92,7 +92,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '创建时间',
+			label: '建立時間',
 			prop: 'createTime',
 			minWidth: 170,
 			sortable: 'desc'

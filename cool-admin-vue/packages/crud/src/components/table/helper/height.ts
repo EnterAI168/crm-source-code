@@ -8,7 +8,7 @@ export function useHeight({ config, Table }: { Table: Vue.Ref<any>; config: ClTa
 	// 最大高度
 	const maxHeight = ref(0);
 
-	// 计算表格最大高度
+	// 計算表格最大高度
 	const update = debounce(async () => {
 		await nextTick();
 
@@ -27,7 +27,7 @@ export function useHeight({ config, Table }: { Table: Vue.Ref<any>; config: ClTa
 				// 高度
 				let h = 0;
 
-				// 表格下间距
+				// 表格下間距
 				if (vm.$el.className.includes("cl-row")) {
 					h += 10;
 				}
@@ -35,7 +35,7 @@ export function useHeight({ config, Table }: { Table: Vue.Ref<any>; config: ClTa
 				// 上高度
 				h += vm.$el.offsetTop;
 
-				// 获取下高度
+				// 獲取下高度
 				let n = vm.$el.nextSibling;
 
 				// 集合
@@ -59,19 +59,19 @@ export function useHeight({ config, Table }: { Table: Vue.Ref<any>; config: ClTa
 					removeClass(e, "cl-row--last");
 				});
 
-				// 最后一个可视元素
+				// 最後一個可視元素
 				const z = last(arr);
 
-				// 去掉 cl-row 下间距高度
+				// 去掉 cl-row 下間距高度
 				if (z?.className.includes("cl-row")) {
 					addClass(z, "cl-row--last");
 					h -= 10;
 				}
 
-				// 上间距
+				// 上間距
 				h += parseInt(window.getComputedStyle(p).paddingTop, 10);
 
-				// 设置最大高度
+				// 設定最大高度
 				if (config.autoHeight) {
 					maxHeight.value = p.clientHeight - h;
 				}
@@ -79,7 +79,7 @@ export function useHeight({ config, Table }: { Table: Vue.Ref<any>; config: ClTa
 		}
 	}, 100);
 
-	// 窗口大小改变事件
+	// 視窗大小改變事件
 	mitt.on("resize", () => {
 		update();
 	});

@@ -1,11 +1,11 @@
 import { useBase } from '/$/base';
-import { config } from '/@/config';
+import { getBaseUrl } from './base-url';
 
 export function useStream() {
 	const { user } = useBase();
 	let abortController: AbortController | null = null;
 
-	// 调用
+	// 呼叫
 	async function invoke({
 		url,
 		method = 'POST',
@@ -21,7 +21,7 @@ export function useStream() {
 
 		let cacheText = '';
 
-		return fetch(config.baseUrl + url, {
+		return fetch(getBaseUrl() + url, {
 			method,
 			headers: {
 				Authorization: user.token,

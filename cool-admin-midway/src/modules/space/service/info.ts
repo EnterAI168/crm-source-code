@@ -6,7 +6,7 @@ import { Repository } from 'typeorm';
 import { PluginService } from '../../plugin/service/info';
 
 /**
- * 文件信息
+ * 檔案資訊
  */
 @Provide()
 export class SpaceInfoService extends BaseService {

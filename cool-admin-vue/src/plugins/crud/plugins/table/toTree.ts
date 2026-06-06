@@ -9,9 +9,9 @@ interface Item extends Eps.BaseSysMenuEntity {
 }
 
 /**
- * 树形表格
- * @param options.lazy 是否懒加载，数据过多时开启
- * @param options.onRefresh 刷新方法
+ * 樹形表格
+ * @param options.lazy 是否懶載入，資料過多時開啟
+ * @param options.onRefresh 重新整理方法
  * @returns
  */
 export function toTree(
@@ -20,12 +20,12 @@ export function toTree(
 	return ({ exposed }) => {
 		const Crud = useCrud();
 
-		// 设置刷新方法
+		// 設定重新整理方法
 		if (Crud.value) {
 			// 原 cl-crud 的 onRefresh
 			const onRefresh = Crud.value.config.onRefresh;
 
-			// 重写 onRefresh
+			// 重寫 onRefresh
 			Crud.value.config.onRefresh = async (
 				params: Parameters<ClCrud.Config['onRefresh']>[0],
 				{ render, next, done }: Parameters<ClCrud.Config['onRefresh']>[1]
@@ -57,11 +57,11 @@ export function toTree(
 			};
 		}
 
-		// 数据处理
+		// 資料處理
 		const onData = (list: Item[], sort: 'desc' | 'asc') => {
 			const data = deepTree(list, sort);
 
-			// 递归处理
+			// 遞迴處理
 			const deep = (arr: Item[]) => {
 				arr.forEach(e => {
 					const nodes: { [key: number]: Item[] } =
@@ -89,7 +89,7 @@ export function toTree(
 			return data;
 		};
 
-		// 层级参数
+		// 層級參數
 		exposed.config.props.lazy = true;
 		exposed.config.props['row-key'] = 'id';
 		exposed.config.props['tree-props'] = {
@@ -97,7 +97,7 @@ export function toTree(
 			hasChildren: 'hasChildren'
 		};
 
-		// 层级事件
+		// 層級事件
 		exposed.config.on.load = (
 			row: Item,
 			treeNode: unknown,
@@ -106,7 +106,7 @@ export function toTree(
 			resolve(row._children || []);
 		};
 
-		// 行点击
+		// 行點選
 		exposed.config.on.onRowClick = (row: Item) => {
 			if (row._children) {
 				exposed.Table.value?.store.loadOrToggle(row);

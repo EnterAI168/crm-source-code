@@ -2,14 +2,14 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>rules</el-tag>
-			<span>添加/删除表单项</span>
+			<span>新增/刪除表單項</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['form/rules.vue']" />
 
-			<!-- 自定义表单组件 -->
+			<!-- 自定義表單元件 -->
 			<cl-form ref="Form">
 				<template #slot-cert="{ scope }">
 					<div class="cert">
@@ -17,27 +17,27 @@
 						<el-form-item
 							v-for="(item, index) in scope.cert"
 							:key="index"
-							:label="`证书${index + 1}`"
+							:label="`證書${index + 1}`"
 							:prop="`cert.${index}.label`"
 							:rules="{
-								message: `请填写证书${index + 1}`,
+								message: `請填寫證書${index + 1}`,
 								required: true
 							}"
 						>
 							<div class="row">
-								<!-- 输入框 -->
-								<el-input v-model="item.label" placeholder="请填写证书"></el-input>
+								<!-- 輸入框 -->
+								<el-input v-model="item.label" placeholder="請填寫證書"></el-input>
 
-								<!-- 删除行 -->
+								<!-- 刪除行 -->
 								<el-icon @click="rowDel(index)">
 									<delete />
 								</el-icon>
 							</div>
 						</el-form-item>
 
-						<!-- 添加行 -->
+						<!-- 新增行 -->
 						<el-row type="flex" justify="end">
-							<el-button @click="rowAdd()">添加证书</el-button>
+							<el-button @click="rowAdd()">新增證書</el-button>
 						</el-row>
 					</div>
 				</template>
@@ -58,10 +58,10 @@ const Form = useForm();
 
 function open() {
 	Form.value?.open({
-		title: '添加/删除表单项',
+		title: '新增/刪除表單項',
 		items: [
 			{
-				label: '昵称',
+				label: '暱稱',
 				prop: 'nickname',
 				component: {
 					name: 'el-input'
@@ -70,7 +70,7 @@ function open() {
 			},
 			{
 				prop: 'cert',
-				//【很重要】默认数据格式，以实际业务为主。
+				//【很重要】預設資料格式，以實際業務為主。
 				value: [
 					{
 						label: ''

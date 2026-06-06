@@ -2,14 +2,14 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>hidden</el-tag>
-			<span>隐藏/显示</span>
+			<span>隱藏/顯示</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['form/hidden.vue']" />
 
-			<!-- 自定义表单组件 -->
+			<!-- 自定義表單元件 -->
 			<cl-form ref="Form"></cl-form>
 		</div>
 
@@ -26,41 +26,41 @@ const Form = useForm();
 
 function open() {
 	Form.value?.open({
-		title: '隐藏/显示',
+		title: '隱藏/顯示',
 		items: [
 			{
-				label: '状态',
+				label: '狀態',
 				prop: 'status',
 				value: 0,
 				component: {
 					name: 'el-radio-group',
 					options: [
 						{
-							label: '关闭',
+							label: '關閉',
 							value: 0
 						},
 						{
-							label: '开启',
+							label: '開啟',
 							value: 1
 						}
 					]
 				}
 			},
 			{
-				label: '账号',
+				label: '賬號',
 				prop: 'account',
 				component: {
 					name: 'el-input'
 				}
 			},
 			{
-				//【很重要】是否隐藏
+				//【很重要】是否隱藏
 				hidden({ scope }) {
-					// scope 为表单值
-					// 返回一个 boolean 来控制当前表单项的隐藏/显示
+					// scope 為表單值
+					// 返回一個 boolean 來控制當前表單項的隱藏/顯示
 					return scope.status != 1;
 				},
-				label: '密码',
+				label: '密碼',
 				prop: 'password',
 				component: {
 					name: 'el-input'

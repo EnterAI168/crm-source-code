@@ -6,7 +6,7 @@ import { SpaceTypeEntity } from '../entity/type';
 import { SpaceInfoEntity } from '../entity/info';
 
 /**
- * 文件分类
+ * 檔案分類
  */
 @Provide()
 export class SpaceTypeService extends BaseService {
@@ -17,12 +17,12 @@ export class SpaceTypeService extends BaseService {
   spaceInfoEntity: Repository<SpaceInfoEntity>;
 
   /**
-   * 删除
+   * 刪除
    * @param ids
    */
   async delete(ids: any) {
     await super.delete(ids);
-    // 删除该分类下的文件信息
+    // 刪除該分類下的檔案資訊
     await this.spaceInfoEntity.delete({ classifyId: In(ids) });
   }
 }

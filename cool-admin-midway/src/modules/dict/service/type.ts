@@ -13,7 +13,7 @@ export class DictTypeService extends BaseService {
   dictInfoEntity: Repository<DictInfoEntity>;
 
   /**
-   * 删除
+   * 刪除
    * @param ids
    */
   async delete(ids) {

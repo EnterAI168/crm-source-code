@@ -1,8 +1,8 @@
 import { useRefs } from '/@/cool';
 
 /**
- * 设置聚焦，prop为空则默认第一个选项
- * @param prop 字段标识
+ * 設定聚焦，prop為空則預設第一個選項
+ * @param prop 欄位標識
  * @returns
  */
 export function setFocus(prop?: string): ClForm.Plugin {

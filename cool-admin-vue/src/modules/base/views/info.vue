@@ -2,42 +2,42 @@
 	<div class="view-my">
 		<el-scrollbar>
 			<div class="p-[20px]">
-				<div class="title">{{ $t('基本信息') }}</div>
+				<div class="title">{{ $t('基本資訊') }}</div>
 
 				<el-form label-width="100px" :model="form" :disabled="loading" label-position="top">
-					<el-form-item :label="$t('头像')">
+					<el-form-item :label="$t('頭像')">
 						<cl-upload v-model="form.headImg" />
 					</el-form-item>
 
-					<el-form-item :label="$t('昵称')">
+					<el-form-item label="員工名稱">
 						<el-input
-							v-model="form.nickName"
-							:placeholder="$t('请填写昵称')"
+							v-model="form.name"
+							placeholder="請填寫員工名稱"
 							clearable
 						/>
 					</el-form-item>
 
-					<el-form-item :label="$t('原密码')">
+					<el-form-item :label="$t('原密碼')">
 						<el-input
 							v-model="form.oldPassword"
 							type="password"
-							:placeholder="$t('请填写原密码')"
+							:placeholder="$t('請填寫原密碼')"
 							clearable
 						/>
 					</el-form-item>
 
-					<el-form-item :label="$t('新密码')">
+					<el-form-item :label="$t('新密碼')">
 						<el-input
 							v-model="form.password"
 							type="password"
-							:placeholder="$t('请填写新密码')"
+							:placeholder="$t('請填寫新密碼')"
 							clearable
 						/>
 					</el-form-item>
 
 					<el-form-item>
 						<el-button type="primary" :disabled="loading" @click="save">{{
-							$t('保存修改')
+							$t('儲存修改')
 						}}</el-button>
 					</el-form-item>
 				</el-form>
@@ -61,23 +61,29 @@ const { t } = useI18n();
 const { service } = useCool();
 const { user } = useBase();
 
-// 表单数据
+// 表單資料
 const form = reactive({
 	headImg: '',
-	nickName: '',
+	name: '',
 	password: '',
 	oldPassword: ''
 });
 
-// 保存状态
+// 儲存狀態
 const loading = ref(false);
 
-// 保存
+// 儲存
 async function save() {
 	loading.value = true;
 
+	const payload = {
+		...form,
+		name: String(form.name || '').trim(),
+		nickName: String(form.name || '').trim()
+	};
+
 	await service.base.comm
-		.personUpdate(form)
+		.personUpdate(payload)
 		.then(() => {
 			form.password = '';
 			form.oldPassword = '';
@@ -94,7 +100,7 @@ async function save() {
 
 onMounted(() => {
 	form.headImg = user.info?.headImg || '';
-	form.nickName = user.info?.nickName || '';
+	form.name = user.info?.name || user.info?.nickName || '';
 });
 </script>
 

@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 /**
- * Ai编码
+ * Ai編碼
  */
 @Provide()
 export class BaseCodingService extends BaseService {
@@ -12,7 +12,7 @@ export class BaseCodingService extends BaseService {
   app: IMidwayApplication;
 
   /**
-   * 获得模块目录结构
+   * 獲得模組目錄結構
    */
   async getModuleTree() {
     if (this.app.getEnv() !== 'local') {
@@ -21,14 +21,14 @@ export class BaseCodingService extends BaseService {
 
     const moduleDir = await this.app.getBaseDir();
     const modulesPath = path.join(moduleDir, 'modules');
-    // 返回modules下有多少个模块
+    // 返回modules下有多少個模組
     const modules = fs.readdirSync(modulesPath);
     return modules.filter(module => module !== '.DS_Store');
   }
 
   /**
-   * 创建代码
-   * @param codes 代码
+   * 建立程式碼
+   * @param codes 程式碼
    */
   async createCode(
     codes: {
@@ -37,35 +37,35 @@ export class BaseCodingService extends BaseService {
     }[]
   ) {
     if (this.app.getEnv() !== 'local') {
-      throw new Error('只能在开发环境下创建代码');
+      throw new Error('只能在開發環境下建立程式碼');
     }
 
     const moduleDir = this.app.getAppDir();
 
     for (const code of codes) {
-      // 格式化代码内容
+      // 格式化程式碼內容
       const formattedContent = await this.formatContent(code.content);
 
-      // 获取完整的文件路径
+      // 獲取完整的檔案路徑
       const filePath = path.join(moduleDir, code.path);
 
-      // 确保目录存在
+      // 確保目錄存在
       const dirPath = path.dirname(filePath);
       if (!fs.existsSync(dirPath)) {
         fs.mkdirSync(dirPath, { recursive: true });
       }
 
-      // 写入文件
+      // 寫入檔案
       fs.writeFileSync(filePath, formattedContent, 'utf8');
     }
   }
 
   /**
-   * 格式化内容
+   * 格式化內容
    * @param content
    */
   async formatContent(content: string) {
-    // 使用prettier格式化内容
+    // 使用prettier格式化內容
     const prettier = require('prettier');
     return prettier.format(content, {
       parser: 'typescript',

@@ -2,19 +2,19 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>custom</el-tag>
-			<span>自定义</span>
+			<span>自定義</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['adv-search/custom.vue']" />
 
-			<!-- 自定义表格组件 -->
-			<cl-dialog v-model="visible" title="自定义" width="80%">
+			<!-- 自定義表格元件 -->
+			<cl-dialog v-model="visible" title="自定義" width="80%">
 				<cl-crud ref="Crud">
 					<cl-row>
-						<!--【很重要】高级搜索组件按钮 -->
-						<cl-adv-btn>更多搜索</cl-adv-btn>
+						<!--【很重要】高階搜尋元件按鈕 -->
+						<cl-adv-btn>更多搜尋</cl-adv-btn>
 					</cl-row>
 
 					<cl-row>
@@ -26,11 +26,11 @@
 						<cl-pagination />
 					</cl-row>
 
-					<!--【很重要】高级搜索组件 -->
+					<!--【很重要】高階搜尋元件 -->
 					<cl-adv-search ref="AdvSearch">
-						<!-- 自定义按钮 -->
+						<!-- 自定義按鈕 -->
 						<template #slot-btn>
-							<el-button @click="toSearch">自定义</el-button>
+							<el-button @click="toSearch">自定義</el-button>
 						</template>
 					</cl-adv-search>
 				</cl-crud>
@@ -72,7 +72,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			minWidth: 140
 		},
@@ -83,7 +83,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '创建时间',
+			label: '建立時間',
 			prop: 'createTime',
 			minWidth: 170,
 			sortable: 'desc'
@@ -92,9 +92,9 @@ const Table = useTable({
 });
 
 // cl-adv-search 配置
-//【很重要】该组件基于 cl-form 故很多示例都可复用
+//【很重要】該元件基於 cl-form 故很多示例都可複用
 const AdvSearch = useAdvSearch({
-	// 配置如 cl-form 一样
+	// 配置如 cl-form 一樣
 	items: [
 		{
 			label: '姓名',
@@ -107,7 +107,7 @@ const AdvSearch = useAdvSearch({
 			}
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			component: {
 				name: 'el-input',
@@ -130,7 +130,7 @@ const AdvSearch = useAdvSearch({
 		}
 	],
 
-	title: '更多搜索',
+	title: '更多搜尋',
 	size: '50%',
 	op: ['close', 'search', 'slot-btn']
 });
@@ -139,7 +139,7 @@ function refresh(params?: any) {
 	Crud.value?.refresh(params);
 }
 
-// 自定义搜索
+// 自定義搜尋
 function toSearch() {
 	refresh({ page: 1 });
 }

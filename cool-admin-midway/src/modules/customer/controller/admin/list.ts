@@ -4,7 +4,7 @@ import { CrmCustomerInfoEntity } from '../../entity/info';
 import { CrmCustomerInfoService } from '../../service/info';
 
 /**
- * 客户管理 - 客户列表（已分配业务员）
+ * 客戶管理 - 客戶列表（已分配業務員）
  */
 @Provide()
 @CoolController({
@@ -22,20 +22,20 @@ export class AdminCrmCustomerListController extends BaseController {
     return this.ok(await this.crmCustomerInfoService.pageAssigned(query));
   }
 
-  /** 业务员下拉（与公池一致，用于列表筛选） */
+  /** 業務員下拉（與公池一致，用於列表篩選） */
   @Post('/salesmenOptions')
   async salesmenOptions() {
     return this.ok(await this.crmCustomerInfoService.listSalesmenForAssign());
   }
 
-  /** 移入公池（清空业务员） */
+  /** 移入公池（清空業務員） */
   @Post('/moveToPool')
   async moveToPool(@Body() body: { id: number }) {
     await this.crmCustomerInfoService.moveToPool(body.id);
     return this.ok();
   }
 
-  /** 设为 VIP */
+  /** 設為 VIP */
   @Post('/setVip')
   async setVip(@Body() body: { id: number }) {
     await this.crmCustomerInfoService.setVipCustomer(body.id);
@@ -50,15 +50,13 @@ export class AdminCrmCustomerListController extends BaseController {
   }
 
   /**
-   * 客户列表导入（老板按行指定业务员；业务员导入归本人）
+   * 客戶列表匯入（行業預設空、VIP 預設否、業務員預設當前匯入人）
    */
   @Post('/importData')
   async importData(
     @Body()
     body: {
-      list: Partial<
-        CrmCustomerInfoEntity & { salesmanId?: number; salesmanUsername?: string }
-      >[];
+      list: Partial<CrmCustomerInfoEntity>[];
     }
   ) {
     const n = await this.crmCustomerInfoService.importListRows(body.list || []);

@@ -20,10 +20,10 @@ export function usePlugins(enable: boolean, { visible }: { visible: Ref<boolean>
 		onSubmit: []
 	};
 
-	// 监听器
+	// 監聽器
 	let timer: WatchStopHandle | null = null;
 
-	// 插件创建
+	// 外掛建立
 	function create(plugins: ClForm.Plugin[] = []) {
 		if (!enable) {
 			return false;
@@ -33,12 +33,12 @@ export function usePlugins(enable: boolean, { visible }: { visible: Ref<boolean>
 			ev[i] = [];
 		}
 
-		// 停止监听
+		// 停止監聽
 		if (timer) {
 			timer();
 		}
 
-		// 执行
+		// 執行
 		uniqueFns([...(style.form.plugins || []), ...plugins]).forEach((p) => {
 			const d: any = {
 				exposed: that.exposed
@@ -70,7 +70,7 @@ export function usePlugins(enable: boolean, { visible }: { visible: Ref<boolean>
 		);
 	}
 
-	// 表单提交
+	// 表單提交
 	async function submit(data: any) {
 		let d = data;
 

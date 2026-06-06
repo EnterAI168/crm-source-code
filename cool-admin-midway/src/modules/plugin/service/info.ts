@@ -31,7 +31,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { pPluginPath } from '../../../comm/path';
 /**
- * 插件信息
+ * 外掛資訊
  */
 @Provide()
 export class PluginService extends BaseService {
@@ -84,20 +84,20 @@ export class PluginService extends BaseService {
   }
 
   /**
-   * 重新初始化插件
+   * 重新初始化外掛
    */
   async reInit(keyName: string) {
-    // 多进程发送全局事件，pm2下生效，本地开发则通过普通事件
+    // 多程式發送全域性事件，pm2下生效，本地開發則通過普通事件
     this.coolEventManager.globalEmit(GLOBAL_EVENT_PLUGIN_INIT, false, keyName);
   }
 
   /**
-   * 移除插件
+   * 移除外掛
    * @param keyName
    * @param isHook
    */
   async remove(keyName: string, isHook = false) {
-    // 多进程发送全局事件，pm2下生效
+    // 多程式發送全域性事件，pm2下生效
     this.coolEventManager.globalEmit(
       GLOBAL_EVENT_PLUGIN_REMOVE,
       false,
@@ -108,14 +108,14 @@ export class PluginService extends BaseService {
   }
 
   /**
-   * 删除不经过回收站
+   * 刪除不經過回收站
    * @param ids
    */
   async delete(ids: any) {
     const list = await this.pluginInfoEntity.findBy({ id: In(ids) });
     for (const item of list) {
       await this.remove(item.keyName, !!item.hook);
-      // 删除文件
+      // 刪除檔案
       await this.deleteData(item.keyName);
     }
     await this.pluginInfoEntity.delete(ids);
@@ -130,7 +130,7 @@ export class PluginService extends BaseService {
       where: { id: param.id },
       select: ['id', 'status', 'hook'],
     });
-    // 启用插件，禁用同名插件
+    // 啟用外掛，停用同名外掛
     if (old.hook && param.status == 1 && old.status != param.status) {
       await this.pluginInfoEntity.update(
         { hook: old.hook, status: 1, id: Not(old.id) },
@@ -141,7 +141,7 @@ export class PluginService extends BaseService {
   }
 
   /**
-   * 获得插件配置
+   * 獲得外掛配置
    * @param key
    */
   async getConfig(key: string) {
@@ -149,10 +149,10 @@ export class PluginService extends BaseService {
   }
 
   /**
-   * 调用插件
-   * @param key 插件key
+   * 呼叫外掛
+   * @param key 外掛key
    * @param method 方法
-   * @param params 参数
+   * @param params 參數
    * @returns
    */
   async invoke<K extends keyof PluginMap>(
@@ -160,13 +160,13 @@ export class PluginService extends BaseService {
     method: string,
     ...params
   ) {
-    // 实例
+    // 例項
     const instance: any = await this.getInstance(key);
     return await instance[method](...params);
   }
 
   /**
-   * 获得插件实例
+   * 獲得外掛例項
    * @param key
    * @returns
    */
@@ -174,7 +174,7 @@ export class PluginService extends BaseService {
     key: K | AnyString
   ): Promise<K extends keyof PluginMap ? PluginMap[K] : any> {
     const check = await this.checkStatus(key);
-    if (!check) throw new CoolCommException(`插件[${key}]不存在或已禁用`);
+    if (!check) throw new CoolCommException(`外掛[${key}]不存在或已停用`);
     let instance;
     const pluginInfo = this.pluginCenterService.pluginInfos.get(key);
     if (pluginInfo.singleton) {
@@ -190,7 +190,7 @@ export class PluginService extends BaseService {
   }
 
   /**
-   * 检查状态
+   * 檢查狀態
    * @param key
    */
   async checkStatus(key: string) {
@@ -207,7 +207,7 @@ export class PluginService extends BaseService {
   }
 
   /**
-   * 检查
+   * 檢查
    * @param filePath
    */
   async check(filePath: string) {
@@ -217,7 +217,7 @@ export class PluginService extends BaseService {
     } catch (e) {
       return {
         type: 0,
-        message: `插件信息不完整，请检查${data?.errorData || ''}`,
+        message: `外掛資訊不完整，請檢查${data?.errorData || ''}`,
       };
     }
     const check = await this.pluginInfoEntity.findOne({
@@ -227,24 +227,24 @@ export class PluginService extends BaseService {
     if (check && !check.hook) {
       return {
         type: 1,
-        message: '插件已存在，继续安装将覆盖',
+        message: '外掛已存在，繼續安裝將覆蓋',
       };
     }
     if (check && check.hook && check.status == 1) {
       return {
         type: 2,
         message:
-          '已存在同名Hook插件，你可以继续安装，但是多个相同的Hook插件只能同时开启一个',
+          '已存在同名Hook外掛，你可以繼續安裝，但是多個相同的Hook外掛只能同時開啟一個',
       };
     }
     return {
       type: 3,
-      message: '检查通过',
+      message: '檢查通過',
     };
   }
 
   /**
-   * 获得插件数据
+   * 獲得外掛資料
    * @param filePath
    */
   async data(filePath: string): Promise<{
@@ -266,7 +266,7 @@ export class PluginService extends BaseService {
       tsContent: string;
 
     try {
-      // 通用方法获取文件内容
+      // 通用方法獲取檔案內容
       const getFileContent = (
         entryName: string,
         encoding: 'utf-8' | 'base64' = 'utf-8'
@@ -292,7 +292,7 @@ export class PluginService extends BaseService {
 
       tsContent = getFileContent('source/index.ts');
     } catch (e) {
-      throw new CoolCommException('插件信息不完整');
+      throw new CoolCommException('外掛資訊不完整');
     }
     return {
       pluginJson,
@@ -305,9 +305,9 @@ export class PluginService extends BaseService {
   }
 
   /**
-   * 安装插件
-   * @param file 文件
-   * @param force 是否强制安装
+   * 安裝外掛
+   * @param file 檔案
+   * @param force 是否強制安裝
    */
   async install(filePath: string, force = false) {
     const forceBool = typeof force === 'string' ? force === 'true' : force;
@@ -319,7 +319,7 @@ export class PluginService extends BaseService {
       filePath
     );
     if (pluginJson.key == 'plugin') {
-      throw new CoolCommException('插件key不能为plugin，请更换其他key');
+      throw new CoolCommException('外掛key不能為plugin，請更換其他key');
     }
     const check = await this.pluginInfoEntity.findOne({
       where: { keyName: Equal(pluginJson.key) },
@@ -346,7 +346,7 @@ export class PluginService extends BaseService {
       config: pluginJson.config,
       status: 1,
     } as PluginInfoEntity;
-    // 存在同名插件，更新，保留配置
+    // 存在同名外掛，更新，保留配置
     if (check) {
       await this.pluginInfoEntity.update(check.id, {
         ...data,
@@ -357,10 +357,10 @@ export class PluginService extends BaseService {
         },
       });
     } else {
-      // 全新安装
+      // 全新安裝
       await this.pluginInfoEntity.insert(data);
     }
-    // 保存插件内容
+    // 儲存外掛內容
     await this.saveData(
       {
         content: {
@@ -375,14 +375,14 @@ export class PluginService extends BaseService {
       pluginJson.key
     );
     this.pluginTypesService.generateDtsFile(pluginJson.key, tsContent);
-    // 初始化插件
+    // 初始化外掛
     await this.reInit(pluginJson.key);
   }
 
   /**
-   * 将插件内容保存到文件
-   * @param content 内容
-   * @param keyName 插件key
+   * 將外掛內容儲存到檔案
+   * @param content 內容
+   * @param keyName 外掛key
    */
   async saveData(
     data: {
@@ -398,17 +398,17 @@ export class PluginService extends BaseService {
     keyName: string
   ) {
     const filePath = this.pluginPath(keyName);
-    // 确保目录存在
+    // 確保目錄存在
     const dir = path.dirname(filePath);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
-    // 写入文件，如果存在则覆盖
+    // 寫入檔案，如果存在則覆蓋
     fs.writeFileSync(filePath, JSON.stringify(data, null, 0), { flag: 'w' });
   }
 
   /**
-   * 获得插件数据
+   * 獲得外掛資料
    * @param keyName
    * @returns
    */
@@ -424,13 +424,13 @@ export class PluginService extends BaseService {
   }> {
     const filePath = this.pluginPath(keyName);
     if (!fs.existsSync(filePath)) {
-      // 尝试从数据库中获取
+      // 嘗試從資料庫中獲取
       const info = await this.pluginInfoEntity.findOne({
         where: { keyName: Equal(keyName) },
         select: ['content', 'tsContent'],
       });
       if (info) {
-        // 保存插件到文件
+        // 儲存外掛到檔案
         this.saveData(
           {
             content: info.content,
@@ -444,7 +444,7 @@ export class PluginService extends BaseService {
         };
       } else {
         this.logger.warn(
-          `插件[${keyName}]文件不存在，请卸载后重新安装: ${filePath}`
+          `外掛[${keyName}]檔案不存在，請解除安裝後重新安裝: ${filePath}`
         );
         return;
       }
@@ -453,7 +453,7 @@ export class PluginService extends BaseService {
   }
 
   /**
-   * 删除插件
+   * 刪除外掛
    * @param keyName
    */
   async deleteData(keyName: string) {
@@ -464,7 +464,7 @@ export class PluginService extends BaseService {
   }
 
   /**
-   * 获得插件路径
+   * 獲得外掛路徑
    * @param keyName
    * @returns
    */

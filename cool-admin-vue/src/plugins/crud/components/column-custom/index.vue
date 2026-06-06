@@ -1,8 +1,8 @@
 <template>
 	<div class="cl-column-custom__wrap">
-		<el-button @click="open">{{ $t('自定义列') }}</el-button>
+		<el-button @click="open">{{ $t('自定義列') }}</el-button>
 
-		<cl-dialog v-model="visible" :title="$t('自定义列')">
+		<cl-dialog v-model="visible" :title="$t('自定義列')">
 			<div class="cl-column-custom__dialog">
 				<div class="left">
 					<draggable v-model="list" item-key="prop">
@@ -20,7 +20,7 @@
 			<template #footer>
 				<el-button @click="close">{{ $t('取消') }}</el-button>
 				<el-button type="danger" @click="reset">{{ $t('重置') }}</el-button>
-				<el-button type="success" @click="save">{{ $t('保存') }}</el-button>
+				<el-button type="success" @click="save">{{ $t('儲存') }}</el-button>
 			</template>
 		</cl-dialog>
 	</div>
@@ -47,13 +47,13 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'change']);
 
-// 是否可见
+// 是否可見
 const visible = ref(false);
 
-// 名称
+// 名稱
 const name = `column-custom__${props.name || location.pathname}`;
 
-// 列数据
+// 列資料
 const list = ref<{ label: string; prop: any; checked?: boolean; orderNum?: number }[]>([]);
 
 // 列配置
@@ -61,7 +61,7 @@ const columns = computed(() => {
 	return props.columns.filter(e => !e.type && e.prop);
 });
 
-// 改变列
+// 改變列
 function change() {
 	nextTick(() => {
 		columns.value.forEach(e => {
@@ -71,7 +71,7 @@ function change() {
 	});
 }
 
-// 保存
+// 儲存
 function save() {
 	storage.set(name, list.value);
 	change();
@@ -92,13 +92,13 @@ function reset() {
 	close();
 }
 
-// 打开
+// 開啟
 function open() {
 	visible.value = true;
 	refresh();
 }
 
-// 关闭
+// 關閉
 function close() {
 	visible.value = false;
 }
@@ -108,7 +108,7 @@ function sort(list: any[]) {
 	return orderBy(list, 'orderNum', 'asc');
 }
 
-// 刷新
+// 重新整理
 function refresh() {
 	if (!props.columns) {
 		return false;
@@ -142,7 +142,7 @@ function refresh() {
 	change();
 }
 
-// 合计
+// 合計
 function summary(subData: { [key: string]: any }) {
 	return sort(columns.value.filter(e => !e.hidden)).map(e => {
 		if (has(subData, e.prop)) {

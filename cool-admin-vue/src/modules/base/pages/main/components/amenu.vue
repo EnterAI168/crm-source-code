@@ -10,7 +10,7 @@
 			@click="select(index)"
 		>
 			<cl-svg class="mr-3" :name="item.icon" :size="16" v-if="item.icon" />
-			<span class="text-[12px] tracking-wider whitespace-nowrap">{{ item.meta?.label }}</span>
+			<span class="text-[12px] tracking-wider whitespace-nowrap">{{ localeText(item.meta?.label) }}</span>
 		</div>
 	</div>
 </template>
@@ -25,43 +25,44 @@ import { useBase } from '/$/base';
 import { useCool } from '/@/cool';
 import { ElMessage } from 'element-plus';
 import { useI18n } from 'vue-i18n';
+import { localeText } from '/@/utils/localeText';
 
 const { router, route } = useCool();
 const { menu } = useBase();
 const { t } = useI18n();
 
-// 选中标识
+// 選中標識
 const active = ref(0);
 
-// 组列表
+// 組列表
 const list = computed(() => {
 	return menu.group.filter(e => e.isShow);
 });
 
-// 选择导航
+// 選擇導航
 function select(index: number) {
 	if (index == active.value) {
 		return false;
 	}
 
-	// 选中的组
+	// 選中的組
 	const item = list.value[index];
 
-	// 获取第一个菜单地址
+	// 獲取第一個選單地址
 	const url = menu.getPath(item);
 
 	if (url) {
-		// 设置左侧菜单
+		// 設定左側選單
 		menu.setMenu(index);
 
-		// 跳转
+		// 跳轉
 		router.push(url);
 	} else {
-		ElMessage.warning(t('{label} 没有子菜单，请先添加', { label: item.meta?.label }));
+		ElMessage.warning(t('{label} 沒有子選單，請先新增', { label: localeText(item.meta?.label) }));
 	}
 }
 
-// 刷新
+// 重新整理
 function refresh() {
 	let index = 0;
 
@@ -85,17 +86,17 @@ function refresh() {
 		}
 	}
 
-	// 遍历所有分组
+	// 遍歷所有分組
 	list.value.forEach(deep);
 
-	// 确认选择
+	// 確認選擇
 	active.value = index;
 
-	// 设置该分组下的菜单
+	// 設定該分組下的選單
 	menu.setMenu(index);
 }
 
-// 监听变化
+// 監聽變化
 watch(
 	() => [route.path, menu.group.length],
 	() => {

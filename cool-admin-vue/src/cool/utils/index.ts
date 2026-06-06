@@ -2,19 +2,19 @@ import { isArray, isNumber, isString, orderBy } from 'lodash-es';
 import { resolveComponent } from 'vue';
 import storage from './storage';
 
-// 首字母大写
+// 首字母大寫
 export function firstUpperCase(value: string): string {
 	return value.replace(/\b(\w)(\w*)/g, function ($0, $1, $2) {
 		return $1.toUpperCase() + $2;
 	});
 }
 
-// 获取方法名
+// 獲取方法名
 export function getNames(value: any) {
 	return Object.getOwnPropertyNames(value.constructor.prototype);
 }
 
-// 获取地址栏参数
+// 獲取位址列參數
 export function getUrlParam(name: string): string | null {
 	const reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)');
 	const r = window.location.search.substr(1).match(reg);
@@ -22,12 +22,12 @@ export function getUrlParam(name: string): string | null {
 	return null;
 }
 
-// 文件名
+// 檔名
 export function filename(path: string): string {
 	return basename(path.substring(0, path.lastIndexOf('.')));
 }
 
-// 路径名称
+// 路徑名稱
 export function basename(path: string): string {
 	let index = path.lastIndexOf('/');
 	index = index > -1 ? index : path.lastIndexOf('\\');
@@ -37,12 +37,12 @@ export function basename(path: string): string {
 	return path.substring(index + 1);
 }
 
-// 文件扩展名
+// 副檔名
 export function extname(path: string): string {
 	return path.substring(path.lastIndexOf('.') + 1).split(/(\?|&)/)[0];
 }
 
-// 横杠转驼峰
+// 橫槓轉駝峰
 export function toCamel(str: string): string {
 	return str.replace(/([^-])(?:-+([^-]))/g, function ($0, $1, $2) {
 		return $1 + $2.toUpperCase();
@@ -63,21 +63,21 @@ export function uuid(separator = '-'): string {
 	return s.join('');
 }
 
-// 浏览器信息
+// 瀏覽器資訊
 export function getBrowser() {
 	const { clientHeight, clientWidth } = document.documentElement;
 
-	// 浏览器信息
+	// 瀏覽器資訊
 	const ua = navigator.userAgent.toLowerCase();
 
-	// 浏览器类型
+	// 瀏覽器型別
 	let type = (ua.match(/firefox|chrome|safari|opera/g) || 'other')[0];
 
 	if ((ua.match(/msie|trident/g) || [])[0]) {
 		type = 'msie';
 	}
 
-	// 平台标签
+	// 平台標籤
 	let tag = '';
 
 	const isTocuh =
@@ -96,7 +96,7 @@ export function getBrowser() {
 		tag = 'pc';
 	}
 
-	// 浏览器内核
+	// 瀏覽器核心
 	let prefix = '';
 
 	switch (type) {
@@ -122,7 +122,7 @@ export function getBrowser() {
 	// 操作平台
 	const plat = ua.indexOf('android') > 0 ? 'android' : navigator.platform.toLowerCase();
 
-	// 屏幕信息
+	// 螢幕資訊
 	let screen = 'full';
 
 	if (clientWidth < 768) {
@@ -143,10 +143,10 @@ export function getBrowser() {
 	// 是否 PC 端
 	const isPC = tag === 'pc';
 
-	// 是否移动端
+	// 是否移動端
 	const isMobile = isPC ? false : true;
 
-	// 是否移动端 + 屏幕宽过小
+	// 是否移動端 + 螢幕寬過小
 	const isMini = screen === 'xs' || isMobile;
 
 	return {
@@ -164,7 +164,7 @@ export function getBrowser() {
 	};
 }
 
-// 路径转数组
+// 路徑轉陣列
 export function deepPaths(paths: string[], splitor?: string) {
 	const list: any[] = [];
 
@@ -195,7 +195,7 @@ export function deepPaths(paths: string[], splitor?: string) {
 	return list;
 }
 
-// 列表转树形
+// 列表轉樹形
 export function deepTree(list: any[], sort?: 'desc' | 'asc'): any[] {
 	const newList: any[] = [];
 	const map: any = {};
@@ -218,7 +218,7 @@ export function deepTree(list: any[], sort?: 'desc' | 'asc'): any[] {
 	return newList;
 }
 
-// 树形转列表
+// 樹形轉列表
 export function revDeepTree(list: any[]) {
 	const arr: any[] = [];
 	let id = 0;
@@ -246,7 +246,7 @@ export function revDeepTree(list: any[]) {
 	return arr;
 }
 
-// 路径转对象
+// 路徑轉物件
 export function path2Obj(list: any[]) {
 	const data: any = {};
 
@@ -273,7 +273,7 @@ export function path2Obj(list: any[]) {
 	return data;
 }
 
-// 是否是组件
+// 是否是元件
 export function isComponent(name: string) {
 	return !isString(resolveComponent(name));
 }
@@ -283,12 +283,12 @@ export function isPromise(val: any) {
 	return val && Object.prototype.toString.call(val) === '[object Promise]';
 }
 
-// 单位转换
+// 單位轉換
 export function parsePx(val: string | number) {
 	return isNumber(val) ? `${val}px` : val;
 }
 
-// 延迟
+// 延遲
 export function sleep(duration: number) {
 	return new Promise(resolve => {
 		setTimeout(() => {

@@ -49,9 +49,9 @@ function refresh() {
 	save();
 }
 
-// 删除
+// 刪除
 function remove(index: number) {
-	ElMessageBox.confirm(t('是否删除该账号？'), t('提示'), {
+	ElMessageBox.confirm(t('是否刪除該賬號？'), t('提示'), {
 		type: 'warning'
 	})
 		.then(() => {
@@ -61,7 +61,7 @@ function remove(index: number) {
 		.catch(() => null);
 }
 
-// 添加、更新
+// 新增、更新
 function save() {
 	if (!isDev) {
 		return;
@@ -110,7 +110,7 @@ function update() {
 	storage.set('devTools.account', list.value);
 }
 
-// 切换
+// 切換
 async function onChange(item: Item) {
 	user.setToken({
 		token: item.token,

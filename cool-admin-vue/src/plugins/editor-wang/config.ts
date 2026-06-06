@@ -5,14 +5,14 @@ export default (): ModuleConfig => {
 		enable: true,
 		components: [() => import('./components/wang.vue')],
 
-		label: 'Wang 编辑器',
-		description: '基于 wangEditor 封装的富文本编辑器',
+		label: 'Wang 編輯器',
+		description: '基於 wangEditor 封裝的富文本編輯器',
 		author: 'COOL',
 		version: '1.0.0',
 		updateTime: '2024-02-01',
 		demo: [
 			{
-				name: '基础用法',
+				name: '基礎用法',
 				component: () => import('./demo/base.vue')
 			}
 		],

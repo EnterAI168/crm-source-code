@@ -3,7 +3,7 @@ import { formatContent, readFile, rootDir, writeFile } from "../utils";
 function getPlugin(name: string) {
 	let code = readFile(rootDir(`./src/plugins/${name}/config.ts`));
 
-	// 设置插件配置
+	// 設定外掛配置
 	const set = (key: string, value: any) => {
 		const regex = new RegExp(`(return\\s*{[^}]*?\\b${key}\\b\\s*:\\s*)([^,}]+)`);
 		if (regex.test(code)) {
@@ -17,7 +17,7 @@ function getPlugin(name: string) {
 		}
 	};
 
-	// 保存插件配置
+	// 儲存外掛配置
 	const save = async () => {
 		const content = await formatContent(code);
 		writeFile(rootDir(`./src/plugins/${name}/config.ts`), content);
@@ -29,7 +29,7 @@ function getPlugin(name: string) {
 	};
 }
 
-// 修改插件
+// 修改外掛
 export async function updatePlugin(options: { name: string; enable: boolean }) {
 	const plugin = getPlugin(options.name);
 

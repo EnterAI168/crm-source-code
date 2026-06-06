@@ -1,7 +1,7 @@
 import { isString } from "lodash-es";
 import { getValue, isObject } from ".";
 
-// 解析扩展组件
+// 解析擴充套件元件
 export function parseExtensionComponent(vnode: Render.Component) {
 	if (["el-select", "el-radio-group", "el-checkbox-group"].includes(vnode.name!)) {
 		const list = getValue(vnode.options || []);

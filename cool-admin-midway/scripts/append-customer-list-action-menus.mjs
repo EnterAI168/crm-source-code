@@ -1,8 +1,8 @@
 /**
- * 在「客户列表」下补充报价单 / 移入公池 / VIP 等按钮权限（menu.json 中 orderNum 4～8）。
- * 已存在相同 perms 则跳过。
+ * 在「客戶列表」下補充報價單 / 移入公池 / VIP 等按鈕許可權（menu.json 中 orderNum 4～8）。
+ * 已存在相同 perms 則跳過。
  *
- * 用法：在 cool-admin-midway 目录执行
+ * 用法：在 cool-admin-midway 目錄執行
  *   node scripts/append-customer-list-action-menus.mjs
  */
 
@@ -17,10 +17,10 @@ const cfg = {
 };
 
 const ROWS = [
-  [4, '查看报价单', 'crm:customerList:quotationView'],
-  [5, '新增报价单', 'crm:customerList:quotationAdd'],
+  [4, '檢視報價單', 'crm:customerList:quotationView'],
+  [5, '新增報價單', 'crm:customerList:quotationAdd'],
   [6, '移入公池', 'crm:customerList:moveToPool'],
-  [7, '设为VIP', 'crm:customerList:setVip'],
+  [7, '設為VIP', 'crm:customerList:setVip'],
   [8, '取消VIP', 'crm:customerList:cancelVip'],
 ];
 
@@ -38,7 +38,7 @@ async function main() {
       ['/crm/customer/list']
     );
     if (!listMenu) {
-      console.error('未找到「客户列表」菜单 (router=/crm/customer/list, type=1)。');
+      console.error('未找到「客戶列表」選單 (router=/crm/customer/list, type=1)。');
       process.exitCode = 1;
       return;
     }
@@ -58,10 +58,10 @@ async function main() {
         [t, t, listId, name, perms, orderNum]
       );
       n++;
-      console.log('已写入: %s (%s)', name, perms);
+      console.log('已寫入: %s (%s)', name, perms);
     }
     if (n === 0) {
-      console.log('上述权限均已存在，无需插入。');
+      console.log('上述許可權均已存在，無需插入。');
     }
   } finally {
     await conn.end();

@@ -5,14 +5,14 @@ export default (): ModuleConfig => {
 		enable: true,
 		components: [() => import('./components/preview.vue')],
 
-		label: '编辑器内容预览',
-		description: '基于 monaco、wang 等编辑器的内容预览组件',
+		label: '編輯器內容預覽',
+		description: '基於 monaco、wang 等編輯器的內容預覽元件',
 		author: 'COOL',
 		version: '1.0.1',
 		updateTime: '2024-02-27',
 		demo: [
 			{
-				name: '基础用法',
+				name: '基礎用法',
 				component: () => import('./demo/base.vue')
 			}
 		]

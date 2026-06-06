@@ -2,17 +2,17 @@ import { BaseEntity } from '../../base/entity/base';
 import { Column, Index, Entity } from 'typeorm';
 
 /**
- * 任务日志
+ * 任務日誌
  */
 @Entity('task_log')
 export class TaskLogEntity extends BaseEntity {
   @Index()
-  @Column({ comment: '任务ID', nullable: true })
+  @Column({ comment: '任務ID', nullable: true })
   taskId: number;
 
-  @Column({ comment: '状态 0-失败 1-成功', default: 0 })
+  @Column({ comment: '狀態 0-失敗 1-成功', default: 0 })
   status: number;
 
-  @Column({ comment: '详情描述', nullable: true, type: 'text' })
+  @Column({ comment: '詳情描述', nullable: true, type: 'text' })
   detail: string;
 }

@@ -2,14 +2,14 @@ import { BaseEntity, transformerJson } from '../../base/entity/base';
 import { Column, Entity, Index } from 'typeorm';
 
 /**
- * 插件信息
+ * 外掛資訊
  */
 @Entity('plugin_info')
 export class PluginInfoEntity extends BaseEntity {
-  @Column({ comment: '名称' })
+  @Column({ comment: '名稱' })
   name: string;
 
-  @Column({ comment: '简介' })
+  @Column({ comment: '簡介' })
   description: string;
 
   @Index()
@@ -31,23 +31,23 @@ export class PluginInfoEntity extends BaseEntity {
   @Column({ comment: '作者' })
   author: string;
 
-  @Column({ comment: '状态 0-禁用 1-启用', default: 0 })
+  @Column({ comment: '狀態 0-停用 1-啟用', default: 0 })
   status: number;
 
-  @Column({ comment: '内容', type: 'json', transformer: transformerJson })
+  @Column({ comment: '內容', type: 'json', transformer: transformerJson })
   content: {
     type: 'comm' | 'module';
     data: string;
   };
 
-  @Column({ comment: 'ts内容', type: 'json', transformer: transformerJson })
+  @Column({ comment: 'ts內容', type: 'json', transformer: transformerJson })
   tsContent: {
     type: 'ts';
     data: string;
   };
 
   @Column({
-    comment: '插件的plugin.json',
+    comment: '外掛的plugin.json',
     type: 'json',
     transformer: transformerJson,
     nullable: true,

@@ -10,11 +10,11 @@ export default defineComponent({
 	name: "cl-crud",
 
 	props: {
-		// 组件名
+		// 元件名
 		name: String,
-		// 是否有边框
+		// 是否有邊框
 		border: Boolean,
-		// 内间距
+		// 內間距
 		padding: {
 			type: String,
 			default: "10px"
@@ -22,7 +22,7 @@ export default defineComponent({
 	},
 
 	setup(props, { slots, expose }) {
-		// 当前实例
+		// 當前例項
 		const inst = getCurrentInstance();
 
 		// 配置
@@ -31,30 +31,30 @@ export default defineComponent({
 		// 事件
 		const mitt = new Mitt(inst?.uid);
 
-		// 全局配置
+		// 全域性配置
 		const { dict, permission } = useConfig();
 
-		// 参数
+		// 參數
 		const crud = reactive(
 			merge(
 				{
 					id: props.name || inst?.uid,
-					// 绑定的路由地址
+					// 繫結的路由地址
 					routePath: location.pathname || "/",
-					// 表格加载状态
+					// 表格載入狀態
 					loading: false,
-					// 表格已选列
+					// 表格已選列
 					selection: [],
-					// 请求参数
+					// 請求參數
 					params: {
 						page: 1,
 						size: 20
 					},
-					// 请求服务
+					// 請求服務
 					service: {},
 					// 字典
 					dict: {},
-					// 权限
+					// 權限
 					permission: {},
 					// 事件
 					mitt,
@@ -65,7 +65,7 @@ export default defineComponent({
 			)
 		);
 
-		// 追加参数
+		// 追加參數
 		merge(crud, useHelper({ config, crud, mitt }));
 
 		// 集合
@@ -75,7 +75,7 @@ export default defineComponent({
 		provide("crud", crud);
 		provide("mitt", mitt);
 
-		// 导出
+		// 匯出
 		expose(crud);
 
 		return () => {

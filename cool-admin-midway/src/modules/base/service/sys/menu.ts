@@ -16,7 +16,7 @@ import { BaseSysRoleMenuEntity } from '../../entity/sys/role_menu';
 import { BaseSysUserRoleEntity } from '../../entity/sys/user_role';
 
 /**
- * 菜单
+ * 選單
  */
 @Scope(ScopeEnum.Request, { allowDowngrade: true })
 @Provide()
@@ -40,7 +40,7 @@ export class BaseSysMenuService extends BaseService {
   app: IMidwayApplication;
 
   /**
-   * 获得所有菜单
+   * 獲得所有選單
    */
   async list() {
     const isAdmin = await this.baseSysPermsService.isAdmin(
@@ -67,7 +67,7 @@ export class BaseSysMenuService extends BaseService {
   }
 
   /**
-   * 修改之后
+   * 修改之後
    * @param param
    */
   async modifyAfter(param) {
@@ -77,8 +77,8 @@ export class BaseSysMenuService extends BaseService {
   }
 
   /**
-   * 根据角色获得权限信息
-   * @param {[]} roleIds 数组
+   * 根據角色獲得權限資訊
+   * @param {[]} roleIds 陣列
    */
   async getPerms(roleIds, isAdmin = false) {
     let perms = [];
@@ -110,7 +110,7 @@ export class BaseSysMenuService extends BaseService {
   }
 
   /**
-   * 获得用户菜单信息
+   * 獲得使用者選單資訊
    * @param roleIds
    * @param isAdmin 是否是超管
    */
@@ -126,11 +126,56 @@ export class BaseSysMenuService extends BaseService {
     }
     find.orderBy('a.orderNum', 'ASC');
     const list = await find.getMany();
-    return _.uniqBy(list, 'id');
+    return this.filterEmptyDirectoryMenus(_.uniqBy(list, 'id'));
   }
 
   /**
-   * 删除
+   * 過濾只有父級被授權、但沒有任何子選單/按鈕授權的空目錄。
+   * 角色樹會儲存半選父級用於掛載子選單；如果歷史資料只剩父級，會導致側邊欄顯示空主選單。
+   */
+  private filterEmptyDirectoryMenus(list: BaseSysMenuEntity[]) {
+    const selectedIds = new Set(list.map(item => Number(item.id)));
+
+    return list.filter(item => {
+      if (Number(item.type) !== 0) {
+        return true;
+      }
+
+      return list.some(child => {
+        if (Number(child.id) === Number(item.id)) {
+          return false;
+        }
+        return this.hasSelectedAncestor(child, Number(item.id), selectedIds, list);
+      });
+    });
+  }
+
+  private hasSelectedAncestor(
+    menu: BaseSysMenuEntity,
+    ancestorId: number,
+    selectedIds: Set<number>,
+    list: BaseSysMenuEntity[]
+  ) {
+    let parentId = Number(menu.parentId || 0);
+
+    while (parentId) {
+      if (parentId === ancestorId) {
+        return true;
+      }
+
+      if (!selectedIds.has(parentId)) {
+        return false;
+      }
+
+      const parent = list.find(item => Number(item.id) === parentId);
+      parentId = Number(parent?.parentId || 0);
+    }
+
+    return false;
+  }
+
+  /**
+   * 刪除
    * @param ids
    */
   async delete(ids) {
@@ -147,7 +192,7 @@ export class BaseSysMenuService extends BaseService {
   }
 
   /**
-   * 删除子菜单
+   * 刪除子選單
    * @param id
    */
   private async delChildMenu(id) {
@@ -166,7 +211,7 @@ export class BaseSysMenuService extends BaseService {
   }
 
   /**
-   * 更新权限
+   * 更新權限
    * @param menuId
    */
   async refreshPerms(menuId) {
@@ -175,10 +220,10 @@ export class BaseSysMenuService extends BaseService {
     find.where('a.menuId = :menuId', { menuId: menuId });
     find.select('b.userId', 'userId');
     const users = await find.getRawMany();
-    // 刷新admin权限
+    // 重新整理admin權限
     await this.baseSysPermsService.refreshPerms(1);
     if (!_.isEmpty(users)) {
-      // 刷新其他权限
+      // 重新整理其他權限
       for (const user of _.uniqBy(users, 'userId')) {
         await this.baseSysPermsService.refreshPerms(user.userId);
       }
@@ -186,7 +231,7 @@ export class BaseSysMenuService extends BaseService {
   }
 
   /**
-   * 解析实体和Controller
+   * 解析實體和Controller
    * @param entityString
    * @param controller
    * @param module
@@ -196,7 +241,7 @@ export class BaseSysMenuService extends BaseService {
       ...this.config.typeorm.dataSource.default,
       entities: [],
     });
-    // 连接数据库
+    // 連線資料庫
     await tempDataSource.initialize();
     const { newCode, className, oldTableName } = this.parseCode(entityString);
     const code = ts.transpile(
@@ -261,7 +306,7 @@ export class BaseSysMenuService extends BaseService {
   }
 
   /**
-   * 解析Entity类名
+   * 解析Entity類名
    * @param code
    * @returns
    */
@@ -290,12 +335,12 @@ export class BaseSysMenuService extends BaseService {
         oldTableName,
       };
     } catch (err) {
-      throw new CoolCommException('代码结构不正确，请检查');
+      throw new CoolCommException('程式碼結構不正確，請檢查');
     }
   }
 
   /**
-   *  创建代码
+   *  建立程式碼
    * @param body body
    */
   async create(body) {
@@ -320,7 +365,7 @@ export class BaseSysMenuService extends BaseService {
   }
 
   /**
-   * 创建配置文件
+   * 建立配置檔案
    * @param module
    */
   async createConfigFile(module: string) {
@@ -337,19 +382,19 @@ export class BaseSysMenuService extends BaseService {
       const data = `import { ModuleConfig } from '@cool-midway/core';
 
 /**
- * 模块配置
+ * 模組配置
  */
 export default () => {
   return {
-    // 模块名称
+    // 模組名稱
     name: 'xxx',
-    // 模块描述
+    // 模組描述
     description: 'xxx',
-    // 中间件，只对本模块有效
+    // 中介軟體，只對本模組有效
     middlewares: [],
-    // 中间件，全局有效
+    // 中介軟體，全域性有效
     globalMiddlewares: [],
-    // 模块加载顺序，默认为0，值越大越优先加载
+    // 模組載入順序，預設為0，值越大越優先載入
     order: 0,
   } as ModuleConfig;
 };
@@ -359,7 +404,7 @@ export default () => {
   }
 
   /**
-   * 找到文件名
+   * 找到檔名
    * @param controller
    * @returns
    */
@@ -375,7 +420,7 @@ export default () => {
   }
 
   /**
-   * 创建文件
+   * 建立檔案
    * @param filePath
    * @param content
    */
@@ -388,7 +433,7 @@ export default () => {
   }
 
   /**
-   * 导出菜单
+   * 匯出選單
    * @param ids
    * @returns
    */
@@ -396,12 +441,12 @@ export default () => {
     const result: any[] = [];
     const menus = await this.baseSysMenuEntity.findBy({ id: In(ids) });
 
-    // 递归取出子菜单
+    // 遞迴取出子選單
     const getChildMenus = (parentId: number): any[] => {
       const children = _.remove(menus, e => e.parentId == parentId);
       children.forEach(child => {
         child.childMenus = getChildMenus(child.id);
-        // 删除不需要的字段
+        // 刪除不需要的欄位
         delete child.id;
         delete child.createTime;
         delete child.updateTime;
@@ -410,15 +455,15 @@ export default () => {
       return children;
     };
 
-    // lodash取出父级菜单(parentId为 null)， 并从menus 删除
+    // lodash取出父級選單(parentId為 null)， 並從menus 刪除
     const parentMenus = _.remove(menus, e => {
       return e.parentId == null;
     });
 
-    // 对于每个父级菜单，获取它的子菜单
+    // 對於每個父級選單，獲取它的子選單
     parentMenus.forEach(parent => {
       parent.childMenus = getChildMenus(parent.id);
-      // 删除不需要的字段
+      // 刪除不需要的欄位
       delete parent.id;
       delete parent.createTime;
       delete parent.updateTime;
@@ -431,18 +476,18 @@ export default () => {
   }
 
   /**
-   * 导入
+   * 匯入
    * @param menus
    */
   async import(menus: any[]) {
-    // 递归保存子菜单
+    // 遞迴儲存子選單
     const saveChildMenus = async (parentMenu: any, parentId: number | null) => {
       const children = parentMenu.childMenus || [];
       for (let child of children) {
-        const childData = { ...child, parentId: parentId }; // 保持与数据库的parentId字段的一致性
-        delete childData.childMenus; // 删除childMenus属性，因为我们不想将它保存到数据库中
+        const childData = { ...child, parentId: parentId }; // 保持與資料庫的parentId欄位的一致性
+        delete childData.childMenus; // 刪除childMenus屬性，因為我們不想將它儲存到資料庫中
 
-        // 保存子菜单并获取其ID，以便为其子菜单设置parentId
+        // 儲存子選單並獲取其ID，以便為其子選單設定parentId
         const savedChild = await this.baseSysMenuEntity.save(childData);
 
         if (!_.isEmpty(child.childMenus)) {
@@ -453,9 +498,9 @@ export default () => {
 
     for (let menu of menus) {
       const menuData = { ...menu };
-      delete menuData.childMenus; // 删除childMenus属性，因为我们不想将它保存到数据库中
+      delete menuData.childMenus; // 刪除childMenus屬性，因為我們不想將它儲存到資料庫中
 
-      // 保存主菜单并获取其ID
+      // 儲存主選單並獲取其ID
       const savedMenu = await this.baseSysMenuEntity.save(menuData);
 
       if (menu.childMenus && menu.childMenus.length > 0) {

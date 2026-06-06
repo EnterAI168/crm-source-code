@@ -2,7 +2,7 @@
 	<div class="count-effect">
 		<div class="card">
 			<div class="card__header">
-				<span class="label">{{ $t('总销售额') }}</span>
+				<span class="label">{{ $t('總銷售額') }}</span>
 
 				<cl-svg name="amount" class="icon" />
 			</div>

@@ -13,7 +13,7 @@ export class TaskDemoService extends BaseService {
    * 描述
    */
   async test(a, b) {
-    this.logger.info('我被调用了', a, b);
-    return '任务执行成功';
+    this.logger.info('我被呼叫了', a, b);
+    return '任務執行成功';
   }
 }

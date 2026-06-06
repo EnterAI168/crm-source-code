@@ -1,5 +1,5 @@
 <template>
-	<cl-upload v-model="value" multiple :text="$t('文件上传')" type="file" />
+	<cl-upload v-model="value" multiple :text="$t('檔案上傳')" type="file" />
 </template>
 
 <script lang="ts" setup>

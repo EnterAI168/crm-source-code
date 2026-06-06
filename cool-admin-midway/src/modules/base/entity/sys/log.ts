@@ -2,16 +2,16 @@ import { BaseEntity, transformerJson } from '../base';
 import { Column, Index, Entity } from 'typeorm';
 
 /**
- * 系统日志
+ * 系統日誌
  */
 @Entity('base_sys_log')
 export class BaseSysLogEntity extends BaseEntity {
   @Index()
-  @Column({ comment: '用户ID', nullable: true })
+  @Column({ comment: '使用者ID', nullable: true })
   userId: number;
 
   @Index()
-  @Column({ comment: '行为' })
+  @Column({ comment: '行為' })
   action: string;
 
   @Index()
@@ -19,7 +19,7 @@ export class BaseSysLogEntity extends BaseEntity {
   ip: string;
 
   @Column({
-    comment: '参数',
+    comment: '參數',
     nullable: true,
     type: 'json',
     transformer: transformerJson,

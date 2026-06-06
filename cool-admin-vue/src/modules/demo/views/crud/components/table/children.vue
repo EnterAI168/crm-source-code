@@ -2,15 +2,15 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>children</el-tag>
-			<span>多级表头</span>
+			<span>多級表頭</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['table/children.vue']" />
 
-			<!-- 自定义表格组件 -->
-			<cl-dialog v-model="visible" title="多级表头" width="80%">
+			<!-- 自定義表格元件 -->
+			<cl-dialog v-model="visible" title="多級表頭" width="80%">
 				<cl-crud ref="Crud">
 					<cl-row>
 						<cl-table ref="Table" />
@@ -54,11 +54,11 @@ const Table = useTable({
 
 	columns: [
 		{
-			label: '用户信息',
+			label: '使用者資訊',
 			prop: 'baseInfo',
 			minWidth: 250,
 
-			// 配置 children 参数
+			// 配置 children 參數
 			children: [
 				{
 					label: '姓名',
@@ -66,7 +66,7 @@ const Table = useTable({
 					minWidth: 140
 				},
 				{
-					label: '手机号',
+					label: '手機號',
 					prop: 'phone',
 					minWidth: 140
 				}
@@ -79,7 +79,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '创建时间',
+			label: '建立時間',
 			prop: 'createTime',
 			minWidth: 170,
 			sortable: 'desc'

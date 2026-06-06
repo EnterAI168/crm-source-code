@@ -9,19 +9,19 @@ import * as _ from 'lodash';
 import { pUploadPath } from '../../../../comm/path';
 
 /**
- * 文件上传
+ * 檔案上傳
  */
 export class CoolPlugin extends BasePluginHook implements BaseUpload {
   /**
-   * 验证路径安全性，防止路径遍历攻击
-   * @param userInput 用户输入的文件名或路径
-   * @returns 安全的文件名
+   * 驗證路徑安全性，防止路徑遍歷攻擊
+   * @param userInput 使用者輸入的檔名或路徑
+   * @returns 安全的檔名
    */
   private sanitizePath(userInput: string): string {
     if (!userInput) {
       return '';
     }
-    // 检查是否包含路径遍历字符
+    // 檢查是否包含路徑遍歷字元
     if (
       userInput.includes('..') ||
       userInput.includes('./') ||
@@ -29,34 +29,34 @@ export class CoolPlugin extends BasePluginHook implements BaseUpload {
       userInput.includes('\\') ||
       userInput.includes('//') ||
       userInput.includes('\0') ||
-      /^[a-zA-Z]:/.test(userInput) || // Windows绝对路径
+      /^[a-zA-Z]:/.test(userInput) || // Windows絕對路徑
       userInput.startsWith('/')
     ) {
-      throw new CoolCommException('非法的文件路径');
+      throw new CoolCommException('非法的檔案路徑');
     }
-    // 规范化路径后再次检查
+    // 規範化路徑後再次檢查
     const normalized = path.normalize(userInput);
     if (normalized.includes('..') || normalized.startsWith('/')) {
-      throw new CoolCommException('非法的文件路径');
+      throw new CoolCommException('非法的檔案路徑');
     }
     return normalized;
   }
 
   /**
-   * 验证最终路径是否在允许的目录内
-   * @param targetPath 目标路径
-   * @param basePath 基础路径
+   * 驗證最終路徑是否在允許的目錄內
+   * @param targetPath 目標路徑
+   * @param basePath 基礎路徑
    */
   private validateTargetPath(targetPath: string, basePath: string): void {
     const resolvedTarget = path.resolve(targetPath);
     const resolvedBase = path.resolve(basePath);
     if (!resolvedTarget.startsWith(resolvedBase + path.sep)) {
-      throw new CoolCommException('文件路径超出允许范围');
+      throw new CoolCommException('檔案路徑超出允許範圍');
     }
   }
 
   /**
-   * 获得上传模式
+   * 獲得上傳模式
    * @returns
    */
   async getMode() {
@@ -67,7 +67,7 @@ export class CoolPlugin extends BasePluginHook implements BaseUpload {
   }
 
   /**
-   * 获得原始操作对象
+   * 獲得原始操作物件
    * @returns
    */
   async getMetaFileObj() {
@@ -75,7 +75,7 @@ export class CoolPlugin extends BasePluginHook implements BaseUpload {
   }
 
   /**
-   * 下载并上传
+   * 下載並上傳
    * @param url
    * @param fileName
    */
@@ -84,33 +84,33 @@ export class CoolPlugin extends BasePluginHook implements BaseUpload {
     const basePath = pUploadPath();
     const dateDir = moment().format('YYYYMMDD');
 
-    // 从url获取扩展名
+    // 從url獲取副檔名
     const extend = path.extname(fileName ? fileName : url);
 
-    // 验证文件名安全性
+    // 驗證檔名安全性
     let safeFileName: string;
     if (fileName) {
       safeFileName = this.sanitizePath(fileName);
-      // 只取文件名部分，去除可能的子目录
+      // 只取檔名部分，去除可能的子目錄
       safeFileName = path.basename(safeFileName);
     } else {
       safeFileName = uuid() + extend;
     }
 
     const download = require('download');
-    // 数据
+    // 資料
     const data = url.includes('http')
       ? await download(url)
       : fs.readFileSync(url);
 
-    // 创建文件夹
+    // 建立資料夾
     const dirPath = path.join(basePath, dateDir);
     if (!fs.existsSync(dirPath)) {
       fs.mkdirSync(dirPath, { recursive: true });
     }
 
     const targetPath = path.join(dirPath, safeFileName);
-    // 验证最终路径
+    // 驗證最終路徑
     this.validateTargetPath(targetPath, basePath);
 
     fs.writeFileSync(targetPath, data);
@@ -118,28 +118,28 @@ export class CoolPlugin extends BasePluginHook implements BaseUpload {
   }
 
   /**
-   * 指定Key(路径)上传，本地文件上传到存储服务
-   * @param filePath 文件路径
-   * @param key 路径一致会覆盖源文件
+   * 指定Key(路徑)上傳，本地檔案上傳到儲存服務
+   * @param filePath 檔案路徑
+   * @param key 路徑一致會覆蓋原始檔
    */
   async uploadWithKey(filePath: any, key: any) {
     const { domain } = this.pluginInfo.config;
     const basePath = pUploadPath();
     const dateDir = moment().format('YYYYMMDD');
 
-    // 验证key安全性
+    // 驗證key安全性
     const safeKey = this.sanitizePath(key);
 
     const data = fs.readFileSync(filePath);
 
-    // 构建目标路径
+    // 構建目標路徑
     const targetPath = path.join(basePath, dateDir, safeKey);
     const dirPath = path.dirname(targetPath);
 
-    // 验证最终路径
+    // 驗證最終路徑
     this.validateTargetPath(targetPath, basePath);
 
-    // 如果文件夹不存在则创建
+    // 如果資料夾不存在則建立
     if (!fs.existsSync(dirPath)) {
       fs.mkdirSync(dirPath, { recursive: true });
     }
@@ -149,9 +149,9 @@ export class CoolPlugin extends BasePluginHook implements BaseUpload {
   }
 
   /**
-   * 上传文件
+   * 上傳檔案
    * @param ctx
-   * @param key 文件路径
+   * @param key 檔案路徑
    */
   async upload(ctx: any) {
     const { domain } = this.pluginInfo.config;
@@ -160,18 +160,18 @@ export class CoolPlugin extends BasePluginHook implements BaseUpload {
       const basePath = pUploadPath();
       const dateDir = moment().format('YYYYMMDD');
 
-      // 验证key安全性
+      // 驗證key安全性
       let safeKey: string | undefined;
       if (key) {
         safeKey = this.sanitizePath(key);
       }
 
       if (_.isEmpty(ctx.files)) {
-        throw new CoolCommException('上传文件为空');
+        throw new CoolCommException('上傳檔案為空');
       }
 
       const file = ctx.files[0];
-      // 安全处理原始文件名
+      // 安全處理原始檔名
       const originalFileName = path.basename(file.filename);
       const extension = originalFileName.split('.').pop();
 
@@ -179,7 +179,7 @@ export class CoolPlugin extends BasePluginHook implements BaseUpload {
       const name = `${dateDir}/${finalName}`;
       const target = path.join(basePath, name);
 
-      // 验证最终路径
+      // 驗證最終路徑
       this.validateTargetPath(target, basePath);
 
       const dirPath = path.join(basePath, dateDir);
@@ -195,10 +195,10 @@ export class CoolPlugin extends BasePluginHook implements BaseUpload {
       if (err instanceof CoolCommException) {
         throw err;
       }
-      throw new CoolCommException('上传失败: ' + err.message);
+      throw new CoolCommException('上傳失敗: ' + err.message);
     }
   }
 }
 
-// 导出插件实例， Plugin名称不可修改
+// 匯出外掛例項， Plugin名稱不可修改
 export const Plugin = CoolPlugin;

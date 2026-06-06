@@ -6,10 +6,10 @@
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['crud/base.vue']" />
 
-			<!-- 自定义表格组件 -->
+			<!-- 自定義表格元件 -->
 			<cl-dialog v-model="visible" title="起步" width="80%">
 				<cl-crud ref="Crud">
 					<cl-row>
@@ -31,7 +31,7 @@
 						<cl-pagination />
 					</cl-row>
 
-					<!-- 新增、编辑 -->
+					<!-- 新增、編輯 -->
 					<cl-upsert ref="Upsert" />
 				</cl-crud>
 			</cl-dialog>
@@ -55,11 +55,11 @@ const { dict } = useDict();
 // cl-crud 配置
 const Crud = useCrud(
 	{
-		// test 为测试数据模式，详细说明移步到 service 例子
+		// test 為測試資料模式，詳細說明移步到 service 例子
 		service: 'test'
 	},
 	app => {
-		//【很重要】首次请求，数据一并添加到请求参数中
+		//【很重要】首次請求，資料一併新增到請求參數中
 		app.refresh({
 			size: 10,
 			status: 1
@@ -82,7 +82,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			minWidth: 140
 		},
@@ -93,7 +93,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '创建时间',
+			label: '建立時間',
 			prop: 'createTime',
 			minWidth: 170,
 			sortable: 'desc'
@@ -116,7 +116,7 @@ const Upsert = useUpsert({
 			}
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			component: {
 				name: 'el-input'

@@ -12,7 +12,7 @@ import { CachingFactory, MidwayCache } from '@midwayjs/cache-manager';
 import { BaseSysRoleEntity } from '../../entity/sys/role';
 
 /**
- * 系统用户
+ * 系統使用者
  */
 @Provide()
 export class BaseSysUserService extends BaseService {
@@ -26,7 +26,7 @@ export class BaseSysUserService extends BaseService {
 
   private readonly LEVEL_MANAGER = '主管';
 
-  private readonly LEVEL_SENIOR = '资深同仁';
+  private readonly LEVEL_SENIOR = '資深同仁';
 
   private readonly LEVEL_NORMAL = '一般同仁';
 
@@ -52,11 +52,11 @@ export class BaseSysUserService extends BaseService {
   ctx;
 
   /**
-   * 分页查询
+   * 分頁查詢
    * @param query
    */
   async page(query) {
-    const { keyWord, status, departmentIds = [], name, phone, email } = query;
+    const { keyWord, status, departmentIds = [], name, username, phone, email } = query;
     const userId = this.ctx.admin.userId;
     const roleLabels = await this.getCurrentRoleLabels();
     const canViewAll = roleLabels.some(label =>
@@ -85,9 +85,11 @@ export class BaseSysUserService extends BaseService {
             )}
             ${this.setSql(status, 'and a.status = ?', [status])}
             ${this.setSql(name, 'and a.name LIKE ?', [`%${name}%`])}
+            ${this.setSql(username, 'and a.username LIKE ?', [`%${username}%`])}
             ${this.setSql(phone, 'and a.phone LIKE ?', [`%${phone}%`])}
             ${this.setSql(email, 'and a.email LIKE ?', [`%${email}%`])}
-            ${this.setSql(keyWord, 'and (a.name LIKE ? or a.phone LIKE ? or a.email LIKE ?)', [
+            ${this.setSql(keyWord, 'and (a.name LIKE ? or a.username LIKE ? or a.phone LIKE ? or a.email LIKE ?)', [
+              `%${keyWord}%`,
               `%${keyWord}%`,
               `%${keyWord}%`,
               `%${keyWord}%`,
@@ -117,7 +119,7 @@ export class BaseSysUserService extends BaseService {
   }
 
   /**
-   * 移动部门
+   * 移動部門
    * @param departmentId
    * @param userIds
    */
@@ -126,7 +128,7 @@ export class BaseSysUserService extends BaseService {
   }
 
   /**
-   * 获得个人信息
+   * 獲得個人資訊
    */
   async person(userId) {
     const info = await this.baseSysUserEntity.findOneBy({
@@ -137,7 +139,7 @@ export class BaseSysUserService extends BaseService {
   }
 
   /**
-   * 更新用户角色关系
+   * 更新使用者角色關係
    * @param user
    */
   async updateUserRole(user) {
@@ -162,11 +164,16 @@ export class BaseSysUserService extends BaseService {
    * @param param
    */
   async add(param) {
+    param.name = String(param.name || param.nickName || '').trim();
+    param.nickName = param.name;
+    if (!_.isEmpty(param.username)) {
+      param.phone = param.username;
+    }
     const exists = await this.baseSysUserEntity.findOneBy({
       username: param.username,
     });
     if (!_.isEmpty(exists)) {
-      throw new CoolCommException('用户名已经存在~');
+      throw new CoolCommException('該手機號賬號已存在');
     }
     await this.validateRoleAndLevel(param);
     param.password = md5(param.password);
@@ -176,7 +183,7 @@ export class BaseSysUserService extends BaseService {
   }
 
   /**
-   * 根据ID获得信息
+   * 根據ID獲得資訊
    * @param id
    */
   public async info(id) {
@@ -204,20 +211,24 @@ export class BaseSysUserService extends BaseService {
   }
 
   /**
-   * 修改个人信息
+   * 修改個人資訊
    * @param param
    */
   public async personUpdate(param) {
     param.id = this.ctx.admin.userId;
+    if (param.name !== undefined || param.nickName !== undefined) {
+      param.name = String(param.name || param.nickName || '').trim();
+      param.nickName = param.name;
+    }
     if (!_.isEmpty(param.password)) {
       param.password = md5(param.password);
       const oldPassword = md5(param.oldPassword);
       const userInfo = await this.baseSysUserEntity.findOneBy({ id: param.id });
       if (!userInfo) {
-        throw new CoolCommException('用户不存在');
+        throw new CoolCommException('使用者不存在');
       }
       if (oldPassword !== userInfo.password) {
-        throw new CoolCommException('原密码错误');
+        throw new CoolCommException('原密碼錯誤');
       }
       param.passwordV = userInfo.passwordV + 1;
       await this.midwayCache.set(
@@ -232,18 +243,23 @@ export class BaseSysUserService extends BaseService {
 
   /**
    * 修改
-   * @param param 数据
+   * @param param 資料
    */
   async update(param) {
     if (param.id && param.username === 'admin') {
       throw new CoolCommException('非法操作~');
+    }
+    param.name = String(param.name || param.nickName || '').trim();
+    param.nickName = param.name;
+    if (!_.isEmpty(param.username)) {
+      param.phone = param.username;
     }
     await this.validateRoleAndLevel(param);
     if (!_.isEmpty(param.password)) {
       param.password = md5(param.password);
       const userInfo = await this.baseSysUserEntity.findOneBy({ id: param.id });
       if (!userInfo) {
-        throw new CoolCommException('用户不存在');
+        throw new CoolCommException('使用者不存在');
       }
       param.passwordV = userInfo.passwordV + 1;
       await this.midwayCache.set(
@@ -283,7 +299,7 @@ export class BaseSysUserService extends BaseService {
     }
 
     if (roleIdList.length > 1) {
-      throw new CoolCommException('角色仅支持单选');
+      throw new CoolCommException('角色僅支援單選');
     }
 
     const roles = await this.baseSysRoleEntity.findBy({ id: In(roleIdList) });
@@ -303,7 +319,7 @@ export class BaseSysUserService extends BaseService {
           (param.level || '').trim()
         )
       ) {
-        throw new CoolCommException('内勤角色级别只能选择资深同仁或一般同仁');
+        throw new CoolCommException('內勤角色級別只能選擇資深同仁或一般同仁');
       }
       return;
     }
@@ -312,7 +328,7 @@ export class BaseSysUserService extends BaseService {
   }
 
   /**
-   * 禁用用户
+   * 停用使用者
    * @param userId
    */
   async forbidden(userId) {

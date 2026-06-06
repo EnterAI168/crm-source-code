@@ -4,7 +4,7 @@ import { SpaceTypeEntity } from '../../entity/type';
 import { SpaceTypeService } from '../../service/type';
 
 /**
- * 空间分类
+ * 空間分類
  */
 @Provide()
 @CoolController({

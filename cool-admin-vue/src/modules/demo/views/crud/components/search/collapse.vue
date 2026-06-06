@@ -2,17 +2,17 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>collapse</el-tag>
-			<span>折叠</span>
+			<span>摺疊</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['search/collapse.vue']" />
 
-			<!-- 折叠表格组件 -->
-			<cl-dialog v-model="visible" title="折叠" width="80%">
+			<!-- 摺疊表格元件 -->
+			<cl-dialog v-model="visible" title="摺疊" width="80%">
 				<cl-crud ref="Crud">
-					<!--【collapse】折叠参数，【inline】是否行内 -->
+					<!--【collapse】摺疊參數，【inline】是否行內 -->
 					<cl-search ref="Search" reset-btn collapse :inline="false" />
 
 					<cl-row>
@@ -63,7 +63,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			minWidth: 140
 		},
@@ -74,7 +74,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '创建时间',
+			label: '建立時間',
 			prop: 'createTime',
 			minWidth: 170,
 			sortable: 'desc'
@@ -87,7 +87,7 @@ const Search = useSearch({
 	items: [
 		...range(20).map(i => {
 			return {
-				label: '输入框',
+				label: '輸入框',
 				prop: `T${i + 1}`,
 				component: {
 					name: 'el-input'

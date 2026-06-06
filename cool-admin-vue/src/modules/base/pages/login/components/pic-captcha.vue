@@ -33,7 +33,7 @@ const base64 = ref('');
 // svg
 const svg = ref('');
 
-// 刷新
+// 重新整理
 async function refresh() {
 	svg.value = '';
 	base64.value = '';
@@ -59,7 +59,7 @@ async function refresh() {
 					captchaId
 				});
 			} else {
-				ElMessageBox.alert(t('验证码获取失败'), {
+				ElMessageBox.alert(t('驗證碼獲取失敗'), {
 					title: t('提示'),
 					type: 'error'
 				});

@@ -31,14 +31,14 @@ export default defineComponent({
 		// cl-crud
 		const Crud = useCrud();
 
-		// 状态
+		// 狀態
 		const status = ref<boolean | number | string>();
 
-		// 选中值类型
+		// 選中值型別
 		const activeValue = ref();
 		const inactiveValue = ref();
 
-		// 监听值
+		// 監聽值
 		watch(
 			() => props.modelValue,
 			val => {
@@ -61,7 +61,7 @@ export default defineComponent({
 			}
 		);
 
-		// 监听改变
+		// 監聽改變
 		function onChange(val: boolean | string | number) {
 			const next = () => {
 				if (props.column && props.scope) {
@@ -97,7 +97,7 @@ export default defineComponent({
 			};
 
 			if (props.isCheck) {
-				ElMessageBox.confirm(val ? t('确定要开启吗？') : t('确定要关闭吗？'), t('提示'), {
+				ElMessageBox.confirm(val ? t('確定要開啟嗎？') : t('確定要關閉嗎？'), t('提示'), {
 					type: 'warning'
 				})
 					.then(() => {
@@ -109,7 +109,7 @@ export default defineComponent({
 			}
 		}
 
-		// 点击事件, 阻止冒泡
+		// 點選事件, 阻止冒泡
 		function onClick(event: MouseEvent) {
 			event.stopPropagation();
 		}

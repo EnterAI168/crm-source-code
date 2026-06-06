@@ -2,18 +2,19 @@ import { InjectEntityModel } from '@midwayjs/typeorm';
 import { Provide, Inject } from '@midwayjs/core';
 import { BaseService, CoolCommException } from '@cool-midway/core';
 import { CrmCustomerFollowupEntity } from '../entity/followup';
-import { CrmCustomerInfoEntity } from '../entity/info';
+import { CrmQuoteOrderEntity } from '../entity/quoteOrder';
 import { Repository } from 'typeorm';
 import { Context } from '@midwayjs/koa';
 import { BaseSysPermsService } from '../../base/service/sys/perms';
+import { CrmQuoteOrderService } from './quoteOrder';
 
 @Provide()
 export class CrmCustomerFollowupService extends BaseService {
   @InjectEntityModel(CrmCustomerFollowupEntity)
   crmCustomerFollowupEntity: Repository<CrmCustomerFollowupEntity>;
 
-  @InjectEntityModel(CrmCustomerInfoEntity)
-  crmCustomerInfoEntity: Repository<CrmCustomerInfoEntity>;
+  @InjectEntityModel(CrmQuoteOrderEntity)
+  crmQuoteOrderEntity: Repository<CrmQuoteOrderEntity>;
 
   @Inject()
   ctx: Context;
@@ -21,55 +22,69 @@ export class CrmCustomerFollowupService extends BaseService {
   @Inject()
   baseSysPermsService: BaseSysPermsService;
 
+  @Inject()
+  crmQuoteOrderService: CrmQuoteOrderService;
+
   async isBoss(): Promise<boolean> {
     const roleIds = this.ctx.admin?.roleIds || [];
     return this.baseSysPermsService.isAdmin(roleIds);
   }
 
-  /**
-   * 校验当前用户是否可查看/操作该客户（已分配列表中的客户）
-   */
-  async assertCustomerAccess(customerId: number) {
-    const row = await this.crmCustomerInfoEntity.findOneBy({
-      id: customerId,
+  async assertQuoteAccess(quoteId: number) {
+    const row = await this.crmQuoteOrderEntity.findOneBy({
+      id: quoteId,
       isDeleted: 0,
     });
     if (!row) {
-      throw new CoolCommException('客户不存在');
+      throw new CoolCommException('報價單不存在');
     }
-    if (!row.salesmanId) {
-      throw new CoolCommException('客户不在已分配列表');
-    }
+
     const boss = await this.isBoss();
-    const uid = this.ctx.admin.userId;
-    if (!boss && row.salesmanId !== uid) {
-      throw new CoolCommException('无权限操作该客户');
+    const uid = Number(this.ctx.admin?.userId || 0);
+    if (boss || Number(row.salesmanId || 0) === uid) {
+      return row;
     }
+
+    try {
+      await this.crmQuoteOrderService.info(quoteId);
+    } catch (error) {
+      throw new CoolCommException('無權限檢視該報價單跟進記錄');
+    }
+
+    return row;
   }
 
-  /**
-   * 跟进记录分页（须带 customerId），支持关键字与时间范围
-   */
   async page(query: any) {
-    const customerId = Number(query.customerId);
-    if (!customerId || Number.isNaN(customerId)) {
-      throw new CoolCommException('缺少客户ID');
+    const quoteId = Number(query.quoteId || 0);
+    if (!quoteId || Number.isNaN(quoteId)) {
+      throw new CoolCommException('缺少報價單ID');
     }
-    await this.assertCustomerAccess(customerId);
 
+    const quote = await this.assertQuoteAccess(quoteId);
+    const boss = await this.isBoss();
+    const uid = Number(this.ctx.admin?.userId || 0);
     const {
       keyword,
       followTimeMin,
       followTimeMax,
       nextFollowTimeMin,
       nextFollowTimeMax,
-    } = query;
+    } = query || {};
+
+    let salesmanId = Number(query.salesmanId || quote.salesmanId || uid || 0);
+    if (Number.isNaN(salesmanId) || salesmanId <= 0) {
+      salesmanId = Number(quote.salesmanId || uid || 0);
+    }
+    if (!boss && Number(quote.salesmanId || 0) === uid) {
+      salesmanId = uid;
+    }
 
     const sql = `
       SELECT *
       FROM crm_customer_followup
       WHERE isDeleted = 0
-        ${this.setSql(true, 'and customerId = ?', [customerId])}
+        ${this.setSql(true, 'and quoteId = ?', [quoteId])}
+        ${this.setSql(salesmanId > 0, 'and salesmanId = ?', [salesmanId])}
         ${this.setSql(keyword, 'and (content like ? or remark like ?)', [`%${keyword}%`, `%${keyword}%`])}
         ${this.setSql(followTimeMin, 'and followTime >= ?', [followTimeMin])}
         ${this.setSql(followTimeMax, 'and followTime <= ?', [followTimeMax])}
@@ -81,13 +96,22 @@ export class CrmCustomerFollowupService extends BaseService {
   }
 
   async add(param: any) {
-    const customerId = Number(param.customerId);
-    if (!customerId || Number.isNaN(customerId)) {
-      throw new CoolCommException('缺少客户ID');
+    const quoteId = Number(param.quoteId || 0);
+    if (!quoteId || Number.isNaN(quoteId)) {
+      throw new CoolCommException('缺少報價單ID');
     }
-    await this.assertCustomerAccess(customerId);
+
+    const quote = await this.assertQuoteAccess(quoteId);
+    const uid = Number(this.ctx.admin?.userId || 0);
+    const followSalesmanId = Number(
+      param.salesmanId || quote.salesmanId || uid || 0
+    );
+
     param.isDeleted = 0;
-    param.customerId = customerId;
+    param.customerId = Number(quote.customerId || 0);
+    param.quoteId = quoteId;
+    param.salesmanId = Number.isNaN(followSalesmanId) ? null : followSalesmanId;
+
     await this.crmCustomerFollowupEntity.save(param);
     return param.id;
   }

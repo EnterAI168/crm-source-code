@@ -13,12 +13,12 @@ export async function bootstrap(app: App) {
 	// 路由
 	app.use(router);
 
-	// 模块
+	// 模組
 	const { eventLoop } = createModule(app);
 
 	// eps
 	createEps();
 
-	// 加载
+	// 載入
 	Loading.set([eventLoop()]);
 }

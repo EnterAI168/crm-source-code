@@ -6,15 +6,15 @@
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['table/slot.vue']" />
 
-			<!-- 自定义表格组件 -->
+			<!-- 自定義表格元件 -->
 			<cl-dialog v-model="visible" title="插槽的使用" width="80%">
 				<cl-crud ref="Crud">
 					<cl-row>
 						<cl-table ref="Table">
-							<!--【很重要】必须与 prop 名保持一致，格式：column-[prop] -->
+							<!--【很重要】必須與 prop 名保持一致，格式：column-[prop] -->
 							<template #column-name="{ scope }">
 								<cl-row type="flex" align="middle">
 									<cl-avatar :size="36" :style="{ marginRight: '10px' }" />
@@ -70,7 +70,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			minWidth: 140
 		},
@@ -81,7 +81,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '创建时间',
+			label: '建立時間',
 			prop: 'createTime',
 			minWidth: 170,
 			sortable: 'desc'

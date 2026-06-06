@@ -2,15 +2,15 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>context-menu</el-tag>
-			<span>右键菜单</span>
+			<span>右鍵選單</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['table/context-menu.vue']" />
 
-			<!-- 自定义表格组件 -->
-			<cl-dialog v-model="visible" title="右键菜单">
+			<!-- 自定義表格元件 -->
+			<cl-dialog v-model="visible" title="右鍵選單">
 				<cl-crud ref="Crud">
 					<cl-row>
 						<cl-table ref="Table"></cl-table>
@@ -21,7 +21,7 @@
 						<cl-pagination />
 					</cl-row>
 
-					<!-- 新增、编辑 -->
+					<!-- 新增、編輯 -->
 					<cl-upsert ref="Upsert" />
 				</cl-crud>
 			</cl-dialog>
@@ -56,30 +56,30 @@ const Crud = useCrud(
 const Table = useTable({
 	autoHeight: false,
 
-	// 右键菜单配置，为 [] 时则不显示内容
+	// 右鍵選單配置，為 [] 時則不顯示內容
 	contextMenu: [
-		'refresh', // 刷新
-		'check', // 选择行
-		'edit', // 弹出编辑框
-		'delete', // 弹出删除提示
-		'info', // 弹出详情
+		'refresh', // 重新整理
+		'check', // 選擇行
+		'edit', // 彈出編輯框
+		'delete', // 彈出刪除提示
+		'info', // 彈出詳情
 		'order-desc', // 使列倒序
 		'order-asc', // 使列升序
 		{
-			label: '禁用状态',
+			label: '停用狀態',
 			disabled: true
 		},
 		{
-			label: '带图标',
+			label: '帶圖示',
 			prefixIcon: EditPen,
 			suffixIcon: MoreFilled
 		},
 		{
-			label: '超出隐藏，看我有很多字非常多',
+			label: '超出隱藏，看我有很多字非常多',
 			ellipsis: true
 		},
 		{
-			label: '多层级',
+			label: '多層級',
 			children: [
 				{
 					label: 'A',
@@ -87,7 +87,7 @@ const Table = useTable({
 						{
 							label: 'A-1',
 							callback(done) {
-								ElMessage.success('点击了A-1');
+								ElMessage.success('點選了A-1');
 								done();
 							}
 						}
@@ -101,20 +101,20 @@ const Table = useTable({
 				}
 			]
 		},
-		// row 行数据
-		// column 列属性
-		// event 事件对象
+		// row 行資料
+		// column 列屬性
+		// event 事件物件
 		(row, column, event) => {
-			// 必须返回一个对象
+			// 必須返回一個物件
 			return {
-				label: '自定义2',
+				label: '自定義2',
 				callback(done) {
-					ElMessage.info('获取中');
+					ElMessage.info('獲取中');
 
 					setTimeout(() => {
 						ElMessage.success('Ta 是' + row.name);
 
-						// 关闭右键菜单，只有在用到 callback 方法时才需要
+						// 關閉右鍵選單，只有在用到 callback 方法時才需要
 						done();
 					}, 500);
 				}
@@ -132,7 +132,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			minWidth: 140
 		},
@@ -143,7 +143,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '创建时间',
+			label: '建立時間',
 			prop: 'createTime',
 			minWidth: 170,
 			sortable: 'desc'
@@ -151,7 +151,7 @@ const Table = useTable({
 	]
 });
 
-// cl-upsert 配置，详细移步到 cl-upsert 示例查看
+// cl-upsert 配置，詳細移步到 cl-upsert 示例檢視
 const Upsert = useUpsert({
 	items: [
 		{
@@ -162,7 +162,7 @@ const Upsert = useUpsert({
 			}
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			component: {
 				name: 'el-input'

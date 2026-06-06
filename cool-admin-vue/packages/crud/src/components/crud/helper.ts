@@ -11,19 +11,19 @@ interface Options {
 }
 
 export function useHelper({ config, crud, mitt }: Options) {
-	// 刷新随机值，避免脏数据
+	// 重新整理隨機值，避免髒資料
 	const refreshRd = ref(0);
 
-	// 获取权限
+	// 獲取權限
 	function getPermission(key: "page" | "list" | "info" | "update" | "add" | "delete"): boolean {
 		return Boolean(crud.permission[key]);
 	}
 
-	// 根据字典替换请求参数
+	// 根據字典替換請求參數
 	function paramsReplace(params: obj) {
 		const { pagination, search, sort } = crud.dict;
 
-		// 请求参数
+		// 請求參數
 		const a: any = { ...params };
 
 		// 字典
@@ -50,18 +50,18 @@ export function useHelper({ config, crud, mitt }: Options) {
 		return a;
 	}
 
-	// 刷新请求
+	// 重新整理請求
 	function refresh(params?: obj) {
 		const { service, dict } = crud;
 
 		return new Promise((success, error) => {
-			// 合并请求参数
+			// 合併請求參數
 			const reqParams = paramsReplace(assign(crud.params, params));
 
 			// Loading
 			crud.loading = true;
 
-			// 预防脏数据
+			// 預防髒資料
 			const rd = (refreshRd.value = Math.random());
 
 			// 完成事件
@@ -108,7 +108,7 @@ export function useHelper({ config, crud, mitt }: Options) {
 				});
 			}
 
-			// 刷新钩子
+			// 重新整理鉤子
 			if (config.onRefresh) {
 				config.onRefresh(reqParams, { next, done, render });
 			} else {
@@ -117,7 +117,7 @@ export function useHelper({ config, crud, mitt }: Options) {
 		});
 	}
 
-	// 打开详情
+	// 開啟詳情
 	function rowInfo(data: any) {
 		mitt.emit("crud.proxy", {
 			name: "info",
@@ -125,14 +125,14 @@ export function useHelper({ config, crud, mitt }: Options) {
 		});
 	}
 
-	// 打开新增
+	// 開啟新增
 	function rowAdd() {
 		mitt.emit("crud.proxy", {
 			name: "add"
 		});
 	}
 
-	// 打开编辑
+	// 開啟編輯
 	function rowEdit(data: any) {
 		mitt.emit("crud.proxy", {
 			name: "edit",
@@ -140,7 +140,7 @@ export function useHelper({ config, crud, mitt }: Options) {
 		});
 	}
 
-	// 打开追加
+	// 開啟追加
 	function rowAppend(data: any) {
 		mitt.emit("crud.proxy", {
 			name: "append",
@@ -148,18 +148,18 @@ export function useHelper({ config, crud, mitt }: Options) {
 		});
 	}
 
-	// 关闭新增、编辑弹窗
+	// 關閉新增、編輯彈窗
 	function rowClose() {
 		mitt.emit("crud.proxy", {
 			name: "close"
 		});
 	}
 
-	// 删除请求
+	// 刪除請求
 	function rowDelete(...selection: any[]) {
 		const { service, dict } = crud;
 
-		// 参数
+		// 參數
 		const params = {
 			ids: selection.map((e) => e[dict.primaryId])
 		};
@@ -199,7 +199,7 @@ export function useHelper({ config, crud, mitt }: Options) {
 			});
 		}
 
-		// 删除钩子
+		// 刪除鉤子
 		if (config.onDelete) {
 			config.onDelete(selection, { next });
 		} else {
@@ -215,24 +215,24 @@ export function useHelper({ config, crud, mitt }: Options) {
 		});
 	}
 
-	// 获取请求参数
+	// 獲取請求參數
 	function getParams() {
 		return crud.params;
 	}
 
-	// 替换请求参数
+	// 替換請求參數
 	function setParams(data: obj) {
 		merge(crud.params, data);
 	}
 
-	// 设置
+	// 設定
 	function set(key: string, value: any) {
 		if (!value) {
 			return false;
 		}
 
 		switch (key) {
-			// 服务
+			// 服務
 			case "service":
 				Object.assign(crud.service, value);
 				crud.service.__proto__ = value.__proto__;
@@ -243,7 +243,7 @@ export function useHelper({ config, crud, mitt }: Options) {
 				}
 				break;
 
-			// 权限
+			// 權限
 			case "permission":
 				if (isFunction(value)) {
 					merge(crud.permission, value(crud));
@@ -258,12 +258,12 @@ export function useHelper({ config, crud, mitt }: Options) {
 		}
 	}
 
-	// 监听事件
+	// 監聽事件
 	function on(name: string, callback: fn) {
 		mitt.on(`${name}-${crud.id}`, callback);
 	}
 
-	// 默认值
+	// 預設值
 	set("dict", config.dict);
 	set("service", config.service);
 	set("permission", config.permission);

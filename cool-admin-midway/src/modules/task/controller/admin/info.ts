@@ -4,7 +4,7 @@ import { TaskInfoEntity } from '../../entity/info';
 import { TaskInfoService } from '../../service/info';
 
 /**
- * 任务
+ * 任務
  */
 @Provide()
 @CoolController({
@@ -23,16 +23,16 @@ export class TaskInfoController extends BaseController {
   taskInfoService: TaskInfoService;
 
   /**
-   * 手动执行一次
+   * 手動執行一次
    */
-  @Post('/once', { summary: '执行一次' })
+  @Post('/once', { summary: '執行一次' })
   async once(@Body('id') id: number) {
     await this.taskInfoService.once(id);
     this.ok();
   }
 
   /**
-   * 暂停任务
+   * 暫停任務
    */
   @Post('/stop', { summary: '停止' })
   async stop(@Body('id') id: number) {
@@ -41,18 +41,18 @@ export class TaskInfoController extends BaseController {
   }
 
   /**
-   * 开始任务
+   * 開始任務
    */
-  @Post('/start', { summary: '开始' })
+  @Post('/start', { summary: '開始' })
   async start(@Body('id') id: number, @Body('type') type: number) {
     await this.taskInfoService.start(id, type);
     this.ok();
   }
 
   /**
-   * 日志
+   * 日誌
    */
-  @Get('/log', { summary: '日志' })
+  @Get('/log', { summary: '日誌' })
   async log(@Query() params: any) {
     return this.ok(await this.taskInfoService.log(params));
   }

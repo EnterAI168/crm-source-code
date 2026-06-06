@@ -4,22 +4,22 @@ import { DemoCommQueue } from '../../queue/comm';
 import { DemoGetterQueue } from '../../queue/getter';
 
 /**
- * 队列
+ * 佇列
  */
 @CoolController()
 export class OpenDemoQueueController extends BaseController {
-  // 普通队列
+  // 普通佇列
   @Inject()
   demoCommQueue: DemoCommQueue;
 
-  // 主动消费队列
+  // 主動消費佇列
   @Inject()
   demoGetterQueue: DemoGetterQueue;
 
   /**
-   * 发送数据到队列
+   * 發送資料到佇列
    */
-  @Post('/add', { summary: '发送队列数据' })
+  @Post('/add', { summary: '發送佇列資料' })
   async queue() {
     this.demoCommQueue.add({ a: 2 });
     return this.ok();
@@ -32,7 +32,7 @@ export class OpenDemoQueueController extends BaseController {
   }
 
   /**
-   * 获得队列中的数据，只有当队列类型为getter时有效
+   * 獲得佇列中的資料，只有當佇列型別為getter時有效
    */
   @Get('/getter')
   async getter() {
@@ -42,7 +42,7 @@ export class OpenDemoQueueController extends BaseController {
       0,
       true
     );
-    // 获得完将数据从队列移除
+    // 獲得完將資料從佇列移除
     await job[0]?.remove();
     return this.ok(job[0]?.data);
   }

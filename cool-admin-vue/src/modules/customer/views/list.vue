@@ -6,103 +6,125 @@
 
 		<cl-row>
 			<cl-add-btn />
-			<el-button v-if="canImport" type="primary" @click="openImport">导入</el-button>
-			<el-button v-if="canImport" link type="primary" @click="downloadTpl">下载导入模板</el-button>
-			<input
-				ref="fileRef"
-				type="file"
-				accept=".xlsx,.xls"
-				style="display: none"
-				@change="onImportFile"
-			/>
+			<el-button v-if="canImport" type="primary" @click="openImport">匯入</el-button>
 			<cl-flex1 />
-			<cl-search-key placeholder="关键字" />
 		</cl-row>
 
 		<cl-row>
-			<cl-table ref="Table">
-				<template #column-companyInfo="{ scope }">
-					<div class="crm-pool-block">
-						<div class="crm-pool-line">
-							<span class="crm-pool-k">公司名称：</span>
-							<span class="crm-pool-v">{{ scope.row.companyName || '—' }}</span>
+			<div
+				ref="customerListTableWrapRef"
+				class="crm-list-table-wrap"
+				@wheel="onCustomerListWheel"
+			>
+				<cl-table ref="Table" class="crm-list-table">
+					<template #column-companyInfo="{ scope }">
+						<div class="crm-pool-block">
+							<div class="crm-pool-line">
+								<span class="crm-pool-k">公司名稱：</span>
+								<span class="crm-pool-v">{{ scope.row.companyName || '--' }}</span>
+							</div>
+							<div class="crm-pool-line">
+								<span class="crm-pool-k">地址：</span>
+								<span class="crm-pool-v">{{ scope.row.address || '--' }}</span>
+							</div>
+							<div class="crm-pool-line">
+								<span class="crm-pool-k">統一編號：</span>
+								<span class="crm-pool-v">{{ scope.row.taxNumber || '--' }}</span>
+							</div>
+							<div class="crm-pool-line">
+								<span class="crm-pool-k">匯款本公司：</span>
+								<span class="crm-pool-v">{{
+									scope.row.remittanceLast5 || '--'
+								}}</span>
+							</div>
+							<div class="crm-pool-line">
+								<span class="crm-pool-k">廣告投放：</span>
+								<span class="crm-pool-v">{{ getAdCustomerLabel(scope.row) }}</span>
+							</div>
 						</div>
-						<div class="crm-pool-line">
-							<span class="crm-pool-k">地址：</span>
-							<span class="crm-pool-v">{{ scope.row.address || '—' }}</span>
+					</template>
+
+					<template #column-contactInfo="{ scope }">
+						<div class="crm-pool-block">
+							<div class="crm-pool-line">
+								<span class="crm-pool-k">聯絡人：</span>
+								<span class="crm-pool-v">{{ scope.row.contactName || '--' }}</span>
+							</div>
+							<div class="crm-pool-line">
+								<span class="crm-pool-k">手機號：</span>
+								<span class="crm-pool-v">{{ scope.row.mobile || '--' }}</span>
+							</div>
+							<div class="crm-pool-line">
+								<span class="crm-pool-k">郵箱：</span>
+								<span class="crm-pool-v">{{ scope.row.email || '--' }}</span>
+							</div>
 						</div>
-						<div class="crm-pool-line">
-							<span class="crm-pool-k">统一编号：</span>
-							<span class="crm-pool-v">{{ scope.row.taxNumber || '—' }}</span>
+					</template>
+
+					<template #column-dealCount="{ scope }">
+						<span class="crm-list-stat">{{ toNumber(scope.row.dealCount) }}</span>
+					</template>
+
+					<template #column-dealAmount="{ scope }">
+						<span class="crm-list-stat">{{ toMoney(scope.row.dealAmount) }}</span>
+					</template>
+
+					<template #column-rowActions="{ scope }">
+						<div class="crm-list-actions">
+							<div class="crm-list-actions-row">
+								<el-button
+									v-for="action in getCustomerRowVisibleActions(scope.row)"
+									:key="action.key"
+									:type="action.type"
+									plain
+									size="small"
+									class="crm-list-action-btn"
+									@click="action.onClick()"
+								>
+									{{ action.label }}
+								</el-button>
+
+								<el-dropdown
+									v-if="getCustomerRowMoreActions(scope.row).length"
+									trigger="click"
+									popper-class="crm-list-action-dropdown"
+									@command="
+										(index: number) =>
+											getCustomerRowMoreActions(scope.row)[Number(index)]?.onClick()
+									"
+								>
+									<el-button type="primary" plain size="small" class="crm-list-action-btn">
+										更多
+									</el-button>
+
+									<template #dropdown>
+										<el-dropdown-menu>
+											<el-dropdown-item
+												v-for="(action, index) in getCustomerRowMoreActions(scope.row)"
+												:key="action.key"
+												:command="index"
+											>
+												{{ action.label }}
+											</el-dropdown-item>
+										</el-dropdown-menu>
+									</template>
+								</el-dropdown>
+							</div>
 						</div>
-						<div class="crm-pool-line">
-							<span class="crm-pool-k">汇款本公司：</span>
-							<span class="crm-pool-v">{{ scope.row.remittanceLast5 || '—' }}</span>
-						</div>
-					</div>
-				</template>
-				<template #column-contactInfo="{ scope }">
-					<div class="crm-pool-block">
-						<div class="crm-pool-line">
-							<span class="crm-pool-k">联系人：</span>
-							<span class="crm-pool-v">{{ scope.row.contactName || '—' }}</span>
-						</div>
-						<div class="crm-pool-line">
-							<span class="crm-pool-k">手机号：</span>
-							<span class="crm-pool-v">{{ scope.row.mobile || '—' }}</span>
-						</div>
-						<div class="crm-pool-line">
-							<span class="crm-pool-k">邮箱：</span>
-							<span class="crm-pool-v">{{ scope.row.email || '—' }}</span>
-						</div>
-					</div>
-				</template>
-				<template #column-rowActions="{ scope }">
-					<div class="crm-list-actions">
-						<div class="crm-list-actions-row">
-							<el-button v-if="canQuotationView" link @click="onQuotationView">查看报价单</el-button>
-							<el-button v-if="canFollow" type="primary" link @click="openFollow(scope.row)">
-								跟进记录
-							</el-button>
-							<el-dropdown
-								v-if="moreMenuVisible(scope.row)"
-								trigger="click"
-								@command="(cmd: string) => onMoreCommand(cmd, scope.row)"
-							>
-								<span class="crm-more-link">
-									更多
-									<el-icon class="crm-more-icon"><ArrowDown /></el-icon>
-								</span>
-								<template #dropdown>
-									<el-dropdown-menu>
-										<el-dropdown-item v-if="canEditCustomer" command="editCustomer">
-											编辑客户信息
-										</el-dropdown-item>
-										<el-dropdown-item v-if="canQuotationAdd" command="quotationAdd">
-											新增报价单
-										</el-dropdown-item>
-										<el-dropdown-item v-if="canMoveToPool" command="moveToPool">
-											移入公池
-										</el-dropdown-item>
-										<el-dropdown-item
-											v-if="canRowSetVip && Number(scope.row.isVip) !== 1"
-											command="setVip"
-										>
-											设为VIP
-										</el-dropdown-item>
-										<el-dropdown-item
-											v-if="canRowCancelVip && Number(scope.row.isVip) === 1"
-											command="cancelVip"
-										>
-											取消VIP
-										</el-dropdown-item>
-									</el-dropdown-menu>
-								</template>
-							</el-dropdown>
-						</div>
-					</div>
-				</template>
-			</cl-table>
+					</template>
+				</cl-table>
+
+				<div
+					ref="customerListXScrollRef"
+					class="crm-list-x-scroll"
+					@scroll="onCustomerListXScroll"
+				>
+					<div
+						class="crm-list-x-scroll__inner"
+						:style="{ width: `${customerListScrollWidth}px` }"
+					></div>
+				</div>
+			</div>
 		</cl-row>
 
 		<cl-row>
@@ -113,557 +135,1616 @@
 		<cl-upsert ref="Upsert" />
 	</cl-crud>
 
-	<!-- 跟进记录 -->
+	<el-dialog v-model="importDialogVisible" title="匯入客戶列表" width="520px">
+		<div class="crm-import-dialog">
+			<div class="crm-import-dialog__tip">
+				請先下載匯入模板，按模板填寫客戶資料後選擇 Excel 檔案匯入。
+			</div>
+			<div class="crm-import-dialog__actions">
+				<el-button type="primary" plain @click="downloadTpl">下載匯入模板</el-button>
+				<el-button type="primary" :loading="importing" @click="selectImportFile">
+					選擇檔案匯入
+				</el-button>
+			</div>
+			<input
+				ref="fileRef"
+				type="file"
+				accept=".xlsx,.xls"
+				style="display: none"
+				@change="onImportFile"
+			/>
+		</div>
+	</el-dialog>
+
+	<quote-order-dialog
+		v-model="sharedQuoteDialogVisible"
+		:customer="quoteCustomer"
+		:quote-id="sharedQuoteEditId || undefined"
+		@saved="handleSharedQuoteSaved"
+	/>
+
 	<el-dialog
-		v-model="followVisible"
-		:title="followTitle"
+		v-model="quoteViewVisible"
+		:title="quoteViewTitle"
+		width="1460px"
+		top="6vh"
+		destroy-on-close
+		append-to-body
+		class="crm-quote-view-dialog"
+	>
+		<div class="crm-quote-view-table-scroll">
+			<el-table
+				v-loading="quoteViewLoading"
+				:data="quoteViewList"
+				border
+				stripe
+				:fit="false"
+				class="crm-quote-view-table"
+			>
+				<el-table-column type="index" label="序號" width="72" />
+				<el-table-column
+					prop="quoteName"
+					label="報價單名稱"
+					min-width="220"
+					show-overflow-tooltip
+				/>
+				<el-table-column label="報價單性質" width="120" align="center">
+					<template #default="{ row }">
+						<span>{{ getQuoteTypeLabel(row.quoteType) }}</span>
+					</template>
+				</el-table-column>
+				<el-table-column label="狀態" width="120" align="center">
+					<template #default="{ row }">
+						<span>{{ getQuoteStatusLabel(row.status) }}</span>
+					</template>
+				</el-table-column>
+				<el-table-column label="報價金額" min-width="130" align="center">
+					<template #default="{ row }">
+						<span>{{ toMoney(row.finalAmount) }}</span>
+					</template>
+				</el-table-column>
+				<el-table-column label="毛利" min-width="120" align="center">
+					<template #default="{ row }">
+						<span>{{ toMoney(row.grossProfitAmount) }}</span>
+					</template>
+				</el-table-column>
+				<el-table-column label="電子合約" min-width="150" align="center">
+					<template #default="{ row }">
+						<div
+							v-if="hasQuoteViewContractActions(row)"
+							class="crm-quote-contract-cell"
+						>
+							<template v-if="row.contractFile">
+								<div class="crm-quote-contract-file-box">
+									<a
+										class="crm-quote-contract-link"
+										@click.prevent="downloadQuoteViewContract(row)"
+									>
+										{{ row.contractFileName || '合約檔案' }}
+									</a>
+								</div>
+							</template>
+							<div
+								v-else-if="canUploadContractPerm && row.permissions?.canUploadContract"
+								class="crm-quote-contract-upload-trigger"
+								@click="openQuoteViewContract(row)"
+							>
+								<span>+</span>
+							</div>
+						</div>
+						<span v-else class="crm-quote-view-empty">-</span>
+					</template>
+				</el-table-column>
+				<el-table-column label="發票" min-width="260" align="center">
+					<template #default="{ row }">
+						<div
+							v-if="hasQuoteViewInvoiceActions(row)"
+							class="crm-quote-view-inline-actions"
+						>
+							<el-button
+								v-if="canInvoicePerm"
+								type="primary"
+								plain
+								size="small"
+								:disabled="!row.permissions?.canInvoice"
+								@click="openQuoteViewInvoice(row)"
+							>
+								申請開票
+							</el-button>
+							<el-button
+								v-if="canInvoicePerm && canSendQuotePerm"
+								type="primary"
+								plain
+								size="small"
+								:disabled="!row.permissions?.canSendQuote"
+								@click="openQuoteViewSend(row)"
+							>
+								郵件發送
+							</el-button>
+							<el-button
+								v-if="canInvoicePerm"
+								type="primary"
+								plain
+								size="small"
+								:disabled="!canDownloadQuoteViewInvoice(row)"
+								@click="downloadQuoteViewInvoice(row)"
+							>
+								下載發票
+							</el-button>
+						</div>
+						<span v-else class="crm-quote-view-empty">-</span>
+					</template>
+				</el-table-column>
+				<el-table-column label="操作" width="360" fixed="right" align="center">
+					<template #default="{ row }">
+						<div class="crm-quote-view-inline-actions">
+							<el-button
+								v-if="canQuoteUpdate"
+								type="primary"
+								plain
+								size="small"
+								:disabled="!row.permissions?.canEdit"
+								@click="openQuoteViewEdit(row)"
+							>
+								編輯報價單
+							</el-button>
+							<el-button
+								v-if="canFollow"
+								type="primary"
+								plain
+								size="small"
+								@click="openQuoteViewFollow(row)"
+							>
+								跟進記錄
+							</el-button>
+							<el-button
+								v-if="canReceiptPerm"
+								type="warning"
+								plain
+								size="small"
+								:disabled="!row.permissions?.canReceipt"
+								@click="openQuoteViewReceipt(row)"
+							>
+								回款
+							</el-button>
+							<el-button
+								v-if="canCopyCreatePerm"
+								type="primary"
+								plain
+								size="small"
+								:disabled="!row.permissions?.canCopyCreate"
+								@click="onQuoteViewCopyCreate(row)"
+							>
+								複製建立
+							</el-button>
+						</div>
+					</template>
+				</el-table-column>
+			</el-table>
+		</div>
+
+		<template #footer>
+			<div class="crm-quote-view-footer">
+				<el-button @click="quoteViewVisible = false">關閉</el-button>
+				<el-button v-if="canQuotationAdd" type="primary" @click="openQuoteViewCreate">
+					新增報價單
+				</el-button>
+			</div>
+		</template>
+	</el-dialog>
+
+	<el-dialog
+		v-model="quoteFollowDialogVisible"
+		:title="quoteFollowDialogTitle"
 		width="960px"
 		destroy-on-close
+		append-to-body
 		class="crm-follow-dialog"
-		@open="onFollowDialogOpen"
+		@open="onQuoteFollowDialogOpen"
 	>
-		<el-table v-loading="followLoading" :data="followList" border stripe style="width: 100%">
-			<el-table-column type="index" label="序号" width="64" :index="followIndexMethod" />
-			<el-table-column prop="content" label="跟进内容" min-width="160" show-overflow-tooltip />
-			<el-table-column prop="followTime" label="跟进时间" width="170" />
-			<el-table-column prop="nextFollowTime" label="预计下次跟进时间" width="170" />
-			<el-table-column prop="remark" label="备注" min-width="120" show-overflow-tooltip />
+		<el-table
+			v-loading="quoteFollowDialogLoading"
+			:data="quoteFollowDialogList"
+			border
+			stripe
+			style="width: 100%"
+		>
+			<el-table-column type="index" label="序號" width="64" :index="quoteFollowIndexMethod" />
+			<el-table-column
+				prop="content"
+				label="跟進內容"
+				min-width="160"
+				show-overflow-tooltip
+			/>
+			<el-table-column prop="followTime" label="跟進時間" width="170" />
+			<el-table-column prop="nextFollowTime" label="預計下次跟進時間" width="170" />
+			<el-table-column prop="remark" label="備註" min-width="120" show-overflow-tooltip />
 		</el-table>
 
 		<div class="follow-page">
 			<el-pagination
-				v-model:current-page="followQuery.page"
-				v-model:page-size="followQuery.size"
-				:total="followTotal"
+				v-model:current-page="quoteFollowQuery.page"
+				v-model:page-size="quoteFollowQuery.size"
+				:total="quoteFollowDialogTotal"
 				:page-sizes="[10, 20, 50]"
 				layout="total, sizes, prev, pager, next"
 				background
-				@size-change="loadFollowList"
-				@current-change="loadFollowList"
+				@size-change="loadQuoteFollowDialogList"
+				@current-change="loadQuoteFollowDialogList"
 			/>
 		</div>
 
 		<div v-if="canFollow" class="follow-add-bar">
-			<el-button type="primary" @click="openAddFollow">新增跟进记录</el-button>
+			<el-button type="primary" @click="openAddQuoteFollow">新增跟進記錄</el-button>
 		</div>
 	</el-dialog>
 
-	<!-- 新增跟进 -->
-	<el-dialog v-model="addFollowVisible" title="新增跟进记录" width="520px" destroy-on-close append-to-body>
-		<el-form ref="addFollowFormRef" :model="addFollowForm" :rules="addFollowRules" label-width="140px">
-			<el-form-item label="跟进内容" prop="content">
-				<el-input v-model="addFollowForm.content" type="textarea" :rows="4" placeholder="请输入跟进内容" />
+	<el-dialog
+		v-model="addQuoteFollowVisible"
+		title="新增跟進記錄"
+		width="520px"
+		destroy-on-close
+		append-to-body
+	>
+		<el-form
+			ref="addQuoteFollowFormRef"
+			:model="addQuoteFollowForm"
+			:rules="addQuoteFollowRules"
+			label-width="140px"
+		>
+			<el-form-item label="跟進內容" prop="content">
+				<el-input
+					v-model="addQuoteFollowForm.content"
+					type="textarea"
+					:rows="4"
+					placeholder="請輸入跟進內容"
+				/>
 			</el-form-item>
-			<el-form-item label="跟进时间" prop="followTime">
+			<el-form-item label="跟進時間" prop="followTime">
 				<el-date-picker
-					v-model="addFollowForm.followTime"
+					v-model="addQuoteFollowForm.followTime"
 					type="datetime"
-					placeholder="选择跟进时间"
+					placeholder="請選擇跟進時間"
 					value-format="YYYY-MM-DD HH:mm:ss"
 					style="width: 100%"
 				/>
 			</el-form-item>
-			<el-form-item label="预计下次跟进时间" prop="nextFollowTime">
+			<el-form-item label="預計下次跟進時間" prop="nextFollowTime">
 				<el-date-picker
-					v-model="addFollowForm.nextFollowTime"
+					v-model="addQuoteFollowForm.nextFollowTime"
 					type="datetime"
-					placeholder="选填"
+					placeholder="選填"
 					value-format="YYYY-MM-DD HH:mm:ss"
 					style="width: 100%"
 				/>
 			</el-form-item>
-			<el-form-item label="备注" prop="remark">
-				<el-input v-model="addFollowForm.remark" type="textarea" :rows="2" placeholder="选填" />
+			<el-form-item label="備註" prop="remark">
+				<el-input
+					v-model="addQuoteFollowForm.remark"
+					type="textarea"
+					:rows="2"
+					placeholder="選填"
+				/>
 			</el-form-item>
 		</el-form>
 		<template #footer>
-			<el-button @click="addFollowVisible = false">取消</el-button>
-			<el-button type="primary" @click="submitAddFollow">确定</el-button>
+			<el-button @click="addQuoteFollowVisible = false">取消</el-button>
+			<el-button type="primary" @click="submitAddQuoteFollow">確定</el-button>
 		</template>
+	</el-dialog>
+
+	<el-dialog v-model="quoteViewSendVisible" title="發送報價" width="560px" append-to-body>
+		<el-form label-width="90px">
+			<el-form-item label="發送方式">
+				<el-radio-group v-model="quoteViewSendForm.sendType">
+					<el-radio
+						v-for="item in quoteSendTypeOptions"
+						:key="item.value"
+						:label="item.value"
+					>
+						{{ item.label }}
+					</el-radio>
+				</el-radio-group>
+			</el-form-item>
+			<el-form-item v-if="quoteViewSendForm.sendType === 1" label="客戶郵箱">
+				<el-input
+					v-model="quoteViewSendForm.email"
+					clearable
+					placeholder="請輸入客戶郵箱"
+				/>
+			</el-form-item>
+			<el-form-item label="發送備註">
+				<el-input
+					v-model="quoteViewSendForm.remark"
+					type="textarea"
+					:rows="4"
+					placeholder="請輸入發送備註"
+				/>
+			</el-form-item>
+		</el-form>
+		<template #footer>
+			<el-button @click="quoteViewSendVisible = false">取消</el-button>
+			<el-button type="primary" :loading="quoteViewSendLoading" @click="submitQuoteViewSend"
+				>確定</el-button
+			>
+		</template>
+	</el-dialog>
+
+	<el-dialog v-model="quoteViewContractVisible" title="上傳電子合約" width="560px" append-to-body>
+		<el-form label-width="90px">
+			<el-form-item label="合約檔案">
+				<cl-upload
+					v-model="quoteViewContractForm.fileId"
+					type="file"
+					:limit="1"
+					:text="quoteViewContractForm.fileId ? '重新上傳' : '選擇檔案'"
+				/>
+			</el-form-item>
+			<el-form-item label="檔名稱">
+				<el-input
+					v-model="quoteViewContractForm.fileName"
+					clearable
+					placeholder="選填：不填則預設使用檔名"
+				/>
+			</el-form-item>
+			<el-form-item label="備註">
+				<el-input
+					v-model="quoteViewContractForm.remark"
+					type="textarea"
+					:rows="4"
+					placeholder="請輸入備註"
+				/>
+			</el-form-item>
+		</el-form>
+		<template #footer>
+			<el-button @click="quoteViewContractVisible = false">取消</el-button>
+			<el-button
+				type="primary"
+				:loading="quoteViewContractLoading"
+				@click="submitQuoteViewContract"
+			>
+				確定
+			</el-button>
+		</template>
+	</el-dialog>
+
+	<el-dialog
+		v-model="quoteViewReceiptVisible"
+		:title="quoteViewReceiptTitle"
+		width="980px"
+		append-to-body
+	>
+		<el-table
+			v-loading="quoteViewReceiptLoading"
+			:data="quoteViewReceiptStageRows"
+			border
+			size="small"
+		>
+			<el-table-column type="index" label="序號" width="64" />
+			<el-table-column prop="stageName" label="回款階段" min-width="140" />
+			<el-table-column label="應回款金額" width="140" align="center">
+				<template #default="{ row }">
+					{{ toMoney(row.amount) }}
+				</template>
+			</el-table-column>
+			<el-table-column label="本次回款金額" width="180">
+				<template #default="{ row }">
+					<el-input-number
+						v-model="row.receiptAmount"
+						:min="0"
+						:max="toNumber(row.amount)"
+						:precision="2"
+						:controls="false"
+						style="width: 100%"
+					/>
+				</template>
+			</el-table-column>
+			<el-table-column label="回款憑證" min-width="220">
+				<template #default="{ row }">
+					<cl-upload v-model="row.receiptVoucher" type="file" :limit="1" />
+				</template>
+			</el-table-column>
+			<el-table-column prop="receiptTime" label="回款時間" width="180" />
+			<el-table-column label="狀態" width="120" align="center">
+				<template #default="{ row }">
+					{{ getQuoteReceiptStageStatusLabel(row) }}
+				</template>
+			</el-table-column>
+			<el-table-column label="操作" width="120" fixed="right" align="center">
+				<template #default="{ row }">
+					<el-button
+						type="primary"
+						link
+						:loading="quoteViewReceiptSubmitting"
+						@click="submitQuoteViewReceiptRow(row)"
+					>
+						提交
+					</el-button>
+				</template>
+			</el-table-column>
+		</el-table>
+		<el-empty
+			v-if="!quoteViewReceiptLoading && quoteViewReceiptStageRows.length === 0"
+			description="暫無可回款階段"
+		/>
+	</el-dialog>
+
+	<el-dialog
+		v-model="quoteViewInvoiceVisible"
+		:title="quoteViewInvoiceTitle"
+		width="1120px"
+		append-to-body
+	>
+		<el-table
+			v-loading="quoteViewInvoiceLoading"
+			:data="quoteViewInvoiceStageRows"
+			border
+			size="small"
+		>
+			<el-table-column type="index" label="序號" width="64" />
+			<el-table-column prop="stageName" label="回款階段" min-width="140" />
+			<el-table-column label="可開票金額" width="140" align="center">
+				<template #default="{ row }">
+					{{ toMoney(row.receiptAmount) }}
+				</template>
+			</el-table-column>
+			<el-table-column label="發票專案名稱" min-width="220">
+				<template #default="{ row }">
+					<div class="crm-quote-invoice-product-name">
+						{{ row.invoiceProductName || '-' }}
+					</div>
+				</template>
+			</el-table-column>
+			<el-table-column label="開票狀態" width="120" align="center">
+				<template #default="{ row }">
+					{{ getQuoteInvoiceStatusLabel(row.invoiceStatus) }}
+				</template>
+			</el-table-column>
+			<el-table-column prop="invoiceApplyTime" label="申請時間" width="180" />
+			<el-table-column prop="invoiceVoidTime" label="作廢時間" width="180" />
+			<el-table-column label="操作" width="120" fixed="right" align="center">
+				<template #default="{ row }">
+					<el-button
+						type="primary"
+						link
+						:disabled="
+							quoteViewInvoiceSubmitting ||
+							!!getQuoteViewInvoiceApplyDisabledReason(row, $index)
+						"
+						:loading="quoteViewInvoiceSubmitting"
+						@click="applyQuoteViewInvoiceRow(row, $index)"
+					>
+						{{ Number(row.invoiceStatus) === 1 ? '已申請' : '申請開票' }}
+					</el-button>
+				</template>
+			</el-table-column>
+		</el-table>
+		<el-empty
+			v-if="!quoteViewInvoiceLoading && quoteViewInvoiceStageRows.length === 0"
+			description="暫無可開票階段"
+		/>
 	</el-dialog>
 </template>
 
 <script lang="ts" setup>
 defineOptions({ name: 'crm-customer-list' });
 
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import { useCrud, useTable, useUpsert } from '@cool-vue/crud';
-import { computed, onMounted, reactive, ref } from 'vue';
 import { checkPerm } from '/$/base';
-import { ArrowDown } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus';
 import * as XLSX from 'xlsx';
 import CustomerListService from '../service/list';
-import { useCrmIndustryDict } from '../utils/industryDict';
+import QuoteOrderService from '../service/quote';
 import CustomerFollowupService from '../service/followup';
+import QuoteOrderDialog from '../components/quote-order-dialog.vue';
+import { useCrmIndustryDict } from '../utils/industryDict';
+import { downloadBlob } from '../utils/download';
+import { getQuoteStatusLabel, getQuoteTypeLabel, quoteSendTypeOptions } from '../utils/quote';
 import {
 	customerEmailRules,
-	customerMobileRules,
-	validateCustomerImportContact
+	validateCustomerImportContact,
+	validateCustomerImportRequired
 } from '../utils/validate';
 
 const customerList = new CustomerListService();
+const quoteService = new QuoteOrderService();
 const followupService = new CustomerFollowupService();
 
 const { options: industryOptions, tableDict: industryTableDict } = useCrmIndustryDict();
+const customerStatusOptions = [
+	{ label: '跟進中', value: 1 },
+	{ label: '已成交', value: 2 }
+];
+const customerStatusTableDict = customerStatusOptions;
 
-const Crud = useCrud({ service: customerList }, app => app.refresh());
+const Crud = useCrud({ service: customerList }, app => {
+	const result = app.refresh();
+	scheduleCustomerListScrollBarUpdate();
+	return result;
+});
 
-const canSetVip = computed(() => checkPerm('crm:customerPool:assignSalesman'));
-/** 与菜单「客户列表」下按钮权限「跟进记录」一致 */
-const canFollow = computed(() => checkPerm('crm:customerList:follow'));
+const canSetVip = computed(() => checkPerm('crm:customerList:setVip'));
 const canQuotationView = computed(() => checkPerm('crm:customerList:quotationView'));
 const canQuotationAdd = computed(() => checkPerm('crm:customerList:quotationAdd'));
 const canMoveToPool = computed(() => checkPerm('crm:customerList:moveToPool'));
-/** 列表「设为VIP」：新权限 或 与原表单 VIP 权限（老板）一致 */
-const canRowSetVip = computed(
-	() => checkPerm('crm:customerList:setVip') || checkPerm('crm:customerPool:assignSalesman')
-);
-/** 取消 VIP：独立权限 / 设为VIP权限 / 分配业务员（老板） */
-const canRowCancelVip = computed(
-	() =>
-		checkPerm('crm:customerList:cancelVip') ||
-		checkPerm('crm:customerList:setVip') ||
-		checkPerm('crm:customerPool:assignSalesman')
-);
-
-/** 与公池「分配业务员」一致：老板/超管可按业务员筛选列表 */
+const canRowSetVip = computed(() => checkPerm('crm:customerList:setVip'));
+const canRowCancelVip = computed(() => checkPerm('crm:customerList:cancelVip'));
 const canFilterBySalesman = computed(() => checkPerm('crm:customerPool:assignSalesman'));
-
-/** 列表导入：独立「导入」权限，或与「新增」一致（避免未同步菜单子权限时不显示按钮） */
-const canImport = computed(
-	() => checkPerm('crm:customerList:import') || checkPerm('crm:customerList:add')
-);
-
-/** 「更多」— 编辑客户信息：需「编辑」或「新增」权限（与接口映射一致） */
-const canEditCustomer = computed(
-	() => checkPerm('crm:customerList:update') || checkPerm('crm:customerList:add')
-);
+const canImport = computed(() => checkPerm('crm:customerList:import'));
+const canEditCustomer = computed(() => checkPerm('crm:customerList:update'));
+const canFollow = computed(() => checkPerm('crm:customerList:follow'));
+const canQuoteUpdate = computed(() => checkPerm('crm:quoteOrder:update'));
+const canSendQuotePerm = computed(() => checkPerm('crm:quoteOrder:sendQuote'));
+const canUploadContractPerm = computed(() => checkPerm('crm:quoteOrder:uploadContract'));
+const canReceiptPerm = computed(() => checkPerm('crm:quoteOrder:receipt'));
+const canInvoicePerm = computed(() => checkPerm('crm:quoteOrder:invoice'));
+const canCopyCreatePerm = computed(() => checkPerm('crm:quoteOrder:copyCreate'));
 
 const salesmanSelectOptions = ref<{ label: string; value: number }[]>([]);
-/** 生成模板「业务员列表」工作表 */
 const salesmenRows = ref<any[]>([]);
 const fileRef = ref<HTMLInputElement | null>(null);
+const importDialogVisible = ref(false);
+const importing = ref(false);
+
+const customerListTableWrapRef = ref<HTMLElement | null>(null);
+const customerListXScrollRef = ref<HTMLElement | null>(null);
+const customerListScrollWidth = ref(0);
+let customerListResizeObserver: ResizeObserver | null = null;
+let customerListScrollTarget: HTMLElement | null = null;
+let isSyncingCustomerListScroll = false;
+
+const sharedQuoteDialogVisible = ref(false);
+const sharedQuoteEditId = ref(0);
+const quoteCustomer = ref<Record<string, any> | null>(null);
+
+const quoteViewVisible = ref(false);
+const quoteViewLoading = ref(false);
+const quoteViewCustomer = ref<Record<string, any> | null>(null);
+const quoteViewList = ref<any[]>([]);
+
+const quoteFollowDialogVisible = ref(false);
+const quoteFollowCurrentRow = ref<Record<string, any> | null>(null);
+const quoteFollowDialogList = ref<any[]>([]);
+const quoteFollowDialogTotal = ref(0);
+const quoteFollowDialogLoading = ref(false);
+const quoteFollowQuery = reactive({
+	page: 1,
+	size: 10
+});
+
+const addQuoteFollowVisible = ref(false);
+const addQuoteFollowFormRef = ref<FormInstance>();
+const addQuoteFollowForm = reactive({
+	content: '',
+	followTime: '',
+	nextFollowTime: '',
+	remark: ''
+});
+const addQuoteFollowRules: FormRules = {
+	content: [{ required: true, message: '請輸入跟進內容', trigger: 'blur' }],
+	followTime: [{ required: true, message: '請選擇跟進時間', trigger: 'change' }]
+};
+
+const quoteViewSendVisible = ref(false);
+const quoteViewSendLoading = ref(false);
+const quoteViewSendForm = reactive({
+	id: 0,
+	sendType: 1,
+	email: '',
+	remark: ''
+});
+
+const quoteViewContractVisible = ref(false);
+const quoteViewContractLoading = ref(false);
+const quoteViewContractForm = reactive({
+	id: 0,
+	fileId: '',
+	fileName: '',
+	remark: ''
+});
+
+const quoteViewReceiptVisible = ref(false);
+const quoteViewReceiptLoading = ref(false);
+const quoteViewReceiptSubmitting = ref(false);
+const quoteViewReceiptCurrentRow = ref<Record<string, any> | null>(null);
+const quoteViewReceiptStageRows = ref<any[]>([]);
+
+const quoteViewInvoiceVisible = ref(false);
+const quoteViewInvoiceLoading = ref(false);
+const quoteViewInvoiceSubmitting = ref(false);
+const quoteViewInvoiceCurrentRow = ref<Record<string, any> | null>(null);
+const quoteViewInvoiceStageRows = ref<any[]>([]);
 
 const listSearchItems = computed(() => {
 	const items: any[] = [
-		{ label: '公司名称', prop: 'companyName', component: { name: 'el-input' } },
-		{ label: '客户名称', prop: 'contactName', component: { name: 'el-input' } },
-		{ label: '手机号', prop: 'mobile', component: { name: 'el-input' } },
 		{
-			label: '邮箱',
-			prop: 'email',
-			component: { name: 'el-input', props: { clearable: true, placeholder: '请输入' } }
+			label: '公司名稱',
+			prop: 'companyName',
+			component: {
+				name: 'el-input',
+				props: { clearable: true, placeholder: '請輸入公司名稱' }
+			}
 		},
 		{
-			label: '行业',
-			prop: 'industry',
+			label: '狀態',
+			prop: 'status',
 			component: {
 				name: 'cl-select',
 				props: {
 					clearable: true,
-					placeholder: '请选择',
-					options: industryOptions
+					placeholder: '請選擇狀態',
+					options: customerStatusOptions
+				}
+			}
+		},
+		{
+			label: '手機號',
+			prop: 'mobile',
+			required: true,
+			component: {
+				name: 'el-input',
+				props: { clearable: true, placeholder: '請輸入手機號' }
+			}
+		},
+		{
+			label: '郵箱',
+			prop: 'email',
+			component: {
+				name: 'el-input',
+				props: { clearable: true, placeholder: '請輸入郵箱' }
+			}
+		},
+		{
+			label: '是否VIP',
+			prop: 'isVip',
+			component: {
+				name: 'cl-select',
+				props: {
+					clearable: true,
+					placeholder: '請選擇',
+					options: [
+						{ label: '是', value: 1 },
+						{ label: '否', value: 0 }
+					]
+				}
+			}
+		},
+		{
+			label: '是否廣告投放客戶',
+			prop: 'isAdCustomer',
+			component: {
+				name: 'cl-select',
+				props: {
+					clearable: true,
+					placeholder: '請選擇',
+					options: [
+						{ label: '是', value: 1 },
+						{ label: '否', value: 0 }
+					]
 				}
 			}
 		}
 	];
+
 	if (canFilterBySalesman.value) {
 		items.push({
-			label: '业务员',
+			label: '業務員',
 			prop: 'salesmanId',
 			component: {
 				name: 'cl-select',
 				props: {
 					filterable: true,
 					clearable: true,
-					placeholder: '请选择业务员',
-					options: salesmanSelectOptions
+					placeholder: '請選擇業務員',
+					options: salesmanSelectOptions.value
 				}
 			}
 		});
 	}
+
 	return items;
 });
 
-onMounted(async () => {
-	if (!canFilterBySalesman.value) return;
-	try {
-		const rows = await customerList.salesmenOptions();
-		salesmenRows.value = rows || [];
-		salesmanSelectOptions.value = salesmenRows.value.map((u: any) => ({
-			label: `${u.name || u.nickName || ''} (${u.username})`,
-			value: u.id
-		}));
-	} catch {
-		salesmenRows.value = [];
-		salesmanSelectOptions.value = [];
-	}
+const quoteViewTitle = computed(() => {
+	const customer = quoteViewCustomer.value;
+	return customer
+		? `報價單列表 - ${customer.companyName || ''} / ${customer.contactName || ''}`
+		: '報價單列表';
 });
 
-/** 与公池导入列一致；老板/可分配角色多一列「业务员账号」（系统用户名，选填；不填则进公池） */
+const quoteFollowDialogTitle = computed(() => {
+	const row = quoteFollowCurrentRow.value;
+	return row ? `跟進記錄 - ${row.quoteNo || ''} / ${row.quoteName || ''}` : '跟進記錄';
+});
+
+const quoteViewReceiptTitle = computed(() => {
+	const row = quoteViewReceiptCurrentRow.value;
+	return row ? `回款 - ${row.quoteNo || ''} / ${row.quoteName || ''}` : '回款';
+});
+
+const quoteViewInvoiceTitle = computed(() => {
+	const row = quoteViewInvoiceCurrentRow.value;
+	return row ? `發票 - ${row.quoteNo || ''} / ${row.quoteName || ''}` : '發票';
+});
+
 const LIST_IMPORT_BASE_HEADERS = [
-	'公司名称',
+	'公司名稱',
 	'地址',
-	'统一编号',
-	'汇款本公司',
-	'客户名称',
-	'手机号',
-	'邮箱',
-	'备注',
-	'行业'
+	'統一編號',
+	'匯款本公司',
+	'客戶名稱',
+	'手機號',
+	'郵箱',
+	'備註',
+	'是否廣告投放客戶'
 ] as const;
 
+function toNumber(value: any) {
+	const amount = Number(value ?? 0);
+	return Number.isNaN(amount) ? 0 : amount;
+}
+
+function toMoney(value: any) {
+	return `NT$${toNumber(value).toLocaleString('zh-TW', {
+		minimumFractionDigits: 0,
+		maximumFractionDigits: 2
+	})}`;
+}
+
+function getQuoteReceiptStageStatusLabel(row: any) {
+	const receiptAmount = toNumber(row?.receiptAmount);
+	const targetAmount = toNumber(row?.amount);
+	if (receiptAmount <= 0) {
+		return '未回款';
+	}
+	if (targetAmount > 0 && receiptAmount >= targetAmount) {
+		return '已回款';
+	}
+	return '部分回款';
+}
+
+function getQuoteInvoiceStatusLabel(value: any) {
+	const status = Number(value);
+	if (status === 1) return '待財務審核';
+	if (status === 2) return '已作廢';
+	if (status === 3) return '審核通過';
+	if (status === 4) return '審核駁回';
+	return '未申請';
+}
+
+function getAdCustomerLabel(row: any) {
+	return Number(row?.isAdCustomer || 0) === 1 ? '是' : '否';
+}
+
+function quoteFollowIndexMethod(index: number) {
+	return (quoteFollowQuery.page - 1) * quoteFollowQuery.size + index + 1;
+}
+
 function openImport() {
+	importDialogVisible.value = true;
+}
+
+function selectImportFile() {
 	fileRef.value?.click();
 }
 
 async function downloadTpl() {
-	if (!canFilterBySalesman.value) {
-		const ws = XLSX.utils.aoa_to_sheet([[...LIST_IMPORT_BASE_HEADERS]]);
-		const wb = XLSX.utils.book_new();
-		XLSX.utils.book_append_sheet(wb, ws, '客户导入');
-		XLSX.writeFile(wb, '客户列表导入模板.xlsx');
-		return;
-	}
-	let salesmen = salesmenRows.value;
-	if (!salesmen.length) {
-		try {
-			salesmen = (await customerList.salesmenOptions()) || [];
-			salesmenRows.value = salesmen;
-		} catch {
-			salesmen = [];
-		}
-	}
-	const header = [...LIST_IMPORT_BASE_HEADERS, '业务员账号'];
-	const ws1 = XLSX.utils.aoa_to_sheet([header]);
+	const ws1 = XLSX.utils.aoa_to_sheet([[...LIST_IMPORT_BASE_HEADERS]]);
 	const wb = XLSX.utils.book_new();
-	XLSX.utils.book_append_sheet(wb, ws1, '客户导入');
-	if (salesmen.length) {
-		const ws2rows: string[][] = [
-			['选填：填写「业务员账号」（系统登录名）分配给业务员；不填则该条进入客户公池', ''],
-			['姓名', '业务员账号'],
-			...salesmen.map((u: any) => [`${u.name || u.nickName || ''}`.trim(), u.username || ''])
-		];
-		const ws2 = XLSX.utils.aoa_to_sheet(ws2rows);
-		ws2['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 1 } }];
-		XLSX.utils.book_append_sheet(wb, ws2, '业务员列表');
-	}
-	XLSX.writeFile(wb, '客户列表导入模板.xlsx');
+	XLSX.utils.book_append_sheet(wb, ws1, '客戶匯入');
+	XLSX.writeFile(wb, '客戶列表匯入模板.xlsx');
 }
 
 function normalizeListImportRow(raw: Record<string, any>) {
 	const pick = (keys: string[]) => {
-		for (const k of keys) {
-			if (raw[k] !== undefined && raw[k] !== null && String(raw[k]).trim() !== '') {
-				return String(raw[k]).trim();
+		for (const key of keys) {
+			if (raw[key] !== undefined && raw[key] !== null && String(raw[key]).trim() !== '') {
+				return String(raw[key]).trim();
 			}
 		}
 		return '';
 	};
-	const salesmanUsername = pick([
-		'业务员账号',
-		'登录账号',
-		'业务员登录名',
-		'业务员',
-		'业务员ID',
-		'salesmanId',
-		'salesmanUsername'
-	]);
+
+	const adCustomerText = pick(['是否廣告投放客戶', '廣告投放客戶', 'isAdCustomer']);
+
 	return {
-		companyName: pick(['公司名称', 'companyName']),
+		companyName: pick(['公司名稱', 'companyName']),
 		address: pick(['地址', 'address']),
-		taxNumber: pick(['统一编号', '统一编码', 'taxNumber']),
-		remittanceLast5: pick(['汇款本公司', '汇款本卡号', '汇款末五码', 'remittanceLast5']),
-		contactName: pick(['客户名称', 'contactName', '联系人']),
-		mobile: pick(['手机号', 'mobile', '电话']),
-		email: pick(['邮箱', 'email']),
-		remark: pick(['备注', 'remark']),
-		industry: pick(['行业', 'industry']),
-		isVip: pick(['是否VIP', 'isVip']) === '1' || pick(['是否VIP', 'isVip']) === '是' ? 1 : 0,
-		salesmanUsername
+		taxNumber: pick(['統一編號', '統一編碼', 'taxNumber']),
+		remittanceLast5: pick(['匯款本公司', '匯款本卡號', '匯款末五碼', 'remittanceLast5']),
+		contactName: pick(['客戶名稱', 'contactName', '聯絡人']),
+		mobile: pick(['手機號', 'mobile', '電話']),
+		email: pick(['郵箱', 'email']),
+		remark: pick(['備註', 'remark']),
+		isAdCustomer: adCustomerText === '1' || adCustomerText === '是' ? 1 : 0
 	};
 }
 
-async function onImportFile(ev: Event) {
-	const input = ev.target as HTMLInputElement;
+async function onImportFile(event: Event) {
+	const input = event.target as HTMLInputElement;
 	const file = input.files?.[0];
 	input.value = '';
 	if (!file) return;
+
+	importing.value = true;
 	try {
-		const buf = await file.arrayBuffer();
-		const wb = XLSX.read(buf, { type: 'array' });
-		const sheet = wb.Sheets[wb.SheetNames[0]];
+		const buffer = await file.arrayBuffer();
+		const workbook = XLSX.read(buffer, { type: 'array' });
+		const sheet = workbook.Sheets[workbook.SheetNames[0]];
 		const rows = XLSX.utils.sheet_to_json<Record<string, any>>(sheet, { defval: '' });
 		const list: Record<string, any>[] = [];
+
 		for (let i = 0; i < rows.length; i++) {
-			const r = normalizeListImportRow(rows[i]);
-			if (!r.companyName && !r.contactName && !r.mobile) {
+			const row = normalizeListImportRow(rows[i]);
+			if (!row.companyName && !row.contactName && !row.mobile) {
 				continue;
 			}
+
 			const excelRow = i + 2;
-			const err = validateCustomerImportContact(r.mobile, r.email, excelRow);
+			const requiredErr = validateCustomerImportRequired(row, excelRow);
+			if (requiredErr) {
+				ElMessage.error(requiredErr);
+				return;
+			}
+			const err = validateCustomerImportContact(row.mobile, row.email, excelRow);
 			if (err) {
 				ElMessage.error(err);
 				return;
 			}
-			if (canFilterBySalesman.value) {
-				const row: Record<string, any> = {
-					companyName: r.companyName,
-					address: r.address,
-					taxNumber: r.taxNumber,
-					remittanceLast5: r.remittanceLast5,
-					contactName: r.contactName,
-					mobile: r.mobile,
-					email: r.email,
-					remark: r.remark,
-					isVip: r.isVip,
-					...(r.industry ? { industry: r.industry } : {})
-				};
-				const su = (r.salesmanUsername || '').trim();
-				if (su) {
-					row.salesmanUsername = su;
-				}
-				list.push(row);
-			} else {
-				list.push({
-					companyName: r.companyName,
-					address: r.address,
-					taxNumber: r.taxNumber,
-					remittanceLast5: r.remittanceLast5,
-					contactName: r.contactName,
-					mobile: r.mobile,
-					email: r.email,
-					remark: r.remark,
-					isVip: r.isVip,
-					...(r.industry ? { industry: r.industry } : {})
-				});
-			}
+
+			const payload: Record<string, any> = {
+				companyName: row.companyName,
+				address: row.address,
+				taxNumber: row.taxNumber,
+				remittanceLast5: row.remittanceLast5,
+				contactName: row.contactName,
+				mobile: row.mobile,
+				email: row.email,
+				remark: row.remark,
+				isAdCustomer: row.isAdCustomer
+			};
+
+			list.push(payload);
 		}
+
 		if (!list.length) {
-			ElMessage.warning('未解析到有效数据');
+			ElMessage.warning('未解析到有效資料');
 			return;
 		}
+
 		await customerList.importData({ list });
-		ElMessage.success(`成功导入 ${list.length} 条`);
+		ElMessage.success(`成功匯入 ${list.length} 條`);
+		importDialogVisible.value = false;
 		Crud.value?.refresh();
-	} catch (e: any) {
-		ElMessage.error(e?.message || '导入失败');
+	} catch (error: any) {
+		ElMessage.error(error?.message || '匯入失敗');
+	} finally {
+		importing.value = false;
 	}
 }
 
-const followVisible = ref(false);
-const followCustomer = ref<Record<string, any> | null>(null);
-const followTitle = computed(() => {
-	const c = followCustomer.value;
-	return c ? `跟进记录 — ${c.companyName || ''} / ${c.contactName || ''}` : '跟进记录';
-});
+async function loadQuoteFollowDialogList() {
+	if (!quoteFollowCurrentRow.value?.id) {
+		quoteFollowDialogList.value = [];
+		quoteFollowDialogTotal.value = 0;
+		return;
+	}
 
-const followQuery = reactive({
-	page: 1,
-	size: 10
-});
-
-const followList = ref<any[]>([]);
-const followTotal = ref(0);
-const followLoading = ref(false);
-
-const addFollowVisible = ref(false);
-const addFollowFormRef = ref<FormInstance>();
-const addFollowForm = reactive({
-	content: '',
-	followTime: '',
-	nextFollowTime: '',
-	remark: ''
-});
-
-const addFollowRules: FormRules = {
-	content: [{ required: true, message: '请输入跟进内容', trigger: 'blur' }],
-	followTime: [{ required: true, message: '请选择跟进时间', trigger: 'change' }]
-};
-
-function followIndexMethod(index: number) {
-	return (followQuery.page - 1) * followQuery.size + index + 1;
-}
-
-async function loadFollowList() {
-	if (!followCustomer.value?.id) return;
-	followLoading.value = true;
+	quoteFollowDialogLoading.value = true;
 	try {
 		const res: any = await followupService.page({
-			customerId: followCustomer.value.id,
-			page: followQuery.page,
-			size: followQuery.size
+			quoteId: Number(quoteFollowCurrentRow.value.id || 0),
+			salesmanId: Number(quoteFollowCurrentRow.value.salesmanId || 0) || undefined,
+			page: quoteFollowQuery.page,
+			size: quoteFollowQuery.size
 		});
-		followList.value = res?.list ?? [];
-		followTotal.value = Number(res?.pagination?.total ?? res?.total ?? 0);
-	} catch (e: any) {
-		ElMessage.error(e?.message || '加载跟进记录失败');
+		quoteFollowDialogList.value = res?.list ?? [];
+		quoteFollowDialogTotal.value = Number(res?.pagination?.total ?? res?.total ?? 0);
+	} catch (error: any) {
+		ElMessage.error(error?.message || '載入跟進記錄失敗');
 	} finally {
-		followLoading.value = false;
+		quoteFollowDialogLoading.value = false;
 	}
 }
 
-function onFollowDialogOpen() {
-	followQuery.page = 1;
-	loadFollowList();
+function onQuoteFollowDialogOpen() {
+	quoteFollowQuery.page = 1;
+	loadQuoteFollowDialogList();
 }
 
-function openFollow(row: any) {
+function openAddQuoteFollow() {
 	if (!canFollow.value) {
-		ElMessage.warning('无跟进记录权限');
+		ElMessage.warning('暫無跟進權限');
 		return;
 	}
-	followCustomer.value = row;
-	followQuery.page = 1;
-	followQuery.size = 10;
-	followVisible.value = true;
+	addQuoteFollowForm.content = '';
+	addQuoteFollowForm.followTime = '';
+	addQuoteFollowForm.nextFollowTime = '';
+	addQuoteFollowForm.remark = '';
+	addQuoteFollowVisible.value = true;
 }
 
-function openAddFollow() {
-	if (!canFollow.value) {
-		ElMessage.warning('无跟进记录权限');
-		return;
-	}
-	addFollowForm.content = '';
-	addFollowForm.followTime = '';
-	addFollowForm.nextFollowTime = '';
-	addFollowForm.remark = '';
-	addFollowVisible.value = true;
-}
-
-async function submitAddFollow() {
+async function submitAddQuoteFollow() {
 	try {
-		await addFollowFormRef.value?.validate();
+		await addQuoteFollowFormRef.value?.validate();
 	} catch {
 		return;
 	}
-	if (!followCustomer.value?.id) return;
+
+	if (!quoteFollowCurrentRow.value?.id) {
+		return;
+	}
+
 	try {
 		await followupService.add({
-			customerId: followCustomer.value.id,
-			content: addFollowForm.content,
-			followTime: addFollowForm.followTime || undefined,
-			nextFollowTime: addFollowForm.nextFollowTime || undefined,
-			remark: addFollowForm.remark || undefined
+			quoteId: Number(quoteFollowCurrentRow.value.id || 0),
+			salesmanId: Number(quoteFollowCurrentRow.value.salesmanId || 0) || undefined,
+			content: addQuoteFollowForm.content,
+			followTime: addQuoteFollowForm.followTime || undefined,
+			nextFollowTime: addQuoteFollowForm.nextFollowTime || undefined,
+			remark: addQuoteFollowForm.remark || undefined
 		});
-		ElMessage.success('保存成功');
-		addFollowVisible.value = false;
-		loadFollowList();
-	} catch (e: any) {
-		ElMessage.error(e?.message || '保存失败');
+		ElMessage.success('新增跟進記錄成功');
+		addQuoteFollowVisible.value = false;
+		await loadQuoteFollowDialogList();
+	} catch (error: any) {
+		ElMessage.error(error?.message || '新增跟進記錄失敗');
 	}
 }
 
-function onQuotationView() {
-	ElMessage.info('查看报价单功能开发中');
+async function loadQuoteViewList() {
+	if (!quoteViewCustomer.value?.id) {
+		quoteViewList.value = [];
+		return;
+	}
+
+	quoteViewLoading.value = true;
+	try {
+		const res: any = await quoteService.page({
+			customerId: quoteViewCustomer.value.id,
+			page: 1,
+			size: 999
+		});
+		quoteViewList.value = res?.list ?? [];
+	} catch (error: any) {
+		ElMessage.error(error?.message || '載入報價單列表失敗');
+	} finally {
+		quoteViewLoading.value = false;
+	}
 }
 
-function onQuotationAdd() {
-	ElMessage.info('新增报价单功能开发中');
+async function openQuoteViewDialog(row: any) {
+	if (!row?.id) {
+		ElMessage.warning('缺少客戶資訊');
+		return;
+	}
+	quoteViewCustomer.value = { ...(row || {}) };
+	quoteViewVisible.value = true;
+	await loadQuoteViewList();
 }
 
-/** 「更多」内是否至少有一项可操作 */
-function moreMenuVisible(row: Record<string, any>) {
-	const vip = Number(row.isVip) === 1;
+function openQuoteViewCreate() {
+	if (!quoteViewCustomer.value) return;
+	openQuoteDialog(quoteViewCustomer.value);
+}
+
+function openQuoteViewEdit(row: any) {
+	quoteViewVisible.value = false;
+	openQuoteDialog(quoteViewCustomer.value, row);
+}
+
+function openQuoteViewFollow(row?: any) {
+	if (!canFollow.value) {
+		ElMessage.warning('暫無跟進權限');
+		return;
+	}
+	if (!row?.id) {
+		ElMessage.warning('缺少報價單資訊');
+		return;
+	}
+	quoteFollowCurrentRow.value = {
+		...(row || {}),
+		customerId: Number(row.customerId || quoteViewCustomer.value?.id || 0),
+		salesmanId: Number(row.salesmanId || quoteViewCustomer.value?.salesmanId || 0)
+	};
+	quoteFollowQuery.page = 1;
+	quoteFollowQuery.size = 10;
+	quoteFollowDialogVisible.value = true;
+}
+
+async function openQuoteViewSend(row: any) {
+	quoteViewSendForm.id = Number(row?.id || 0);
+	quoteViewSendForm.sendType = 1;
+	quoteViewSendForm.email = row?.customerEmail || '';
+	quoteViewSendForm.remark = row?.sendRemark || '';
+
+	if (!quoteViewSendForm.email && row?.id) {
+		const detail: any = await quoteService.info({ id: row.id });
+		quoteViewSendForm.email = detail?.customerEmail || '';
+	}
+
+	quoteViewSendVisible.value = true;
+}
+
+async function submitQuoteViewSend() {
+	if (!quoteViewSendForm.id) return;
+	if (quoteViewSendForm.sendType === 1 && !String(quoteViewSendForm.email || '').trim()) {
+		ElMessage.warning('郵件發送時必須填寫客戶郵箱');
+		return;
+	}
+
+	quoteViewSendLoading.value = true;
+	try {
+		await quoteService.sendQuote({
+			id: quoteViewSendForm.id,
+			sendType: quoteViewSendForm.sendType,
+			email: quoteViewSendForm.email || undefined,
+			remark: quoteViewSendForm.remark || undefined
+		});
+		ElMessage.success('報價發送成功');
+		quoteViewSendVisible.value = false;
+		await loadQuoteViewList();
+		Crud.value?.refresh();
+	} catch (error: any) {
+		ElMessage.error(error?.message || '報價發送失敗');
+	} finally {
+		quoteViewSendLoading.value = false;
+	}
+}
+
+function openQuoteViewContract(row: any) {
+	quoteViewContractForm.id = Number(row?.id || 0);
+	quoteViewContractForm.fileId = row?.contractFile || '';
+	quoteViewContractForm.fileName = row?.contractFileName || '';
+	quoteViewContractForm.remark = row?.contractRemark || '';
+	quoteViewContractVisible.value = true;
+}
+
+async function submitQuoteViewContract() {
+	if (!quoteViewContractForm.id) return;
+	if (!String(quoteViewContractForm.fileId || '').trim()) {
+		ElMessage.warning('請先上傳合約檔案');
+		return;
+	}
+
+	quoteViewContractLoading.value = true;
+	try {
+		await quoteService.uploadContract({
+			id: quoteViewContractForm.id,
+			fileId: quoteViewContractForm.fileId,
+			fileName: quoteViewContractForm.fileName || undefined,
+			remark: quoteViewContractForm.remark || undefined
+		});
+		ElMessage.success('電子合約上傳成功');
+		quoteViewContractVisible.value = false;
+		await loadQuoteViewList();
+		Crud.value?.refresh();
+	} catch (error: any) {
+		ElMessage.error(error?.message || '電子合約上傳失敗');
+	} finally {
+		quoteViewContractLoading.value = false;
+	}
+}
+
+async function loadQuoteViewReceiptStages(orderId: number) {
+	const res: any = await quoteService.receiptStages({ id: orderId });
+	quoteViewReceiptStageRows.value = Array.isArray(res?.stages) ? res.stages : [];
+}
+
+async function openQuoteViewReceipt(row: any) {
+	if (!row?.id) {
+		ElMessage.warning('缺少報價單資訊');
+		return;
+	}
+
+	quoteViewReceiptCurrentRow.value = { ...(row || {}) };
+	quoteViewReceiptLoading.value = true;
+	try {
+		await loadQuoteViewReceiptStages(Number(row.id));
+		quoteViewReceiptVisible.value = true;
+	} catch (error: any) {
+		ElMessage.error(error?.message || '載入回款階段失敗');
+	} finally {
+		quoteViewReceiptLoading.value = false;
+	}
+}
+
+async function submitQuoteViewReceiptRow(row: any) {
+	if (!quoteViewReceiptCurrentRow.value?.id || !row?.id || quoteViewReceiptSubmitting.value) {
+		return;
+	}
+	if (toNumber(row.receiptAmount) <= 0) {
+		ElMessage.warning('請輸入本次回款金額');
+		return;
+	}
+	if (toNumber(row.amount) > 0 && toNumber(row.receiptAmount) > toNumber(row.amount)) {
+		ElMessage.warning('本次回款金額不能大於應回款金額');
+		return;
+	}
+
+	quoteViewReceiptSubmitting.value = true;
+	try {
+		await quoteService.submitReceipt({
+			id: Number(quoteViewReceiptCurrentRow.value.id),
+			stageId: Number(row.id),
+			receiptAmount: toNumber(row.receiptAmount),
+			receiptVoucher: row.receiptVoucher || undefined
+		});
+		ElMessage.success('回款提交成功');
+		await loadQuoteViewReceiptStages(Number(quoteViewReceiptCurrentRow.value.id));
+		await loadQuoteViewList();
+		Crud.value?.refresh();
+	} catch (error: any) {
+		ElMessage.error(error?.message || '回款提交失敗');
+	} finally {
+		quoteViewReceiptSubmitting.value = false;
+	}
+}
+
+function resolveQuoteViewInvoiceProductName(orderRow: any, stageRow: any) {
+	const current = String(stageRow?.invoiceProductName || '').trim();
+	if (current) {
+		return current;
+	}
+	return [String(orderRow?.quoteName || '').trim(), String(stageRow?.stageName || '').trim()]
+		.filter(Boolean)
+		.join('-');
+}
+
+async function loadQuoteViewInvoiceStages(orderRow?: any) {
+	const currentRow = orderRow || quoteViewInvoiceCurrentRow.value;
+	const orderId = Number(currentRow?.id || 0);
+	if (!orderId) {
+		quoteViewInvoiceStageRows.value = [];
+		return;
+	}
+
+	const res: any = await quoteService.invoiceStages({ id: orderId });
+	const rows = Array.isArray(res?.stages) ? res.stages : [];
+	quoteViewInvoiceStageRows.value = rows.map((item: any) => ({
+		...item,
+		invoiceProductName: resolveQuoteViewInvoiceProductName(currentRow, item)
+	}));
+}
+
+async function openQuoteViewInvoice(row: any) {
+	if (!row?.id) {
+		ElMessage.warning('缺少報價單資訊');
+		return;
+	}
+
+	quoteViewInvoiceCurrentRow.value = { ...(row || {}) };
+	quoteViewInvoiceLoading.value = true;
+	try {
+		await loadQuoteViewInvoiceStages(row);
+		quoteViewInvoiceVisible.value = true;
+	} catch (error: any) {
+		ElMessage.error(error?.message || '載入開票階段失敗');
+	} finally {
+		quoteViewInvoiceLoading.value = false;
+	}
+}
+
+function getQuoteViewInvoiceApplyDisabledReason(row: any, index: number) {
+	const invoiceStatus = Number(row.invoiceStatus);
+	if (invoiceStatus === 1) {
+		return '當前階段已提交開票申請，請等待財務審核';
+	}
+	if (invoiceStatus === 3) {
+		return '當前階段發票已審核通過，無需重複申請';
+	}
+
+	const previousUnapproved = quoteViewInvoiceStageRows.value
+		.slice(0, index)
+		.filter((item: any) => toNumber(item.amount || item.receiptAmount) > 0)
+		.some((item: any) => Number(item.invoiceStatus) !== 3);
+
+	return previousUnapproved ? '上一張發票審核通過後才能申請下一張票' : '';
+}
+
+async function applyQuoteViewInvoiceRow(row: any, index = quoteViewInvoiceStageRows.value.indexOf(row)) {
+	if (!quoteViewInvoiceCurrentRow.value?.id || !row?.id || quoteViewInvoiceSubmitting.value) {
+		return;
+	}
+
+	const disabledReason = getQuoteViewInvoiceApplyDisabledReason(row, index);
+	if (disabledReason) {
+		ElMessage.warning(disabledReason);
+		return;
+	}
+
+	quoteViewInvoiceSubmitting.value = true;
+	try {
+		await quoteService.applyInvoice({
+			id: Number(quoteViewInvoiceCurrentRow.value.id),
+			stageId: Number(row.id),
+			invoiceProductName: String(
+				row.invoiceProductName ||
+					resolveQuoteViewInvoiceProductName(quoteViewInvoiceCurrentRow.value, row)
+			).trim()
+		});
+		ElMessage.success('申請開票成功');
+		await loadQuoteViewInvoiceStages(quoteViewInvoiceCurrentRow.value);
+		await loadQuoteViewList();
+		Crud.value?.refresh();
+	} catch (error: any) {
+		ElMessage.error(error?.message || error?.data?.message || '申請開票失敗');
+	} finally {
+		quoteViewInvoiceSubmitting.value = false;
+	}
+}
+
+function hasQuoteViewContractActions(row: any) {
 	return (
-		canEditCustomer.value ||
-		canQuotationAdd.value ||
-		canMoveToPool.value ||
-		(canRowSetVip.value && !vip) ||
-		(canRowCancelVip.value && vip)
+		canUploadContractPerm.value &&
+		(row?.permissions?.canUploadContract || !!String(row?.contractFile || '').trim())
 	);
 }
 
-function onMoreCommand(cmd: string, row: { id: number; isVip?: number }) {
-	switch (cmd) {
-		case 'editCustomer':
-			if (!canEditCustomer.value) return;
-			Crud.value?.rowEdit(row);
-			break;
-		case 'quotationAdd':
-			onQuotationAdd();
-			break;
-		case 'moveToPool':
-			onMoveToPool(row);
-			break;
-		case 'setVip':
-			onSetVip(row);
-			break;
-		case 'cancelVip':
-			onCancelVip(row);
-			break;
-		default:
-			break;
+async function downloadQuoteViewContract(row: any) {
+	const id = Number(row?.id || 0);
+	if (!id) {
+		ElMessage.warning('暫無合約檔案可下載');
+		return;
 	}
+	try {
+		const blob = await quoteService.downloadContract({ id });
+		downloadBlob(blob as Blob, row?.contractFileName || '合約檔案');
+	} catch (error: any) {
+		ElMessage.error(error?.message || '合約檔案下載失敗');
+	}
+}
+
+function canDownloadQuoteViewInvoice(row: any) {
+	return toNumber(row?.invoiceStatus) > 0;
+}
+
+function hasQuoteViewInvoiceActions(row: any) {
+	return canInvoicePerm.value;
+}
+
+async function downloadQuoteViewInvoice(row: any) {
+	if (!row?.id) {
+		ElMessage.warning('缺少報價單資訊');
+		return;
+	}
+	if (!canDownloadQuoteViewInvoice(row)) {
+		ElMessage.warning('當前暫無可下載發票');
+		return;
+	}
+
+	try {
+		const res: any = await quoteService.invoiceStages({ id: Number(row.id) });
+		const rows = (Array.isArray(res?.stages) ? res.stages : []).filter(
+			(item: any) => Number(item?.invoiceStatus) === 1
+		);
+		if (rows.length === 0) {
+			ElMessage.warning('當前暫無可下載發票');
+			return;
+		}
+
+		const sheetRows: any[][] = [
+			['報價單號', row.quoteNo || ''],
+			['報價單名稱', row.quoteName || ''],
+			['客戶名稱', quoteViewCustomer.value?.companyName || row.customerCompanyName || ''],
+			[],
+			['序號', '回款階段', '回款金額', '發票專案', '開票狀態', '申請時間']
+		];
+
+		rows.forEach((item: any, index: number) => {
+			sheetRows.push([
+				String(index + 1),
+				String(item.stageName || ''),
+				String(toNumber(item.receiptAmount)),
+				String(item.invoiceProductName || ''),
+				String(getQuoteInvoiceStatusLabel(item.invoiceStatus)),
+				String(item.invoiceApplyTime || '')
+			]);
+		});
+
+		const ws = XLSX.utils.aoa_to_sheet(sheetRows);
+		const wb = XLSX.utils.book_new();
+		XLSX.utils.book_append_sheet(wb, ws, '發票');
+		XLSX.writeFile(wb, `${row.quoteNo || '報價單'}-發票.xlsx`);
+	} catch (error: any) {
+		ElMessage.error(error?.message || '下載發票失敗');
+	}
+}
+
+async function onQuoteViewCopyCreate(row: any) {
+	try {
+		await ElMessageBox.confirm('確認複製建立當前報價單？', '複製建立', {
+			type: 'warning',
+			confirmButtonText: '確認',
+			cancelButtonText: '取消'
+		});
+	} catch {
+		return;
+	}
+
+	try {
+		const result: any = await quoteService.copyCreate({ id: row.id });
+		ElMessage.success('複製建立成功');
+		await loadQuoteViewList();
+		Crud.value?.refresh();
+		if (result?.id) {
+			quoteCustomer.value = {
+				...(quoteViewCustomer.value || {}),
+				id: Number(row.customerId || quoteViewCustomer.value?.id || 0)
+			};
+			sharedQuoteEditId.value = Number(result.id);
+			sharedQuoteDialogVisible.value = true;
+		}
+	} catch (error: any) {
+		ElMessage.error(error?.message || '複製建立失敗');
+	}
+}
+
+function openQuoteDialog(row: any, quoteRow?: any) {
+	if (!row?.id && !quoteRow?.customerId) {
+		ElMessage.warning('缺少客戶資訊');
+		return;
+	}
+
+	quoteCustomer.value = row
+		? { ...row }
+		: quoteCustomer.value
+			? { ...quoteCustomer.value }
+			: null;
+
+	if (quoteCustomer.value && !quoteCustomer.value.id && quoteRow?.customerId) {
+		quoteCustomer.value.id = Number(quoteRow.customerId || 0);
+	}
+
+	sharedQuoteEditId.value = Number(quoteRow?.id || 0);
+	sharedQuoteDialogVisible.value = true;
+}
+
+function onQuotationView(row?: any) {
+	openQuoteViewDialog(row);
+}
+
+function onQuotationAdd(row?: any) {
+	if (!row?.id) {
+		ElMessage.warning('缺少客戶資訊');
+		return;
+	}
+	openQuoteDialog(row);
+}
+
+async function handleSharedQuoteSaved() {
+	sharedQuoteDialogVisible.value = false;
+	sharedQuoteEditId.value = 0;
+	Crud.value?.refresh();
+	if (quoteViewVisible.value || quoteViewCustomer.value?.id) {
+		await loadQuoteViewList();
+	}
+}
+
+function onEditCustomer(row: { id: number }) {
+	if (!canEditCustomer.value) return;
+	Crud.value?.rowEdit(row);
+}
+
+function getCustomerRowActions(row: any) {
+	return [
+		{
+			key: 'quotationView',
+			label: '檢視報價單',
+			type: 'primary',
+			hidden: !canQuotationView.value,
+			onClick() {
+				onQuotationView(row);
+			}
+		},
+		{
+			key: 'editCustomer',
+			label: '編輯客戶資訊',
+			type: 'primary',
+			hidden: !canEditCustomer.value,
+			onClick() {
+				onEditCustomer(row);
+			}
+		},
+		{
+			key: 'quotationAdd',
+			label: '新增報價單',
+			type: 'primary',
+			hidden: !canQuotationAdd.value,
+			onClick() {
+				onQuotationAdd(row);
+			}
+		},
+		{
+			key: 'moveToPool',
+			label: '移入公池',
+			type: 'warning',
+			hidden: !canMoveToPool.value,
+			onClick() {
+				onMoveToPool(row);
+			}
+		},
+		{
+			key: 'setVip',
+			label: '設為VIP',
+			type: 'success',
+			hidden: !(canRowSetVip.value && Number(row?.isVip) !== 1),
+			onClick() {
+				onSetVip(row);
+			}
+		},
+		{
+			key: 'cancelVip',
+			label: '取消VIP',
+			type: 'danger',
+			hidden: !(canRowCancelVip.value && Number(row?.isVip) === 1),
+			onClick() {
+				onCancelVip(row);
+			}
+		}
+	].filter(item => !item.hidden) as Array<{
+		key: string;
+		label: string;
+		type: 'primary' | 'success' | 'warning' | 'danger';
+		hidden?: boolean;
+		onClick: () => void;
+	}>;
+}
+
+function getCustomerRowVisibleActions(row: any) {
+	return getCustomerRowActions(row).slice(0, 2);
+}
+
+function getCustomerRowMoreActions(row: any) {
+	return getCustomerRowActions(row).slice(2);
+}
+
+function getCustomerListScrollTarget() {
+	const root = customerListTableWrapRef.value;
+	if (!root) return null;
+	const candidates = root.querySelectorAll<HTMLElement>(
+		'.el-scrollbar__wrap, .el-table__body-wrapper'
+	);
+	return Array.from(candidates).find(item => item.scrollWidth > item.clientWidth) || null;
+}
+
+function bindCustomerListScrollTarget(target: HTMLElement | null) {
+	if (customerListScrollTarget === target) return;
+	if (customerListScrollTarget) {
+		customerListScrollTarget.removeEventListener('scroll', syncCustomerListScrollFromTable);
+	}
+	customerListScrollTarget = target;
+	if (customerListScrollTarget) {
+		customerListScrollTarget.addEventListener('scroll', syncCustomerListScrollFromTable);
+	}
+}
+
+function scheduleCustomerListScrollBarUpdate() {
+	[0, 80, 240].forEach(delay => {
+		window.setTimeout(updateCustomerListScrollBar, delay);
+	});
+}
+
+async function updateCustomerListScrollBar() {
+	await nextTick();
+	const target = getCustomerListScrollTarget();
+	bindCustomerListScrollTarget(target);
+	customerListScrollWidth.value = target ? target.scrollWidth : 0;
+	syncCustomerListScrollFromTable();
+}
+
+function syncCustomerListScrollFromTable() {
+	if (isSyncingCustomerListScroll) return;
+	const scroll = customerListXScrollRef.value;
+	const target = customerListScrollTarget || getCustomerListScrollTarget();
+	if (!scroll || !target) return;
+	isSyncingCustomerListScroll = true;
+	scroll.scrollLeft = target.scrollLeft;
+	requestAnimationFrame(() => {
+		isSyncingCustomerListScroll = false;
+	});
+}
+
+function onCustomerListXScroll(event: Event) {
+	if (isSyncingCustomerListScroll) return;
+	const scroll = event.currentTarget as HTMLElement;
+	const target = customerListScrollTarget || getCustomerListScrollTarget();
+	if (!target) return;
+	isSyncingCustomerListScroll = true;
+	target.scrollLeft = scroll.scrollLeft;
+	requestAnimationFrame(() => {
+		isSyncingCustomerListScroll = false;
+	});
+}
+
+function onCustomerListWheel(event: WheelEvent) {
+	const target = customerListScrollTarget || getCustomerListScrollTarget();
+	if (!target) return;
+
+	const delta = event.shiftKey ? event.deltaY : event.deltaX;
+	if (!delta) return;
+
+	event.preventDefault();
+	target.scrollLeft += delta;
+	syncCustomerListScrollFromTable();
 }
 
 async function onMoveToPool(row: { id: number }) {
 	try {
 		await ElMessageBox.confirm(
-			'确认将该客户移入公池？将取消当前业务员归属，客户可在「客户公池」中再次分配。',
+			'確認將該客戶移入公池嗎？移入後客戶將回到待分配狀態，原業務員不再繼續跟進。',
 			'移入公池',
-			{ type: 'warning', confirmButtonText: '确定', cancelButtonText: '取消' }
+			{ type: 'warning', confirmButtonText: '確認', cancelButtonText: '取消' }
 		);
 	} catch {
 		return;
 	}
+
 	try {
 		await customerList.moveToPool({ id: row.id });
-		ElMessage.success('已移入公池');
+		ElMessage.success('移入公池成功');
 		Crud.value?.refresh();
-	} catch (e: any) {
-		ElMessage.error(e?.message || '操作失败');
+	} catch (error: any) {
+		ElMessage.error(error?.message || '移入公池失敗');
 	}
 }
 
 async function onSetVip(row: { id: number }) {
 	try {
-		await ElMessageBox.confirm('确认将该客户设为 VIP？', '设为VIP', {
+		await ElMessageBox.confirm('確認將該客戶設為 VIP 嗎？', '設為VIP', {
 			type: 'warning',
-			confirmButtonText: '确定',
+			confirmButtonText: '確認',
 			cancelButtonText: '取消'
 		});
 	} catch {
 		return;
 	}
+
 	try {
 		await customerList.setVip({ id: row.id });
-		ElMessage.success('已设为 VIP');
+		ElMessage.success('設為VIP成功');
 		Crud.value?.refresh();
-	} catch (e: any) {
-		ElMessage.error(e?.message || '操作失败');
+	} catch (error: any) {
+		ElMessage.error(error?.message || '設為VIP失敗');
 	}
 }
 
 async function onCancelVip(row: { id: number }) {
 	try {
-		await ElMessageBox.confirm('确认取消该客户的 VIP 标识？', '取消VIP', {
+		await ElMessageBox.confirm('確認取消該客戶的 VIP 標識嗎？', '取消VIP', {
 			type: 'warning',
-			confirmButtonText: '确定',
+			confirmButtonText: '確認',
 			cancelButtonText: '取消'
 		});
 	} catch {
 		return;
 	}
+
 	try {
 		await customerList.cancelVip({ id: row.id });
-		ElMessage.success('已取消 VIP');
+		ElMessage.success('取消VIP成功');
 		Crud.value?.refresh();
-	} catch (e: any) {
-		ElMessage.error(e?.message || '操作失败');
+	} catch (error: any) {
+		ElMessage.error(error?.message || '取消VIP失敗');
 	}
 }
 
 useTable({
+	props: {
+		fit: false,
+		scrollbarAlwaysOn: true,
+		nativeScrollbar: false
+	},
 	columns: [
 		{
-			label: '公司信息',
+			label: '公司資訊',
 			prop: 'companyInfo',
 			minWidth: 300,
 			align: 'left'
 		},
 		{
-			label: '联系人信息',
+			label: '聯絡人資訊',
 			prop: 'contactInfo',
 			minWidth: 260,
 			align: 'left'
@@ -678,25 +1759,43 @@ useTable({
 			]
 		},
 		{
-			label: '行业',
+			label: '累計成交次數',
+			prop: 'dealCount',
+			width: 120,
+			align: 'center'
+		},
+		{
+			label: '累計成交金額',
+			prop: 'dealAmount',
+			minWidth: 140,
+			align: 'center'
+		},
+		{
+			label: '狀態',
+			prop: 'status',
+			width: 110,
+			dict: customerStatusTableDict
+		},
+		{
+			label: '行業',
 			prop: 'industry',
 			minWidth: 100,
 			dict: industryTableDict
 		},
 		{
-			label: '业务员',
+			label: '業務員',
 			prop: 'salesmanName',
 			minWidth: 120,
 			formatter(row: any) {
-				return row.salesmanName || (row.salesmanId != null ? `ID:${row.salesmanId}` : '—');
+				return row.salesmanName || (row.salesmanId != null ? `ID:${row.salesmanId}` : '--');
 			}
 		},
-		{ label: '备注', prop: 'remark', minWidth: 140, showOverflowTooltip: true },
-		{ label: '创建时间', prop: 'createTime', minWidth: 160 },
+		{ label: '備註', prop: 'remark', minWidth: 140, showOverflowTooltip: true },
+		{ label: '建立時間', prop: 'createTime', minWidth: 160 },
 		{
 			label: '操作',
 			prop: 'rowActions',
-			width: 260,
+			width: 300,
 			align: 'center',
 			fixed: 'right'
 		}
@@ -707,79 +1806,104 @@ const Upsert = useUpsert({
 	dialog: { width: '720px' },
 	props: { labelWidth: '110px' },
 	items: [
-		sectionDivider('公司信息', '_secCo'),
+		sectionDivider('公司資訊', '_secCo'),
 		{
-			label: '公司名称',
+			label: '公司名稱',
 			prop: 'companyName',
 			required: true,
-			component: { name: 'el-input', props: { clearable: true, placeholder: '请输入公司名称' } }
+			component: {
+				name: 'el-input',
+				props: { clearable: true, placeholder: '請輸入公司名稱' }
+			}
 		},
 		{
 			label: '地址',
 			prop: 'address',
 			required: true,
-			component: { name: 'el-input', props: { clearable: true, placeholder: '请输入地址' } }
+			component: { name: 'el-input', props: { clearable: true, placeholder: '請輸入地址' } }
 		},
 		{
-			label: '统一编号',
+			label: '統一編號',
 			prop: 'taxNumber',
 			required: true,
-			component: { name: 'el-input', props: { clearable: true, placeholder: '请输入统一编号' } }
+			component: {
+				name: 'el-input',
+				props: { clearable: true, placeholder: '請輸入統一編號' }
+			}
 		},
 		{
-			label: '汇款本公司',
+			label: '匯款本公司',
 			prop: 'remittanceLast5',
 			required: true,
-			component: { name: 'el-input', props: { clearable: true, placeholder: '请输入汇款本公司' } }
+			component: {
+				name: 'el-input',
+				props: { clearable: true, placeholder: '請輸入匯款本公司' }
+			}
 		},
-		sectionDivider('联系人信息', '_secCt'),
 		{
-			label: '客户名称',
+			label: '是否廣告投放客戶',
+			prop: 'isAdCustomer',
+			value: 0,
+			component: {
+				name: 'el-switch',
+				props: { activeValue: 1, inactiveValue: 0 }
+			}
+		},
+		sectionDivider('聯絡人資訊', '_secCt'),
+		{
+			label: '客戶名稱',
 			prop: 'contactName',
 			required: true,
-			component: { name: 'el-input', props: { clearable: true, placeholder: '请输入客户名称' } }
+			component: {
+				name: 'el-input',
+				props: { clearable: true, placeholder: '請輸入客戶名稱' }
+			}
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'mobile',
-			rules: customerMobileRules,
-			component: { name: 'el-input', props: { clearable: true, placeholder: '请输入11位手机号' } }
+			component: {
+				name: 'el-input',
+				props: { clearable: true, placeholder: '請輸入手機號' }
+			}
 		},
 		{
-			label: '邮箱',
+			label: '郵箱',
 			prop: 'email',
 			rules: customerEmailRules,
-			component: { name: 'el-input', props: { clearable: true, placeholder: '请输入邮箱' } }
+			component: { name: 'el-input', props: { clearable: true, placeholder: '請輸入郵箱' } }
 		},
 		{
-			label: '备注',
+			label: '備註',
 			prop: 'remark',
-			component: { name: 'el-input', props: { type: 'textarea', rows: 4, placeholder: '请输入备注' } }
+			component: {
+				name: 'el-input',
+				props: { type: 'textarea', rows: 4, placeholder: '請輸入備註' }
+			}
 		},
 		{
-			label: '行业',
+			label: '行業',
 			prop: 'industry',
 			component: {
 				name: 'cl-select',
 				props: {
 					clearable: true,
 					filterable: true,
-					placeholder: '请选择行业',
+					placeholder: '請選擇行業',
 					options: industryOptions
 				}
 			}
 		},
 		{
-			label: '业务员',
+			label: '業務員',
 			prop: 'salesmanId',
-			hidden: () =>
-				!canFilterBySalesman.value || Upsert.value?.mode === 'update',
+			hidden: () => !canFilterBySalesman.value || Upsert.value?.mode === 'update',
 			component: {
 				name: 'cl-select',
 				props: {
 					filterable: true,
 					clearable: true,
-					placeholder: '选填，不选则进入客户公池',
+					placeholder: '請選擇業務員',
 					options: salesmanSelectOptions
 				}
 			}
@@ -808,9 +1932,9 @@ const Upsert = useUpsert({
 	],
 	onSubmit(data, { next }) {
 		const payload: Record<string, any> = { ...data };
-		Object.keys(payload).forEach(k => {
-			if (k.startsWith('_')) {
-				delete payload[k];
+		Object.keys(payload).forEach(key => {
+			if (key.startsWith('_')) {
+				delete payload[key];
 			}
 		});
 		if (Upsert.value?.mode === 'update') {
@@ -838,6 +1962,39 @@ function sectionDivider(title: string, prop: string) {
 		}
 	};
 }
+
+onMounted(async () => {
+	if (canFilterBySalesman.value) {
+		try {
+			const rows = await customerList.salesmenOptions();
+			salesmenRows.value = rows || [];
+			salesmanSelectOptions.value = salesmenRows.value.map((item: any) => ({
+				label: `${item.name || ''} (${item.username})`,
+				value: item.id
+			}));
+		} catch {
+			salesmenRows.value = [];
+			salesmanSelectOptions.value = [];
+		}
+	}
+
+	scheduleCustomerListScrollBarUpdate();
+	if (typeof ResizeObserver !== 'undefined' && customerListTableWrapRef.value) {
+		customerListResizeObserver = new ResizeObserver(() =>
+			scheduleCustomerListScrollBarUpdate()
+		);
+		customerListResizeObserver.observe(customerListTableWrapRef.value);
+	}
+	window.addEventListener('resize', scheduleCustomerListScrollBarUpdate);
+});
+
+onBeforeUnmount(() => {
+	customerListResizeObserver?.disconnect();
+	window.removeEventListener('resize', scheduleCustomerListScrollBarUpdate);
+	if (customerListScrollTarget) {
+		customerListScrollTarget.removeEventListener('scroll', syncCustomerListScrollFromTable);
+	}
+});
 </script>
 
 <style scoped lang="scss">
@@ -897,28 +2054,174 @@ function sectionDivider(title: string, prop: string) {
 
 .crm-list-actions-row {
 	display: flex;
-	flex-wrap: wrap;
+	flex-wrap: nowrap;
 	align-items: center;
 	justify-content: center;
-	gap: 8px 12px;
+	gap: 6px;
+	width: 100%;
 }
 
-.crm-more-link {
+.crm-list-action-btn {
+	min-width: 0;
+	margin-left: 0 !important;
+	padding: 5px 10px;
+}
+
+.crm-list-stat {
+	font-weight: 700;
+	color: #0f172a;
+}
+
+.crm-list-table-wrap {
+	width: 100%;
+	overflow: visible;
+	overscroll-behavior-x: contain;
+}
+
+.crm-list-x-scroll {
+	width: 100%;
+	height: 16px;
+	margin-top: 2px;
+	overflow-x: auto;
+	overflow-y: hidden;
+}
+
+.crm-list-x-scroll__inner {
+	height: 1px;
+}
+
+:deep(.crm-list-table .el-scrollbar__bar.is-horizontal) {
+	display: none;
+}
+
+.crm-quote-view-table-scroll {
+	width: 100%;
+	margin-bottom: 8px;
+	overflow: hidden;
+}
+
+.crm-quote-view-table {
+	width: 100%;
+}
+
+.crm-quote-view-table-scroll :deep(.el-table) {
+	width: 100% !important;
+	max-width: none;
+}
+
+.crm-quote-view-inline-actions {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-wrap: nowrap;
+	gap: 8px;
+	white-space: nowrap;
+}
+
+.crm-quote-contract-cell {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 40px;
+	padding: 2px 0;
+}
+
+.crm-quote-contract-file-box {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 4px;
+	max-width: 100%;
+}
+
+.crm-quote-contract-link {
+	max-width: 100%;
+	color: #316cff;
+	font-size: 14px;
+	line-height: 1.4;
+	text-decoration: none;
+	word-break: break-all;
+	cursor: pointer;
+}
+
+.crm-quote-contract-link:hover {
+	text-decoration: underline;
+}
+
+.crm-quote-contract-upload-trigger {
 	display: inline-flex;
 	align-items: center;
-	gap: 2px;
-	cursor: pointer;
-	color: var(--el-color-primary);
-	font-size: var(--el-font-size-base);
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	border: 1px dashed #d4d7de;
+	border-radius: 10px;
+	background: #fff;
+	color: #b4bac6;
+	font-size: 18px;
 	line-height: 1;
-	outline: none;
+	cursor: pointer;
+	transition:
+		border-color 0.2s ease,
+		color 0.2s ease,
+		background-color 0.2s ease;
 }
 
-.crm-more-link:hover {
-	opacity: 0.85;
+.crm-quote-contract-upload-trigger:hover {
+	border-color: var(--el-color-primary);
+	color: var(--el-color-primary);
+	background: #f5f8ff;
 }
 
-.crm-more-icon {
-	font-size: 12px;
+.crm-quote-contract-upload-trigger.is-disabled {
+	cursor: not-allowed;
+	opacity: 0.55;
+}
+
+.crm-quote-contract-upload-trigger.is-disabled:hover {
+	border-color: #d4d7de;
+	color: #b4bac6;
+	background: #fff;
+}
+
+.crm-quote-view-empty {
+	color: var(--el-text-color-secondary);
+}
+
+.crm-quote-invoice-product-name {
+	min-height: 32px;
+	display: flex;
+	align-items: center;
+	padding: 0 8px;
+	line-height: 1.5;
+	color: var(--el-text-color-regular);
+	word-break: break-word;
+}
+
+.crm-quote-view-footer {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 12px;
+}
+
+.crm-import-dialog {
+	padding: 4px 0 8px;
+}
+
+.crm-import-dialog__tip {
+	margin-bottom: 18px;
+	color: var(--el-text-color-regular);
+	line-height: 1.7;
+}
+
+.crm-import-dialog__actions {
+	display: flex;
+	justify-content: center;
+	gap: 12px;
+}
+
+:deep(.crm-list-table .el-table) {
+	width: 100%;
 }
 </style>

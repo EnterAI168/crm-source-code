@@ -1,7 +1,7 @@
 <template>
 	<slot></slot>
 
-	<!-- 按钮 -->
+	<!-- 按鈕 -->
 	<el-button @click="open" v-if="showBtn">{{ btnText }}</el-button>
 
 	<!-- 列表 -->
@@ -9,7 +9,7 @@
 		<cl-upload v-model="urls" disabled deletable draggable :multiple="multiple" />
 	</div>
 
-	<!-- 弹框 -->
+	<!-- 彈框 -->
 	<cl-dialog
 		v-model="visible"
 		:title="config.title"
@@ -27,7 +27,7 @@
 			<el-button @click="close">{{ $t('取消') }}</el-button>
 			<el-button :disabled="selection.length == 0" type="success" @click="confirm()">
 				{{
-					$t('选择 {count}/{limit} 个', { count: selection.length, limit: config.limit })
+					$t('選擇 {count}/{limit} 個', { count: selection.length, limit: config.limit })
 				}}
 			</el-button>
 		</template>
@@ -49,28 +49,28 @@ const { t } = useI18n();
 
 const props = defineProps({
 	modelValue: [String, Array],
-	// 标题
+	// 標題
 	title: String,
-	// 按钮文本
+	// 按鈕文本
 	text: String,
-	// 是否多选
+	// 是否多選
 	multiple: {
 		type: Boolean,
 		default: true
 	},
-	// 可选数量
+	// 可選數量
 	limit: {
 		type: Number,
 		default: 9
 	},
-	// 类型
+	// 型別
 	accept: String,
-	// 显示按钮
+	// 顯示按鈕
 	showBtn: {
 		type: Boolean,
 		default: true
 	},
-	// 显示列表
+	// 顯示列表
 	showList: {
 		type: Boolean,
 		default: true
@@ -81,7 +81,7 @@ const emit = defineEmits(['update:modelValue', 'change', 'confirm']);
 
 const { refs, setRefs } = useCool();
 
-// 是否可见
+// 是否可見
 const visible = ref(false);
 
 // 配置
@@ -93,25 +93,25 @@ const config = ref({
 // 展示列表
 const urls = ref<any[]>([]);
 
-// 选中列表
+// 選中列表
 const selection = computed<Eps.SpaceInfoEntity[]>(() => refs.inner?.selection || []);
 
-// 按钮文案
+// 按鈕文案
 const btnText = computed(() => {
-	return props.text || t('选择文件');
+	return props.text || t('選擇檔案');
 });
 
-// 打开
+// 開啟
 function open(options?: any) {
 	visible.value = true;
 
-	// 合并配置
+	// 合併配置
 	config.value = assign(
-		{ ...props, title: props.title || t('文件空间'), text: props.text || t('点击上传') },
+		{ ...props, title: props.title || t('檔案空間'), text: props.text || t('點選上傳') },
 		options
 	);
 
-	// 非多选情况
+	// 非多選情況
 	if (!props.multiple) {
 		config.value.limit = 1;
 	}
@@ -121,16 +121,16 @@ function open(options?: any) {
 	});
 }
 
-// 关闭
+// 關閉
 function close() {
 	visible.value = false;
 }
 
-// 确认
+// 確認
 function confirm(arr?: Eps.SpaceInfoEntity[]) {
 	const list = arr || selection.value;
 
-	// 读取文件地址
+	// 讀取檔案地址
 	urls.value = list.map(e => e.url);
 
 	// 返回值
@@ -141,7 +141,7 @@ function confirm(arr?: Eps.SpaceInfoEntity[]) {
 	emit('change', v);
 	emit('confirm', list);
 
-	// 关闭
+	// 關閉
 	close();
 }
 

@@ -8,41 +8,41 @@ export default defineComponent({
 
 	props: {
 		...CrudProps,
-		// 绑定值
+		// 繫結值
 		modelValue: [String, Array, Number],
-		// 选项列表
+		// 選項列表
 		options: {
 			type: Array as PropType<DictOptions[]>,
 			default: () => []
 		},
 		// 格式化返回
 		formatter: Function as PropType<(arr: DictOptions[]) => any>,
-		// 颜色组
+		// 顏色組
 		color: {
 			type: Array as PropType<string[]>,
 			default: () => []
 		},
-		// 分割符号
+		// 分割符號
 		separator: {
 			type: String,
 			default: ','
 		},
-		// 展示所有层级
+		// 展示所有層級
 		allLevels: Boolean,
-		// 超出几个隐藏
+		// 超出幾個隱藏
 		hideOver: {
 			type: Number,
 			default: 5
 		},
-		// 纯文字显示
+		// 純文字顯示
 		text: Boolean
 	},
 
 	setup(props) {
-		// 选项列表
+		// 選項列表
 		const list: DictOptions = cloneDeep(toValue(props.options || []));
 
-		// 设置颜色
+		// 設定顏色
 		if (props.color) {
 			list.forEach((e, i) => {
 				if (!e.color) {
@@ -51,13 +51,13 @@ export default defineComponent({
 			});
 		}
 
-		// 是否展开
+		// 是否展開
 		const isExpand = ref(false);
 
 		return () => {
 			const value = props.modelValue;
 
-			// 绑定值
+			// 繫結值
 			let values: any[] = [];
 
 			// 格式化值
@@ -73,7 +73,7 @@ export default defineComponent({
 				values = [value];
 			}
 
-			// 数据
+			// 資料
 			const data = values
 				.filter(e => e !== undefined && e !== null && e !== '')
 				.map(v => {
@@ -92,10 +92,10 @@ export default defineComponent({
 					};
 				});
 
-			// 是否隐藏部分
+			// 是否隱藏部分
 			const isHide = data.length > props.hideOver && !isExpand.value;
 
-			// 自定义返回
+			// 自定義返回
 			if (props.formatter) {
 				return props.formatter(data);
 			}

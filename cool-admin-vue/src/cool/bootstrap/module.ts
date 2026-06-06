@@ -5,13 +5,13 @@ import { module } from '../module';
 import { hmr } from '../hooks';
 import { config } from '/@/config';
 
-// 扫描文件
+// 掃描檔案
 const files = import.meta.glob('/src/{modules,plugins}/*/{config.ts,service/**,directives/**}', {
 	eager: true,
 	import: 'default'
 });
 
-// 模块列表
+// 模組列表
 module.list = hmr.getData('modules', []);
 
 // 解析
@@ -19,16 +19,16 @@ for (const i in files) {
 	// 分割
 	const [, , type, name, action] = i.split('/');
 
-	// 文件名
+	// 檔名
 	const n = filename(i);
 
-	// 文件内容
+	// 檔案內容
 	const v = files[i];
 
-	// 模块是否存在
+	// 模組是否存在
 	const m = module.get(name);
 
-	// 数据
+	// 資料
 	const d = m || {
 		name,
 		type,
@@ -41,7 +41,7 @@ for (const i in files) {
 	if (action == 'config.ts') {
 		d.value = v;
 	}
-	// 服务
+	// 服務
 	else if (action == 'service') {
 		const s = new (v as any)();
 
@@ -62,7 +62,7 @@ for (const i in files) {
 	}
 }
 
-// 创建
+// 建立
 export function createModule(app: App) {
 	// 排序
 	module.list.forEach(e => {
@@ -82,7 +82,7 @@ export function createModule(app: App) {
 			// 初始化
 			e.install?.(app, e.options);
 
-			// 注册组件
+			// 註冊元件
 			e.components?.forEach(async (c: any) => {
 				const v = await (isFunction(c) ? c() : c);
 				const n = v.default || v;
@@ -92,12 +92,12 @@ export function createModule(app: App) {
 				}
 			});
 
-			// 注册指令
+			// 註冊指令
 			e.directives?.forEach(v => {
 				app.directive(v.name, v.value);
 			});
 
-			// 合并忽略配置
+			// 合併忽略配置
 			config.ignore = mergeWith({}, config.ignore, e.ignore, (a, b) => a?.concat(b));
 		}
 
@@ -110,9 +110,9 @@ export function createModule(app: App) {
 	});
 
 	return {
-		// 模块列表
+		// 模組列表
 		list,
-		// 事件加载
+		// 事件載入
 		async eventLoop() {
 			const events: any = {};
 

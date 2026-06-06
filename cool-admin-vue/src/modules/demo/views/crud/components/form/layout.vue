@@ -2,14 +2,14 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>layout</el-tag>
-			<span>布局</span>
+			<span>佈局</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['form/layout.vue']" />
 
-			<!-- 自定义表单组件 -->
+			<!-- 自定義表單元件 -->
 			<cl-form ref="Form"></cl-form>
 		</div>
 
@@ -26,13 +26,13 @@ const Form = useForm();
 
 function open() {
 	Form.value?.open({
-		title: '布局',
+		title: '佈局',
 		items: [
 			{
-				//【span】参考文档：https://element-plus.gitee.io/zh-CN/component/layout.html
-				// 使用 1/24 分栏，默认 24
+				//【span】參考檔案：https://element-plus.gitee.io/zh-CN/component/layout.html
+				// 使用 1/24 分欄，預設 24
 				span: 12,
-				label: '昵称',
+				label: '暱稱',
 				prop: 'nickname',
 				component: {
 					name: 'el-input'
@@ -40,7 +40,7 @@ function open() {
 			},
 			{
 				span: 12,
-				label: '手机号',
+				label: '手機號',
 				prop: 'phone',
 				component: {
 					name: 'el-input',
@@ -50,34 +50,34 @@ function open() {
 				}
 			},
 			{
-				//【flex】使宽度不填充满
+				//【flex】使寬度不填充滿
 				flex: false,
-				label: '标签',
+				label: '標籤',
 				prop: 'label',
 				component: {
 					name: 'el-input'
 				}
 			},
 			{
-				label: '状态',
+				label: '狀態',
 				prop: 'status',
 				value: 1,
 				component: {
 					name: 'el-radio-group',
 					options: [
 						{
-							label: '开启',
+							label: '開啟',
 							value: 1
 						},
 						{
-							label: '关闭',
+							label: '關閉',
 							value: 0
 						}
 					]
 				}
 			},
 			{
-				label: '备注',
+				label: '備註',
 				prop: 'remark',
 				component: {
 					name: 'el-input',

@@ -38,13 +38,13 @@ export default defineComponent({
 	setup(props, { emit, expose }) {
 		const { refs, setRefs } = useRefs();
 
-		// 标识
+		// 標識
 		const active = ref("");
 
-		// 切换列表
+		// 切換列表
 		const list = ref<any[]>([]);
 
-		// 下划线
+		// 下劃線
 		const line = reactive({
 			width: "",
 			offsetLeft: "",
@@ -62,7 +62,7 @@ export default defineComponent({
 				const item = refs[`tab-${index}`];
 
 				if (item) {
-					// 下划线位置
+					// 下劃線位置
 					line.width = item.offsetWidth + "px";
 					line.transform = `translateX(${item.offsetLeft}px)`;
 
@@ -73,7 +73,7 @@ export default defineComponent({
 						left = 0;
 					}
 
-					// 设置滚动距离
+					// 設定滾動距離
 					refs.tabs.scrollLeft = left;
 				}
 			});
@@ -82,10 +82,10 @@ export default defineComponent({
 			emit("update:modelValue", val);
 		}
 
-		// 监听绑定值变化
+		// 監聽繫結值變化
 		watch(() => props.modelValue, update);
 
-		// 监听值修改
+		// 監聽值修改
 		watch(
 			() => active.value,
 			(val) => {

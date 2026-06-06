@@ -10,42 +10,46 @@
 				]"
 				@contextmenu.stop.prevent="onContextMenu"
 			>
-				<!-- 图片 -->
+				<!-- 圖片 -->
 				<template v-if="item.type === 'image' && !item.error">
 					<el-image
 						class="cl-upload-item__image-cover"
 						fit="contain"
 						:src="item.preload || url"
-						@error="item.error = $t('加载失败')"
+						@error="item.error = $t('載入失敗')"
 					/>
 				</template>
 
-				<!-- 视频 -->
+				<!-- 影片 -->
 				<template v-else-if="item.type === 'video'">
 					<video :ref="setRefs('video')" :key="item.url" :src="item.url" />
 				</template>
 
 				<!-- 其他 -->
 				<template v-else>
-					<!-- 图标 -->
-					<div class="cl-upload-item__icon">
+					<!-- 圖示 -->
+					<div
+						class="cl-upload-item__icon"
+					>
 						<cl-svg :name="'upload-' + item.type" />
 					</div>
-					<!-- 文件名 -->
-					<div class="cl-upload-item__name">
+					<!-- 檔名 -->
+					<div
+						class="cl-upload-item__name"
+					>
 						<span>{{ item.name || url }}</span>
 						<span v-show="item.error" class="error">{{ item.error }}</span>
 					</div>
 				</template>
 
-				<!-- 音频 -->
+				<!-- 音訊 -->
 				<template v-if="item.type === 'audio'">
 					<audio :ref="setRefs('audio')" controls>
 						<source :key="item.url" :src="item.url" type="audio/mpeg" />
 					</audio>
 				</template>
 
-				<!-- 上传中 -->
+				<!-- 上傳中 -->
 				<div
 					class="cl-upload-item__progress"
 					:class="{
@@ -53,16 +57,16 @@
 						'is-hide': item.progress == 100
 					}"
 				>
-					<!-- 进度条 -->
+					<!-- 進度條 -->
 					<div class="cl-upload-item__progress-bar">
 						<el-progress :percentage="item.progress" :show-text="false" />
 					</div>
 
-					<!-- 进度值 -->
+					<!-- 進度值 -->
 					<span class="cl-upload-item__progress-value">{{ item.progress }}</span>
 				</div>
 
-				<!-- 角标 -->
+				<!-- 角標 -->
 				<span
 					v-if="showTag"
 					class="cl-upload-item__tag"
@@ -97,6 +101,14 @@
 						</template>
 
 						<el-icon
+							v-if="canDownload"
+							class="action-download"
+							@click.stop="download"
+						>
+							<download />
+						</el-icon>
+
+						<el-icon
 							v-if="!disabled || deletable"
 							class="action-delete"
 							@click.stop="remove"
@@ -108,7 +120,7 @@
 			</div>
 		</keep-alive>
 
-		<!-- 预览 -->
+		<!-- 預覽 -->
 		<viewer :ref="setRefs('viewer')" />
 	</div>
 </template>
@@ -119,7 +131,7 @@ defineOptions({
 });
 
 import { computed, type PropType, onMounted, watch, reactive } from 'vue';
-import { ZoomIn, Delete, VideoPause, VideoPlay } from '@element-plus/icons-vue';
+import { ZoomIn, Delete, Download, VideoPause, VideoPlay } from '@element-plus/icons-vue';
 import { ContextMenu } from '@cool-vue/crud';
 import { useCool } from '/@/cool';
 import { extname } from '/@/cool/utils';
@@ -138,11 +150,11 @@ const props = defineProps({
 		type: Array as PropType<Upload.Item[]>,
 		default: () => []
 	},
-	// 是否禁用
+	// 是否停用
 	disabled: Boolean,
-	// 是否可以删除
+	// 是否可以刪除
 	deletable: Boolean,
-	// 显示角标
+	// 顯示角標
 	showTag: {
 		type: Boolean,
 		default: true
@@ -155,10 +167,12 @@ const { refs, setRefs } = useCool();
 const { copy } = useClipboard();
 const { t } = useI18n();
 
-// 图片地址
+// 圖片地址
 const url = computed(() => props.item.url || '');
 
-// 角标
+const canDownload = computed(() => !!url.value && !['image', 'video', 'audio'].includes(props.item.type || ''));
+
+// 角標
 const tag = computed(() => {
 	const d = getRule(props.item.type);
 
@@ -173,12 +187,31 @@ function remove() {
 	emit('remove', props.item);
 }
 
-// 预览
+// 預覽
 function preview() {
 	refs.viewer.open(props.item);
 }
 
-// 右键菜单
+function getDownloadName() {
+	const name = props.item.name || url.value.split('/').pop() || 'download';
+	return decodeURIComponent(String(name).split('?')[0] || 'download');
+}
+
+function download() {
+	if (!canDownload.value) {
+		return;
+	}
+
+	const link = document.createElement('a');
+	link.href = url.value;
+	link.download = getDownloadName();
+	link.target = '_blank';
+	document.body.appendChild(link);
+	link.click();
+	document.body.removeChild(link);
+}
+
+// 右鍵選單
 function onContextMenu(e: any) {
 	ContextMenu.open(e, {
 		hover: {
@@ -186,32 +219,40 @@ function onContextMenu(e: any) {
 		},
 		list: [
 			{
-				label: t('预览'),
+				label: t('預覽'),
 				callback(done) {
 					preview();
 					done();
 				}
 			},
 			{
-				label: t('复制链接'),
+				label: t('下載'),
+				hidden: !canDownload.value,
+				callback(done) {
+					download();
+					done();
+				}
+			},
+			{
+				label: t('複製連結'),
 				callback(done) {
 					if (props.item.url) {
 						copy(props.item.url);
-						ElMessage.success('复制成功');
+						ElMessage.success('複製成功');
 					}
 
 					done();
 				}
 			},
 			// {
-			// 	label: isSelected.value ? "取消选中" : "选中",
+			// 	label: isSelected.value ? "取消選中" : "選中",
 			// 	callback(done) {
 			// 		select();
 			// 		done();
 			// 	}
 			// },
 			{
-				label: t('删除'),
+				label: t('刪除'),
 				callback(done) {
 					remove();
 					done();
@@ -221,7 +262,7 @@ function onContextMenu(e: any) {
 	});
 }
 
-// 媒体
+// 媒體
 const media = reactive({
 	isMedia: ['video', 'audio'].includes(props.item.type!),
 
@@ -240,17 +281,17 @@ const media = reactive({
 			return false;
 		}
 
-		// 媒体元素
+		// 媒體元素
 		let el: HTMLVideoElement | HTMLAudioElement | undefined;
 
-		// 监听播放\暂停
+		// 監聽播放\暫停
 		watch(
 			() => props.item.isPlay,
 			val => {
 				if (!el) {
 					el = refs[props.item.type!];
 
-					// 监听播放完成
+					// 監聽播放完成
 					el?.addEventListener('ended', () => {
 						media.pause();
 					});
@@ -279,7 +320,6 @@ onMounted(() => {
 	justify-content: center;
 	height: 100%;
 	width: 100%;
-	cursor: pointer;
 	border-radius: 8px;
 	overflow: hidden;
 	background-color: var(--el-fill-color-light);

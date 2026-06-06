@@ -87,7 +87,7 @@ const tab = reactive({
 			icon: 'icon-shandian_2'
 		},
 		{
-			label: t('代理请求'),
+			label: t('代理請求'),
 			value: 'proxy',
 			icon: 'icon-jingji'
 		},
@@ -101,12 +101,12 @@ const tab = reactive({
 			}
 		},
 		{
-			label: t('账号'),
+			label: t('賬號'),
 			value: 'account',
 			icon: 'icon-geren'
 		},
 		{
-			label: t('文档'),
+			label: t('檔案'),
 			value: 'doc',
 			icon: 'icon-shuben'
 		}
@@ -120,7 +120,7 @@ const tab = reactive({
 
 		tab.active = item.value;
 
-		// 记录
+		// 記錄
 		storage.set('devTools.tab', item.value);
 	}
 });

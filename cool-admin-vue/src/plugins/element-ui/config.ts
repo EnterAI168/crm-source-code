@@ -26,7 +26,7 @@ export default (): ModuleConfig => {
 		},
 
 		label: 'Element Ui',
-		description: 'Element Plus 变量、样式配置',
+		description: 'Element Plus 變數、樣式配置',
 		author: 'COOL',
 		version: '1.0.0',
 		updateTime: '2024-07-22',

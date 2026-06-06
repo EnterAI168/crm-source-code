@@ -13,7 +13,7 @@ import * as md5 from 'md5';
 import { PluginService } from '../../plugin/service/info';
 
 /**
- * 登录
+ * 登入
  */
 @Provide()
 export class UserLoginService extends BaseService {
@@ -39,37 +39,37 @@ export class UserLoginService extends BaseService {
   userSmsService: UserSmsService;
 
   /**
-   * 发送手机验证码
+   * 發送手機驗證碼
    * @param phone
    * @param captchaId
    * @param code
    */
   async smsCode(phone, captchaId, code) {
-    // 1、检查图片验证码  2、发送短信验证码
+    // 1、檢查圖片驗證碼  2、發送簡訊驗證碼
     const check = await this.baseSysLoginService.captchaCheck(captchaId, code);
     if (!check) {
-      throw new CoolCommException('图片验证码错误');
+      throw new CoolCommException('圖片驗證碼錯誤');
     }
     await this.userSmsService.sendSms(phone);
   }
 
   /**
-   *  手机验证码登录
+   *  手機驗證碼登入
    * @param phone
    * @param smsCode
    */
   async phoneVerifyCode(phone, smsCode) {
-    // 1、检查短信验证码  2、登录
+    // 1、檢查簡訊驗證碼  2、登入
     const check = await this.userSmsService.checkCode(phone, smsCode);
     if (check) {
       return await this.phone(phone);
     } else {
-      throw new CoolCommException('验证码错误');
+      throw new CoolCommException('驗證碼錯誤');
     }
   }
 
   /**
-   * 小程序手机号登录
+   * 小程式手機號登入
    * @param code
    * @param encryptedData
    * @param iv
@@ -79,12 +79,12 @@ export class UserLoginService extends BaseService {
     if (phone) {
       return await this.phone(phone);
     } else {
-      throw new CoolCommException('获得手机号失败，请检查配置');
+      throw new CoolCommException('獲得手機號失敗，請檢查配置');
     }
   }
 
   /**
-   * 手机号一键登录
+   * 手機號一鍵登入
    * @param access_token
    * @param openid
    */
@@ -94,12 +94,12 @@ export class UserLoginService extends BaseService {
     if (phone) {
       return await this.phone(phone);
     } else {
-      throw new CoolCommException('获得手机号失败，请检查配置');
+      throw new CoolCommException('獲得手機號失敗，請檢查配置');
     }
   }
 
   /**
-   * 手机登录
+   * 手機登入
    * @param phone
    * @returns
    */
@@ -120,7 +120,7 @@ export class UserLoginService extends BaseService {
   }
 
   /**
-   * 公众号登录
+   * 公眾號登入
    * @param code
    */
   async mp(code: string) {
@@ -142,12 +142,12 @@ export class UserLoginService extends BaseService {
       );
       return this.wxLoginToken(wxUserInfo);
     } else {
-      throw new Error('微信登录失败');
+      throw new Error('微信登入失敗');
     }
   }
 
   /**
-   * 微信APP授权登录
+   * 微信APP授權登入
    * @param code
    */
   async wxApp(code: string) {
@@ -169,12 +169,12 @@ export class UserLoginService extends BaseService {
       );
       return this.wxLoginToken(wxUserInfo);
     } else {
-      throw new Error('微信登录失败');
+      throw new Error('微信登入失敗');
     }
   }
 
   /**
-   * 保存微信信息
+   * 儲存微信資訊
    * @param wxUserInfo
    * @param type
    * @returns
@@ -192,7 +192,7 @@ export class UserLoginService extends BaseService {
   }
 
   /**
-   * 小程序登录
+   * 小程式登入
    * @param code
    * @param encryptedData
    * @param iv
@@ -204,15 +204,15 @@ export class UserLoginService extends BaseService {
       iv
     );
     if (wxUserInfo) {
-      // 保存
+      // 儲存
       wxUserInfo = await this.saveWxInfo(wxUserInfo, 0);
       return await this.wxLoginToken(wxUserInfo);
     }
   }
 
   /**
-   * 微信登录 获得token
-   * @param wxUserInfo 微信用户信息
+   * 微信登入 獲得token
+   * @param wxUserInfo 微信使用者資訊
    * @returns
    */
   async wxLoginToken(wxUserInfo) {
@@ -237,14 +237,14 @@ export class UserLoginService extends BaseService {
   }
 
   /**
-   * 刷新token
+   * 重新整理token
    * @param refreshToken
    */
   async refreshToken(refreshToken) {
     try {
       const info = jwt.verify(refreshToken, this.jwtConfig.secret);
       if (!info['isRefresh']) {
-        throw new CoolCommException('token类型非refreshToken');
+        throw new CoolCommException('token型別非refreshToken');
       }
       const userInfo = await this.userInfoEntity.findOneBy({
         id: info['id'],
@@ -252,13 +252,13 @@ export class UserLoginService extends BaseService {
       return this.token({ id: userInfo.id });
     } catch (e) {
       throw new CoolCommException(
-        '刷新token失败，请检查refreshToken是否正确或过期'
+        '重新整理token失敗，請檢查refreshToken是否正確或過期'
       );
     }
   }
 
   /**
-   * 密码登录
+   * 密碼登入
    * @param phone
    * @param password
    */
@@ -270,12 +270,12 @@ export class UserLoginService extends BaseService {
         id: user.id,
       });
     } else {
-      throw new CoolCommException('账号或密码错误');
+      throw new CoolCommException('賬號或密碼錯誤');
     }
   }
 
   /**
-   * 获得token
+   * 獲得token
    * @param info
    * @returns
    */
@@ -291,7 +291,7 @@ export class UserLoginService extends BaseService {
 
   /**
    * 生成token
-   * @param tokenInfo 信息
+   * @param tokenInfo 資訊
    * @param roleIds 角色集合
    */
   async generateToken(info, isRefresh = false) {

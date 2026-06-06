@@ -2,7 +2,7 @@ import { ElMessage } from 'element-plus';
 import { service } from '/@/cool';
 
 export function useMenu() {
-	// 根据 router 删除菜单
+	// 根據 router 刪除選單
 	async function del(router: string) {
 		const menus = await service.base.sys.menu.list();
 		const item = menus.find(e => e.router == router);
@@ -11,19 +11,19 @@ export function useMenu() {
 		}
 	}
 
-	// 创建菜单、权限、文件
+	// 建立選單、權限、檔案
 	function create(data: EpsModule): Promise<() => void> {
 		return new Promise(async (resolve, reject) => {
-			// 视图文件路径
+			// 檢視檔案路徑
 			data.viewPath = `modules/${data.module}/views${data.router?.replace(
 				`/${data.module}`,
 				''
 			)}.vue`;
 
-			// 删除原菜单
+			// 刪除原選單
 			await del(data.router);
 
-			// 添加新菜单
+			// 新增新選單
 			service.base.sys.menu
 				.add({
 					type: 1,
@@ -34,7 +34,7 @@ export function useMenu() {
 					code: undefined
 				})
 				.then(res => {
-					// 权限列表
+					// 權限列表
 					const perms = data.api?.map(e => {
 						const d = {
 							type: 2,
@@ -59,10 +59,10 @@ export function useMenu() {
 						};
 					});
 
-					// 批量插入权限
+					// 批次插入權限
 					service.base.sys.menu.add(perms).then(() => {
 						resolve(() => {
-							// 创建文件
+							// 建立檔案
 							service
 								.request({
 									url: '/__cool_createFile',

@@ -1,8 +1,8 @@
-# 本地数据库环境
-# 数据存放在当前目录下的 data里
-# 推荐使用安装了docker扩展的vscode打开目录 在本文件上右键可以快速启动，停止
-# 如不需要相关容器开机自启动，可注释掉 restart: always
-# 如遇端口冲突 可调整ports下 :前面的端口号
+# 本地資料庫環境
+# 資料存放在目前目錄下的 data 裡
+# 建議使用安裝了 Docker 擴充套件的 VSCode 開啟目錄，在本檔案上右鍵可以快速啟動、停止
+# 如不需要相關容器開機自動啟動，可註釋掉 restart: always
+# 如遇連線埠衝突，可調整 ports 下 : 前面的連線埠號
 version: "3.1"
 
 services:
@@ -16,9 +16,9 @@ services:
     volumes:
       - ./data/mysql/:/var/lib/mysql/
     environment:
-      TZ: Asia/Shanghai # 指定时区
-      MYSQL_ROOT_PASSWORD: "123456" # 配置root用户密码
-      MYSQL_DATABASE: "cool-crm" # 业务库名
+      TZ: Asia/Shanghai # 指定時區
+      MYSQL_ROOT_PASSWORD: "123456" # 設定 root 使用者密碼
+      MYSQL_DATABASE: "cool-crm" # 業務庫名
     networks:
       - cool
     ports:
@@ -26,10 +26,10 @@ services:
 
   coolRedis:
     image: redis
-    #command: --requirepass "12345678" # redis库密码,不需要密码注释本行
+    #command: --requirepass "12345678" # Redis 庫密碼，不需要密碼註釋本行
     restart: always
     environment:
-      TZ: Asia/Shanghai # 指定时区
+      TZ: Asia/Shanghai # 指定時區
     volumes:
       - ./data/redis/:/data/
     networks:

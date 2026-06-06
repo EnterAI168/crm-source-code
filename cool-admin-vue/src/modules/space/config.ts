@@ -14,7 +14,7 @@ export default (): ModuleConfig => {
 		views: [
 			{
 				meta: {
-					label: '文件空间'
+					label: '檔案空間'
 				},
 				path: '/space/list',
 				component: () => import('./views/list.vue')

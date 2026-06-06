@@ -6,14 +6,14 @@
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['adv-search/base.vue']" />
 
-			<!-- 自定义表格组件 -->
+			<!-- 自定義表格元件 -->
 			<cl-dialog v-model="visible" title="起步" width="80%">
 				<cl-crud ref="Crud">
 					<cl-row>
-						<!--【很重要】高级搜索组件按钮 -->
+						<!--【很重要】高階搜尋元件按鈕 -->
 						<cl-adv-btn />
 					</cl-row>
 
@@ -26,7 +26,7 @@
 						<cl-pagination />
 					</cl-row>
 
-					<!--【很重要】高级搜索组件 -->
+					<!--【很重要】高階搜尋元件 -->
 					<cl-adv-search ref="AdvSearch" />
 				</cl-crud>
 			</cl-dialog>
@@ -67,7 +67,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			minWidth: 140
 		},
@@ -78,7 +78,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '创建时间',
+			label: '建立時間',
 			prop: 'createTime',
 			minWidth: 170,
 			sortable: 'desc'
@@ -87,9 +87,9 @@ const Table = useTable({
 });
 
 // cl-adv-search 配置
-//【很重要】该组件基于 cl-form 故很多示例都可复用
+//【很重要】該元件基於 cl-form 故很多示例都可複用
 const AdvSearch = useAdvSearch({
-	// 配置如 cl-form 一样
+	// 配置如 cl-form 一樣
 	items: [
 		{
 			label: '姓名',
@@ -102,7 +102,7 @@ const AdvSearch = useAdvSearch({
 			}
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			component: {
 				name: 'el-input',

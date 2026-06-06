@@ -9,14 +9,14 @@
 
 	<el-drawer
 		v-model="visible"
-		:title="$t('设置主题')"
+		:title="$t('設定主題')"
 		size="350px"
 		modal-class="drawer-theme"
 		append-to-body
 	>
 		<div class="cl-theme__drawer">
 			<el-form label-position="top">
-				<el-form-item :label="$t('推荐')">
+				<el-form-item :label="$t('推薦')">
 					<ul class="cl-theme__comd">
 						<li v-for="(item, name) in themes" :key="name" @click="setComd(item)">
 							<div
@@ -33,16 +33,16 @@
 					</ul>
 				</el-form-item>
 
-				<el-form-item :label="$t('自定义主色')">
+				<el-form-item :label="$t('自定義主色')">
 					<el-color-picker v-model="form.color" @change="setColor" />
 					<el-text size="small" class="ml-[10px]">{{ form.color }}</el-text>
 				</el-form-item>
 
-				<el-form-item :label="$t('菜单分组显示')">
+				<el-form-item :label="$t('選單分組顯示')">
 					<el-switch v-model="form.theme.isGroup" @change="setGroup" />
 				</el-form-item>
 
-				<el-form-item :label="$t('转场动画')">
+				<el-form-item :label="$t('轉場動畫')">
 					<el-switch
 						v-model="form.theme.transition"
 						active-value="slide"
@@ -76,16 +76,16 @@ const { theme, setTheme, changeDark, themes } = useTheme();
 // 是否暗黑模式
 const isDark = useDark();
 
-// 表单
+// 表單
 const form = reactive<{ color: string; theme: Theme }>({
 	color: theme?.color || '',
 	theme
 });
 
-// 抽屉
+// 抽屜
 const visible = ref(false);
 
-// 打开
+// 開啟
 function open() {
 	visible.value = true;
 }
@@ -95,13 +95,13 @@ function clearDark() {
 	isDark.value = false;
 }
 
-// 设置颜色
+// 設定顏色
 function setColor(color: any) {
 	setTheme({ color });
 	clearDark();
 }
 
-// 设置暗黑模式
+// 設定暗黑模式
 function setDark(el: any) {
 	changeDark(el.srcElement, !isDark.value, () => {
 		isDark.value = !isDark.value;
@@ -109,21 +109,21 @@ function setDark(el: any) {
 	});
 }
 
-// 设置推荐
+// 設定推薦
 function setComd(item: any) {
 	assign(form.theme, item);
 	form.color = item.color;
 	setTheme(item);
-	ElMessage.success(`${t('切换主题')}: ${item.label}`);
+	ElMessage.success(`${t('切換主題')}: ${item.label}`);
 }
 
-// 设置分组
+// 設定分組
 function setGroup(val: any) {
 	setTheme({ isGroup: val });
 	menu.setMenu();
 }
 
-// 设置转场动画
+// 設定轉場動畫
 function setTransition(val: any) {
 	setTheme({ transition: val });
 }

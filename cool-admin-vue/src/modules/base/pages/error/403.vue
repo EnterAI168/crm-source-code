@@ -1,5 +1,5 @@
 <template>
-	<error-page :code="403" :desc="$t('您无权访问此页面')" />
+	<error-page :code="403" :desc="$t('您無權訪問此頁面')" />
 </template>
 
 <script lang="ts" setup>

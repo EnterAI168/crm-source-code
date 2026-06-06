@@ -2,15 +2,15 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>formatter</el-tag>
-			<span>数据格式化</span>
+			<span>資料格式化</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['table/formatter.vue']" />
 
-			<!-- 自定义表格组件 -->
-			<cl-dialog v-model="visible" title="数据格式化" width="80%">
+			<!-- 自定義表格元件 -->
+			<cl-dialog v-model="visible" title="資料格式化" width="80%">
 				<cl-crud ref="Crud">
 					<cl-row>
 						<cl-table ref="Table" />
@@ -56,7 +56,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			minWidth: 140,
 			formatter(row) {
@@ -64,12 +64,12 @@ const Table = useTable({
 			}
 		},
 		{
-			label: '用户信息',
+			label: '使用者資訊',
 			minWidth: 200,
 			// tsx 方式渲染
-			// 【很重要】使用 tsx 语法时，script 的 lang 一定要设置为 tsx
+			// 【很重要】使用 tsx 語法時，script 的 lang 一定要設定為 tsx
 			formatter(row) {
-				// row 为当前行数据
+				// row 為當前行資料
 				return (
 					<el-row>
 						<cl-avatar size={30} />
@@ -79,7 +79,7 @@ const Table = useTable({
 			}
 		},
 		{
-			label: '创建时间',
+			label: '建立時間',
 			prop: 'createTime',
 			minWidth: 170,
 			sortable: 'desc'

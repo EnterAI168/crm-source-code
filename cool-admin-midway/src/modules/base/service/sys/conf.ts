@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { BaseSysConfEntity } from '../../entity/sys/conf';
 
 /**
- * 系统配置
+ * 系統配置
  */
 @Provide()
 export class BaseSysConfService extends BaseService {
@@ -13,7 +13,7 @@ export class BaseSysConfService extends BaseService {
   baseSysConfEntity: Repository<BaseSysConfEntity>;
 
   /**
-   * 获得配置参数值
+   * 獲得配置參數值
    * @param key
    */
   async getValue(key) {
@@ -24,7 +24,7 @@ export class BaseSysConfService extends BaseService {
   }
 
   /**
-   * 更新配置参数
+   * 更新配置參數
    * @param cKey
    * @param cValue
    */

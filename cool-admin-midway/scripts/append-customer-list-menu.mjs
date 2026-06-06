@@ -1,11 +1,11 @@
 /**
- * 在已有「客户管理」目录下写入「客户列表」菜单及按钮权限（与 menu.json 一致）。
- * 若路由 /crm/customer/list 已存在则跳过。
+ * 在已有「客戶管理」目錄下寫入「客戶列表」選單及按鈕許可權（與 menu.json 一致）。
+ * 若路由 /crm/customer/list 已存在則跳過。
  *
- * 用法（在 cool-admin-midway 目录）：
+ * 用法（在 cool-admin-midway 目錄）：
  *   node scripts/append-customer-list-menu.mjs
  *
- * 可通过环境变量覆盖数据库连接：
+ * 可通過環境變數覆蓋資料庫連線：
  *   MYSQL_HOST MYSQL_PORT MYSQL_USER MYSQL_PASSWORD MYSQL_DATABASE
  */
 
@@ -34,7 +34,7 @@ async function main() {
     );
     if (!parent) {
       console.error(
-        '未找到父级目录「客户管理」(router=/crm/customer)。请先部署客户模块或手动导入客户菜单。'
+        '未找到父級目錄「客戶管理」(router=/crm/customer)。請先部署客戶模組或手動匯入客戶選單。'
       );
       process.exitCode = 1;
       return;
@@ -46,7 +46,7 @@ async function main() {
       ['/crm/customer/list']
     );
     if (existing) {
-      console.log('「客户列表」菜单已存在 (id=%s)，无需重复导入。', existing.id);
+      console.log('「客戶列表」選單已存在 (id=%s)，無需重複匯入。', existing.id);
       return;
     }
 
@@ -59,7 +59,7 @@ async function main() {
         t,
         t,
         parentId,
-        '客户列表',
+        '客戶列表',
         '/crm/customer/list',
         'crm:customerList:page',
         1,
@@ -73,10 +73,10 @@ async function main() {
     const listId = ins.insertId;
 
     const buttons = [
-      ['分页', null, 'crm:customerList:page', 2, 1],
+      ['分頁', null, 'crm:customerList:page', 2, 1],
       ['新增', null, 'crm:customerList:add', 2, 2],
-      ['编辑', null, 'crm:customerList:update', 2, 3],
-      ['删除', null, 'crm:customerList:delete', 2, 4],
+      ['編輯', null, 'crm:customerList:update', 2, 3],
+      ['刪除', null, 'crm:customerList:delete', 2, 4],
     ];
     for (const [name, router, perms, type, orderNum] of buttons) {
       await conn.query(
@@ -88,7 +88,7 @@ async function main() {
     }
 
     console.log(
-      '已写入「客户列表」菜单 (id=%s) 及 4 条按钮权限。非超管角色请在「角色权限」中勾选新菜单。',
+      '已寫入「客戶列表」選單 (id=%s) 及 4 條按鈕許可權。非超管角色請在「角色許可權」中勾選新選單。',
       listId
     );
   } finally {

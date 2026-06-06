@@ -2,17 +2,17 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>layout</el-tag>
-			<span>布局</span>
+			<span>佈局</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['search/layout.vue']" />
 
-			<!-- 自定义表格组件 -->
-			<cl-dialog v-model="visible" title="布局" width="80%">
+			<!-- 自定義表格元件 -->
+			<cl-dialog v-model="visible" title="佈局" width="80%">
 				<cl-crud ref="Crud">
-					<!--【很重要】搜索组件 -->
+					<!--【很重要】搜尋元件 -->
 					<cl-search ref="Search" :reset-btn="true" />
 
 					<cl-row>
@@ -62,7 +62,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			minWidth: 140
 		},
@@ -73,7 +73,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '创建时间',
+			label: '建立時間',
 			prop: 'createTime',
 			minWidth: 170,
 			sortable: 'desc'
@@ -82,17 +82,17 @@ const Table = useTable({
 });
 
 // cl-search 配置
-//【很重要】该组件基于 cl-form 故很多示例都可复用
+//【很重要】該元件基於 cl-form 故很多示例都可複用
 const Search = useSearch({
-	// 取消行内表单模式
+	// 取消行內表單模式
 	inline: false,
 
-	// 表单参数
+	// 表單參數
 	props: {
 		labelPosition: 'top'
 	},
 
-	// 配置如 cl-form 一样
+	// 配置如 cl-form 一樣
 	items: [
 		{
 			label: '姓名',
@@ -102,7 +102,7 @@ const Search = useSearch({
 				props: {
 					clearable: true,
 
-					// 值改变的时候刷新列表
+					// 值改變的時候重新整理列表
 					onChange(val: string) {
 						refresh({
 							name: val,
@@ -113,7 +113,7 @@ const Search = useSearch({
 			}
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			component: {
 				name: 'el-input',

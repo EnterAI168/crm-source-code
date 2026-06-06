@@ -1,7 +1,7 @@
 <template>
 	<div class="dt-eps">
 		<div class="top">
-			<el-tooltip :content="$t('刷新')">
+			<el-tooltip :content="$t('重新整理')">
 				<div class="cl-comm__icon" @click="reload">
 					<cl-svg name="refresh" />
 				</div>
@@ -10,7 +10,7 @@
 			<el-input
 				v-model="keyWord"
 				class="search"
-				:placeholder="$t('搜索关键字')"
+				:placeholder="$t('搜尋關鍵字')"
 				clearable
 				@input="onKeyWordChange"
 			>
@@ -22,13 +22,13 @@
 
 		<el-result
 			icon="error"
-			:title="$t('Eps 错误，请在后端代码中设置：')"
+			:title="$t('Eps 錯誤，請在後端程式碼中設定：')"
 			sub-title="/src/config/config.local.ts → { eps: true }"
 			v-if="isEmpty(list)"
 		>
 			<template #extra>
 				<el-button type="primary" @click="reload">
-					{{ $t('刷新') }}
+					{{ $t('重新整理') }}
 				</el-button>
 			</template>
 		</el-result>
@@ -76,7 +76,7 @@ function refresh() {
 			};
 
 			if (key == 'search') {
-				item.label += '（搜索配置）';
+				item.label += '（搜尋配置）';
 			}
 
 			if (isString(data[key])) {

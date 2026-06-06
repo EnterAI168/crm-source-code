@@ -25,23 +25,23 @@ import * as upload from '@midwayjs/upload';
   imports: [
     // https://koajs.com/
     koa,
-    // 是否开启跨域(注：顺序不能乱放！！！) http://www.midwayjs.org/docs/extensions/cross_domain
+    // 是否開啟跨域(注：順序不能亂放！！！) http://www.midwayjs.org/docs/extensions/cross_domain
     // crossDomain,
-    // 静态文件托管 https://midwayjs.org/docs/extensions/static_file
+    // 靜態檔案託管 https://midwayjs.org/docs/extensions/static_file
     staticFile,
     // orm https://midwayjs.org/docs/extensions/orm
     orm,
-    // 参数验证 https://midwayjs.org/docs/extensions/validate
+    // 參數驗證 https://midwayjs.org/docs/extensions/validate
     validate,
-    // 本地任务 http://www.midwayjs.org/docs/extensions/cron
+    // 本地任務 http://www.midwayjs.org/docs/extensions/cron
     cron,
-    // 文件上传
+    // 檔案上傳
     upload,
-    // cool-admin 官方组件 https://cool-js.com
+    // cool-admin 官方元件 https://cool-js.com
     cool,
-    // rpc 微服务 远程调用
+    // rpc 微服務 遠端呼叫
     // rpc,
-    // 任务与队列
+    // 任務與佇列
     // task,
     {
       component: info,

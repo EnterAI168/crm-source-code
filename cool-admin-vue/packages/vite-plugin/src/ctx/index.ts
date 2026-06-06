@@ -16,27 +16,27 @@ export async function createCtx() {
 	if (config.type == "app" || config.type == "uniapp-x") {
 		const manifest = readFile(rootDir("manifest.json"), true);
 
-		// 文件路径
+		// 檔案路徑
 		const ctxPath = rootDir("pages.json");
 
-		// 页面配置
+		// 頁面配置
 		ctx = readFile(ctxPath, true);
 
-		// 原数据，做更新比较用
+		// 原資料，做更新比較用
 		const ctxData = cloneDeep(ctx);
 
-		// 删除临时页面
+		// 刪除臨時頁面
 		ctx.pages = ctx.pages?.filter((e) => !e.isTemp);
 		ctx.subPackages = ctx.subPackages?.filter((e) => !e.isTemp);
 
-		// 删除不需要的数据
+		// 刪除不需要的資料
 		for (const i in ctx) {
 			if (!["pages", "subPackages", "tabBar", "globalStyle", "uniIdRouter"].includes(i)) {
 				delete ctx[i];
 			}
 		}
 
-		// 加载 uni_modules 配置文件
+		// 載入 uni_modules 配置檔案
 		const files = await glob(rootDir("uni_modules") + "/**/pages_init.json", {
 			stat: true,
 			withFileTypes: true,
@@ -49,7 +49,7 @@ export async function createCtx() {
 					true,
 				);
 
-				// 合并到 pages 中
+				// 合併到 pages 中
 				[...pages, ...subPackages].forEach((e) => {
 					e.isTemp = true;
 
@@ -72,7 +72,7 @@ export async function createCtx() {
 			}
 		}
 
-		// 排序后检测，避免加载顺序问题
+		// 排序後檢測，避免載入順序問題
 		function order(d: Ctx.Data) {
 			return {
 				pages: orderBy(d.pages, "path"),

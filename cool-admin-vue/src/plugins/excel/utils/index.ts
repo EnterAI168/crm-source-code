@@ -89,7 +89,7 @@ function sheet_from_array_of_arrays(data, opts) {
 				r: R
 			});
 
-			// 修改这里：无论原始类型是什么，都将单元格类型设置为 "s"
+			// 修改這裡：無論原始型別是什麼，都將單元格型別設定為 "s"
 			cell.t = 's';
 
 			ws[cell_ref] = cell;
@@ -176,16 +176,16 @@ export function export_json_to_excel({
 	}
 
 	if (autoWidth) {
-		/*设置worksheet每列的最大宽度*/
+		/*設定worksheet每列的最大寬度*/
 		const colWidth = data.map(row =>
 			row.map(val => {
-				/*先判断是否为null/undefined*/
+				/*先判斷是否為null/undefined*/
 				if (val == null) {
 					return {
 						wch: 10
 					};
 				} else if (val.toString().charCodeAt(0) > 255) {
-					/*再判断是否为中文*/
+					/*再判斷是否為中文*/
 					return {
 						wch: val.toString().length * 2
 					};
@@ -196,7 +196,7 @@ export function export_json_to_excel({
 				}
 			})
 		);
-		/*以第一行为初始值*/
+		/*以第一行為初始值*/
 		const result = colWidth[0];
 		for (let i = 1; i < colWidth.length; i++) {
 			for (let j = 0; j < colWidth[i].length; j++) {

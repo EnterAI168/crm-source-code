@@ -5,19 +5,19 @@
 		<template #right>
 			<cl-crud ref="Crud">
 				<cl-row>
-					<!-- 刷新按钮 -->
+					<!-- 重新整理按鈕 -->
 					<cl-refresh-btn />
-					<!-- 新增按钮 -->
+					<!-- 新增按鈕 -->
 					<cl-add-btn />
-					<!-- 批量删除 -->
+					<!-- 批次刪除 -->
 					<cl-multi-delete-btn />
 					<cl-flex1 />
-					<!-- 关键字搜索 -->
-					<cl-search-key :placeholder="$t('搜索名称')" />
+					<!-- 關鍵字搜尋 -->
+					<cl-search-key :placeholder="$t('搜尋名稱')" />
 				</cl-row>
 
 				<cl-row>
-					<!-- 数据表格 -->
+					<!-- 資料表格 -->
 					<cl-table ref="Table" />
 				</cl-row>
 
@@ -25,13 +25,13 @@
 					<cl-flex1 />
 				</cl-row>
 
-				<!-- 新增、编辑 -->
+				<!-- 新增、編輯 -->
 				<cl-upsert ref="Upsert">
 					<template #slot-value="{ scope }">
 						<div>
 							<el-input
 								v-model="scope.value"
-								:placeholder="$t('请填写值')"
+								:placeholder="$t('請填寫值')"
 								clearable
 								type="textarea"
 								:rows="4"
@@ -39,7 +39,7 @@
 							/>
 
 							<cl-upload-space
-								:text="$t('使用文件')"
+								:text="$t('使用檔案')"
 								:limit="1"
 								@confirm="onFileConfirm"
 							/>
@@ -68,7 +68,7 @@ const { dict } = useDict();
 const { t } = useI18n();
 
 const { ViewGroup } = useViewGroup({
-	label: t('类型'),
+	label: t('型別'),
 	title: t('字典列表'),
 	service: service.dict.type,
 	onSelect(item) {
@@ -87,7 +87,7 @@ const { ViewGroup } = useViewGroup({
 			},
 			items: [
 				{
-					label: t('名称'),
+					label: t('名稱'),
 					prop: 'name',
 					component: {
 						name: 'el-input',
@@ -123,7 +123,7 @@ const Upsert = useUpsert({
 	},
 	items: [
 		{
-			label: t('上级节点'),
+			label: t('上級節點'),
 			prop: 'parentId',
 			component: {
 				name: 'cl-select',
@@ -138,7 +138,7 @@ const Upsert = useUpsert({
 			}
 		},
 		{
-			label: t('名称'),
+			label: t('名稱'),
 			prop: 'name',
 			required: true,
 			component: { name: 'el-input' }
@@ -155,7 +155,7 @@ const Upsert = useUpsert({
 			component: { name: 'el-input-number', props: { min: 1 } }
 		},
 		{
-			label: t('备注'),
+			label: t('備註'),
 			prop: 'remark',
 			component: {
 				name: 'el-input',
@@ -195,7 +195,7 @@ const Table = useTable({
 		{
 			type: 'selection'
 		},
-		{ label: t('名称'), prop: 'name', align: 'left', minWidth: 200 },
+		{ label: t('名稱'), prop: 'name', align: 'left', minWidth: 200 },
 		{ label: t('ID'), prop: 'id', minWidth: 120 },
 		{
 			label: t('值'),
@@ -204,7 +204,7 @@ const Table = useTable({
 			showOverflowTooltip: true
 		},
 		{
-			label: t('备注'),
+			label: t('備註'),
 			prop: 'remark',
 			showOverflowTooltip: true,
 			minWidth: 170
@@ -217,13 +217,13 @@ const Table = useTable({
 			fixed: 'right'
 		},
 		{
-			label: t('创建时间'),
+			label: t('建立時間'),
 			prop: 'createTime',
 			sortable: 'custom',
 			minWidth: 170
 		},
 		{
-			label: t('更新时间'),
+			label: t('更新時間'),
 			prop: 'updateTime',
 			sortable: 'custom',
 			minWidth: 170
@@ -255,13 +255,13 @@ const Crud = useCrud({
 		service.dict.info.list(params).then(res => {
 			render(res);
 
-			// 刷新字典
+			// 重新整理字典
 			dict.refresh([ViewGroup.value?.selected?.key]);
 		});
 	}
 });
 
-// 刷新
+// 重新整理
 function refresh(params?: any) {
 	Crud.value?.refresh(params);
 }
@@ -274,7 +274,7 @@ function append(row: any) {
 	});
 }
 
-// 文件选择
+// 檔案選擇
 function onFileConfirm(selection: any[]) {
 	Upsert.value?.setForm('value', selection[0]?.url);
 }

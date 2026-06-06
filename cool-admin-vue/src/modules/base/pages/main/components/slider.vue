@@ -7,13 +7,13 @@
 	>
 		<div class="app-slider__logo">
 			<img src="/logo.png" />
-			<span v-if="!app.isFold || browser.isMini">{{ app.info.name }}</span>
+			<span v-if="!app.isFold || browser.isMini" class="notranslate" translate="no">CRM管理系統</span>
 		</div>
 
 		<div class="app-slider__search">
 			<el-input
 				v-model="keyWord"
-				:placeholder="$t('搜索关键字')"
+				placeholder="搜尋關鍵字"
 				clearable
 				@focus="app.fold(false)"
 			>

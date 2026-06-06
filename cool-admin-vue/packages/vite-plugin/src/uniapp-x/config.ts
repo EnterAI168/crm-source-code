@@ -1,5 +1,5 @@
 /**
- * 特殊字符映射表
+ * 特殊字元對映表
  */
 export const SAFE_CHAR_MAP: Record<string, string> = {
 	"[": "-bracket-start-",
@@ -16,7 +16,7 @@ export const SAFE_CHAR_MAP: Record<string, string> = {
 };
 
 /**
- * 特殊字符映射表（国际化）
+ * 特殊字元對映表（國際化）
  */
 export const SAFE_CHAR_MAP_LOCALE: Record<string, string> = {
 	"[": "-bracket-start-",

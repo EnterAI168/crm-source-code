@@ -11,12 +11,12 @@ export default defineComponent({
 
 	props: {
 		label: String,
-		// 展开状态
+		// 展開狀態
 		expand: {
 			type: Boolean,
 			default: true
 		},
-		// 是否能展开、收起
+		// 是否能展開、收起
 		isExpand: {
 			type: Boolean,
 			default: true

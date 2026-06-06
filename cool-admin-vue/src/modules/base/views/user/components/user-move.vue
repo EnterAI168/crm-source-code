@@ -21,14 +21,14 @@ const { t } = useI18n();
 
 async function open(ids: any[]) {
 	Form.value?.open({
-		title: t('部门转移'),
+		title: t('部門轉移'),
 		width: '500px',
 		props: {
 			labelWidth: '80px'
 		},
 		items: [
 			{
-				label: t('选择部门'),
+				label: t('選擇部門'),
 				prop: 'departmentId',
 				component: {
 					name: 'cl-dept-select'
@@ -38,11 +38,11 @@ async function open(ids: any[]) {
 		on: {
 			async submit(data, { done, close }) {
 				if (!data.departmentId) {
-					ElMessage.warning(t('请选择部门'));
+					ElMessage.warning(t('請選擇部門'));
 					return done();
 				}
 
-				await ElMessageBox.confirm(t('转移到新部门，是否继续？'), t('提示'), {
+				await ElMessageBox.confirm(t('轉移到新部門，是否繼續？'), t('提示'), {
 					type: 'warning'
 				})
 					.then(() => {
@@ -52,7 +52,7 @@ async function open(ids: any[]) {
 								userIds: ids
 							})
 							.then(() => {
-								ElMessage.success(t('转移成功'));
+								ElMessage.success(t('轉移成功'));
 								Crud.value?.refresh();
 								close();
 							})

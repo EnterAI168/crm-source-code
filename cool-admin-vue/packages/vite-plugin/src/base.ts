@@ -22,22 +22,22 @@ export function base(): Plugin {
 					const body = await parseJson(req);
 
 					switch (req.url) {
-						// 创建文件
+						// 建立檔案
 						case "/__cool_createFile":
 							await createFile(body);
 							break;
 
-						// 创建 eps 文件
+						// 建立 eps 檔案
 						case "/__cool_eps":
 							await createEps();
 							break;
 
-						// 更新插件
+						// 更新外掛
 						case "/__cool_updatePlugin":
 							await updatePlugin(body);
 							break;
 
-						// 设置代理
+						// 設定代理
 						case "/__cool_updateProxy":
 							await updateProxy(body);
 							break;

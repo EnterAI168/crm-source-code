@@ -5,7 +5,7 @@ import { BaseSysParamService } from '../../../service/sys/param';
 import { Context } from '@midwayjs/koa';
 
 /**
- * 参数配置
+ * 參數配置
  */
 @Provide()
 @CoolController({
@@ -25,9 +25,9 @@ export class BaseSysParamController extends BaseController {
   ctx: Context;
 
   /**
-   * 根据配置参数key获得网页内容(富文本)
+   * 根據配置參數key獲得網頁內容(富文本)
    */
-  @Get('/html', { summary: '获得网页内容的参数值' })
+  @Get('/html', { summary: '獲得網頁內容的參數值' })
   async htmlByKey(@Query('key') key: string) {
     this.ctx.body = await this.baseSysParamService.htmlByKey(key);
   }

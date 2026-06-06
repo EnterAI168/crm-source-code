@@ -45,19 +45,19 @@ const emit = defineEmits(['update:modelValue']);
 const { service } = useCool();
 const Form = useForm();
 
-// 绑定值
+// 繫結值
 const value = useModel(props, 'modelValue', {
 	get(val) {
 		return val ? Number(val) : val;
 	}
 });
 
-// 菜单列表
+// 選單列表
 const list = ref<any[]>([]);
 
-// 树形列表
+// 樹形列表
 const tree = computed(() => {
-	// 过滤掉自己和下级的数据
+	// 過濾掉自己和下級的資料
 	const data = list.value.filter(
 		e => e.id != Form.value?.form.id && (props.type === 0 ? e.type == 0 : props.type > e.type!)
 	);
@@ -65,7 +65,7 @@ const tree = computed(() => {
 	return deepTree(cloneDeep(data)).filter(e => !e.parentId);
 });
 
-// 刷新列表
+// 重新整理列表
 function refresh() {
 	service.base.sys.menu.list().then(res => {
 		list.value = res;

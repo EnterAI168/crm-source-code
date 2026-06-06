@@ -12,7 +12,7 @@ export default (): ModuleConfig => {
 		},
 
 		label: 'Iconfont',
-		description: '图标字体插件，提供多种图标字体的支持',
+		description: '圖示字型外掛，提供多種圖示字型的支援',
 		author: 'CRM',
 		version: '1.0.0',
 		updateTime: '2025-01-11',

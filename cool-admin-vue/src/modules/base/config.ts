@@ -2,6 +2,7 @@ import { type ModuleConfig } from '/@/cool';
 import { useStore } from './store';
 import { config } from '/@/config';
 import { t } from '/@/plugins/i18n';
+import { localeText } from '/@/utils/localeText';
 import './static/css/index.scss';
 
 export default (): ModuleConfig => {
@@ -22,7 +23,7 @@ export default (): ModuleConfig => {
 			{
 				path: '/my/info',
 				meta: {
-					label: t('个人中心')
+					label: t('個人中心')
 				},
 				component: () => import('./views/info.vue')
 			}
@@ -43,10 +44,10 @@ export default (): ModuleConfig => {
 			})
 		],
 		install() {
-			// 设置标题
-			document.title = config.app.name;
+			// 設定標題
+			document.title = localeText(config.app.name);
 
-			// 设置加载文案
+			// 設定載入文案
 			const loading = document.querySelector('#Loading');
 
 			if (loading) {
@@ -55,13 +56,13 @@ export default (): ModuleConfig => {
 				const subTitle = loading.querySelector('.preload__sub-title');
 
 				if (name) {
-					name.innerHTML = config.app.name;
+					name.innerHTML = localeText(config.app.name);
 				}
 				if (title) {
-					title.innerHTML = t('正在加载资源...');
+					title.innerHTML = t('正在載入資源...');
 				}
 				if (subTitle) {
-					subTitle.innerHTML = t('初次加载资源可能需要较多时间，请耐心等待');
+					subTitle.innerHTML = t('初次載入資源可能需要較多時間，請耐心等待');
 				}
 			}
 		},
@@ -80,9 +81,9 @@ export default (): ModuleConfig => {
 			}
 
 			await hasToken(async () => {
-				// 获取用户信息
+				// 獲取使用者資訊
 				user.get();
-				// 获取菜单权限
+				// 獲取選單權限
 				await menu.get();
 			});
 

@@ -11,7 +11,7 @@
 				{{ $t('清空') }}
 			</el-button>
 
-			<cl-filter :label="$t('日志保存天数')">
+			<cl-filter :label="$t('日誌儲存天數')">
 				<el-input-number
 					v-model="day"
 					controls-position="right"
@@ -22,7 +22,7 @@
 			</cl-filter>
 
 			<cl-flex1 />
-			<cl-search-key :placeholder="$t('搜索请求地址、用户昵称、ip')" />
+			<cl-search-key :placeholder="$t('搜尋請求地址、使用者暱稱、ip')" />
 		</cl-row>
 
 		<cl-row>
@@ -50,7 +50,7 @@ import { useI18n } from 'vue-i18n';
 const { service } = useCool();
 const { t } = useI18n();
 
-// 天数
+// 天數
 const day = ref(1);
 
 // cl-crud
@@ -69,23 +69,23 @@ const Table = useTable({
 		},
 		{
 			prop: 'userId',
-			label: t('用户ID'),
+			label: t('使用者ID'),
 			minWidth: 100
 		},
 		{
 			prop: 'name',
-			label: t('用户昵称'),
+			label: t('使用者暱稱'),
 			minWidth: 120
 		},
 		{
 			prop: 'action',
-			label: t('请求地址'),
+			label: t('請求地址'),
 			minWidth: 200,
 			showOverflowTooltip: true
 		},
 		{
 			prop: 'params',
-			label: t('参数'),
+			label: t('參數'),
 			minWidth: 200,
 			component: {
 				name: 'cl-code-json',
@@ -106,28 +106,28 @@ const Table = useTable({
 		},
 		{
 			prop: 'createTime',
-			label: t('请求时间'),
+			label: t('請求時間'),
 			minWidth: 170,
 			sortable: 'desc'
 		}
 	]
 });
 
-// 保存天数
+// 儲存天數
 function saveDay() {
 	service.base.sys.log
 		.setKeep({ value: day.value })
 		.then(() => {
-			ElMessage.success(t('保存成功'));
+			ElMessage.success(t('儲存成功'));
 		})
 		.catch(err => {
 			ElMessage.error(err.message);
 		});
 }
 
-// 清空日志
+// 清空日誌
 function clear() {
-	ElMessageBox.confirm(t('是否要清空日志？'), t('提示'), {
+	ElMessageBox.confirm(t('是否要清空日誌？'), t('提示'), {
 		type: 'warning'
 	})
 		.then(() => {
@@ -145,7 +145,7 @@ function clear() {
 }
 
 onMounted(() => {
-	// 获取天数
+	// 獲取天數
 	service.base.sys.log.getKeep().then(res => {
 		day.value = Number(res);
 	});

@@ -8,21 +8,21 @@ import { config } from '/@/config';
 export const useAppStore = defineStore('app', function () {
 	const { browser, onScreenChange } = useBrowser();
 
-	// 基本信息
+	// 基本資訊
 	const info = reactive({
 		...config.app
 	});
 
-	// 设置基本信息
+	// 設定基本資訊
 	function set(data: any) {
 		merge(info, data);
 		storage.set('__app__', info);
 	}
 
-	// 是否折叠
+	// 是否摺疊
 	const isFold = ref(false);
 
-	// 折叠
+	// 摺疊
 	function fold(v?: boolean) {
 		if (v === undefined) {
 			v = !isFold.value;
@@ -34,7 +34,7 @@ export const useAppStore = defineStore('app', function () {
 	// 是否全屏
 	const isFull = ref(false);
 
-	// 设置全屏
+	// 設定全屏
 	function setFull(state: boolean) {
 		isFull.value = state;
 	}
@@ -44,14 +44,14 @@ export const useAppStore = defineStore('app', function () {
 		hasToken: []
 	});
 
-	// 添加事件
+	// 新增事件
 	function addEvent(name: string, func: any) {
 		if (func) {
 			events[name].push(func);
 		}
 	}
 
-	// 监听屏幕变化
+	// 監聽螢幕變化
 	onScreenChange(() => {
 		isFold.value = browser.isMini;
 	});

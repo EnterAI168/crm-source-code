@@ -19,7 +19,7 @@ export class BaseAppEvent {
     this.logger.info(`Server is running at http://127.0.0.1:${port}`);
     const url = `http://127.0.0.1:${port}`;
 
-    // 使用 child_process 打开浏览器
+    // 使用 child_process 開啟瀏覽器
     const { exec } = require('child_process');
     let command;
 

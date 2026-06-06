@@ -1,6 +1,5 @@
-import { config } from '/@/config';
-import { request } from './request';
 import { AxiosRequestConfig } from 'axios';
+import { getBaseUrl } from './base-url';
 
 export class BaseService {
 	namespace?: string;
@@ -11,8 +10,9 @@ export class BaseService {
 		}
 	}
 
-	// 发送请求
+	// 發送請求
 	async request(options: AxiosRequestConfig = {}) {
+		const { request } = await import('./request');
 		let url = options.url;
 
 		if (url && url.indexOf('http') < 0) {
@@ -21,7 +21,7 @@ export class BaseService {
 			}
 
 			if (options.proxy !== false) {
-				url = config.baseUrl + '/' + url;
+				url = getBaseUrl() + '/' + url;
 			}
 		}
 
@@ -31,7 +31,7 @@ export class BaseService {
 		});
 	}
 
-	// 获取列表
+	// 獲取列表
 	async list(data: any) {
 		return this.request({
 			url: '/list',
@@ -40,7 +40,7 @@ export class BaseService {
 		});
 	}
 
-	// 分页查询
+	// 分頁查詢
 	async page(data: any) {
 		return this.request({
 			url: '/page',
@@ -49,7 +49,7 @@ export class BaseService {
 		});
 	}
 
-	// 获取信息
+	// 獲取資訊
 	async info(params: any) {
 		return this.request({
 			url: '/info',
@@ -57,7 +57,7 @@ export class BaseService {
 		});
 	}
 
-	// 更新数据
+	// 更新資料
 	async update(data: any) {
 		return this.request({
 			url: '/update',
@@ -66,7 +66,7 @@ export class BaseService {
 		});
 	}
 
-	// 删除数据
+	// 刪除資料
 	async delete(data: any) {
 		return this.request({
 			url: '/delete',
@@ -75,7 +75,7 @@ export class BaseService {
 		});
 	}
 
-	// 添加数据
+	// 新增資料
 	async add(data: any) {
 		return this.request({
 			url: '/add',

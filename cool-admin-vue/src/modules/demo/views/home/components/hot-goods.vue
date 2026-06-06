@@ -1,7 +1,7 @@
 <template>
 	<div class="card">
 		<div class="card__header">
-			<span class="label">{{ $t('热门商品排行') }}</span>
+			<span class="label">{{ $t('熱門商品排行') }}</span>
 
 			<cl-select-button v-model="type" :options="options.type" small />
 		</div>
@@ -21,10 +21,10 @@ import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
-// 类型
+// 型別
 const type = ref('day');
 
-// 选项
+// 選項
 const options = reactive({
 	type: [
 		{
@@ -32,7 +32,7 @@ const options = reactive({
 			value: 'day'
 		},
 		{
-			label: t('本周'),
+			label: t('本週'),
 			value: 'week'
 		},
 		{
@@ -53,70 +53,70 @@ const Crud = useCrud(
 				return Promise.resolve({
 					list: [
 						{
-							keyWord: '无线耳机',
+							keyWord: '無線耳機',
 							count: 983,
 							ud: 5,
 							launchDate: '2023-01-01',
 							price: 299
 						},
 						{
-							keyWord: '运动耳机',
+							keyWord: '運動耳機',
 							count: 763,
 							ud: -3,
 							launchDate: '2023-02-15',
 							price: 199
 						},
 						{
-							keyWord: '蓝牙音箱',
+							keyWord: '藍牙音箱',
 							count: 328,
 							ud: 7,
 							launchDate: '2023-03-10',
 							price: 399
 						},
 						{
-							keyWord: '4k显示屏',
+							keyWord: '4k顯示屏',
 							count: 144,
 							ud: 4,
 							launchDate: '2023-04-05',
 							price: 999
 						},
 						{
-							keyWord: '罗技 G530',
+							keyWord: '羅技 G530',
 							count: 121,
 							ud: -1,
 							launchDate: '2023-05-20',
 							price: 499
 						},
 						{
-							keyWord: '智能手表',
+							keyWord: '智慧手錶',
 							count: 450,
 							ud: 2,
 							launchDate: '2023-06-15',
 							price: 599
 						},
 						{
-							keyWord: '游戏鼠标',
+							keyWord: '遊戲滑鼠',
 							count: 300,
 							ud: 6,
 							launchDate: '2023-07-01',
 							price: 150
 						},
 						{
-							keyWord: '机械键盘',
+							keyWord: '機械鍵盤',
 							count: 200,
 							ud: -2,
 							launchDate: '2023-08-10',
 							price: 350
 						},
 						{
-							keyWord: 'VR眼镜',
+							keyWord: 'VR眼鏡',
 							count: 150,
 							ud: 8,
 							launchDate: '2023-09-05',
 							price: 799
 						},
 						{
-							keyWord: '智能音箱',
+							keyWord: '智慧音箱',
 							count: 100,
 							ud: 3,
 							launchDate: '2023-10-01',
@@ -142,29 +142,29 @@ const Table = useTable({
 			width: 60
 		},
 		{
-			label: t('商品名称'),
+			label: t('商品名稱'),
 			prop: 'keyWord',
 			minWidth: 120
 		},
 		{
-			label: t('商品金额'),
+			label: t('商品金額'),
 			prop: 'price',
 			minWidth: 100
 		},
 		{
-			label: t('下单次数'),
+			label: t('下單次數'),
 			prop: 'count',
 			minWidth: 100,
 			sortable: true
 		},
 		{
-			label: t('日涨幅'),
+			label: t('日漲幅'),
 			prop: 'ud',
 			sortable: true,
 			minWidth: 100
 		},
 		{
-			label: t('上架时间'),
+			label: t('上架時間'),
 			prop: 'launchDate',
 			minWidth: 120
 		}

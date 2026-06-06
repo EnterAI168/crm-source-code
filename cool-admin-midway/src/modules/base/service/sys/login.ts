@@ -18,7 +18,7 @@ import { Utils } from '../../../../comm/utils';
 import * as svgCaptcha from 'svg-captcha';
 
 /**
- * 登录
+ * 登入
  */
 @Provide()
 export class BaseSysLoginService extends BaseService {
@@ -50,28 +50,28 @@ export class BaseSysLoginService extends BaseService {
   coolConfig;
 
   /**
-   * 登录
+   * 登入
    * @param login
    */
   async login(login: LoginDTO) {
     const { username, captchaId, verifyCode, password } = login;
-    // 校验验证码
+    // 校驗驗證碼
     const checkV = await this.captchaCheck(captchaId, verifyCode);
     if (checkV) {
       const user = await this.baseSysUserEntity.findOneBy({ username });
-      // 校验用户
+      // 校驗使用者
       if (user) {
-        // 校验用户状态及密码
+        // 校驗使用者狀態及密碼
         if (user.status === 0 || user.password !== md5(password)) {
-          throw new CoolCommException('账户或密码不正确~');
+          throw new CoolCommException('賬戶或密碼不正確~');
         }
       } else {
-        throw new CoolCommException('账户或密码不正确~');
+        throw new CoolCommException('賬戶或密碼不正確~');
       }
-      // 校验角色
+      // 校驗角色
       const roleIds = await this.baseSysRoleService.getByUser(user.id);
       if (_.isEmpty(roleIds)) {
-        throw new CoolCommException('该用户未设置任何角色，无法登录~');
+        throw new CoolCommException('該使用者未設定任何角色，無法登入~');
       }
 
       // 生成token
@@ -88,7 +88,7 @@ export class BaseSysLoginService extends BaseService {
         ),
       };
 
-      // 将用户相关信息保存到缓存
+      // 將使用者相關資訊儲存到快取
       const isAdmin = await this.baseSysPermsService.isAdmin(roleIds);
       const isMenuAdmin = await this.baseSysPermsService.isMenuAdmin(roleIds);
       const perms = await this.baseSysMenuService.getPerms(roleIds, isMenuAdmin);
@@ -106,13 +106,13 @@ export class BaseSysLoginService extends BaseService {
 
       return result;
     } else {
-      throw new CoolCommException('验证码不正确');
+      throw new CoolCommException('驗證碼不正確');
     }
   }
 
   /**
-   * 验证码
-   * @param width 宽
+   * 驗證碼
+   * @param width 寬
    * @param height 高
    */
   async captcha(width = 150, height = 50, color = '#fff') {
@@ -126,7 +126,7 @@ export class BaseSysLoginService extends BaseService {
       captchaId: uuid(),
       data: svg.data.replace(/"/g, "'"),
     };
-    // 文字变白
+    // 文字變白
     const rpList = [
       '#111',
       '#222',
@@ -146,7 +146,7 @@ export class BaseSysLoginService extends BaseService {
     const base64Data = Buffer.from(result.data).toString('base64');
     result.data = `data:image/svg+xml;base64,${base64Data}`;
 
-    // 半小时过期
+    // 半小時過期
     await this.midwayCache.set(
       `verify:img:${result.captchaId}`,
       svg.text.toLowerCase(),
@@ -156,7 +156,7 @@ export class BaseSysLoginService extends BaseService {
   }
 
   /**
-   * 退出登录
+   * 退出登入
    */
   async logout() {
     if (!this.coolConfig.jwt.sso) return;
@@ -169,9 +169,9 @@ export class BaseSysLoginService extends BaseService {
   }
 
   /**
-   * 检验图片验证码
-   * @param captchaId 验证码ID
-   * @param value 验证码
+   * 檢驗圖片驗證碼
+   * @param captchaId 驗證碼ID
+   * @param value 驗證碼
    */
   async captchaCheck(captchaId, value) {
     const rv = await this.midwayCache.get(`verify:img:${captchaId}`);
@@ -185,10 +185,10 @@ export class BaseSysLoginService extends BaseService {
 
   /**
    * 生成token
-   * @param user 用户对象
+   * @param user 使用者物件
    * @param roleIds 角色集合
-   * @param expire 过期
-   * @param isRefresh 是否是刷新
+   * @param expire 過期
+   * @param isRefresh 是否是重新整理
    */
   async generateToken(user, roleIds, expire, isRefresh?) {
     await this.midwayCache.set(
@@ -212,7 +212,7 @@ export class BaseSysLoginService extends BaseService {
   }
 
   /**
-   * 刷新token
+   * 重新整理token
    * @param token
    */
   async refreshToken(token: string) {

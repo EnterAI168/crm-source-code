@@ -1,6 +1,6 @@
 [
   {
-    "name": "客户管理",
+    "name": "CRM Customer",
     "router": "/crm/customer",
     "perms": null,
     "type": 0,
@@ -11,7 +11,7 @@
     "isShow": true,
     "childMenus": [
       {
-        "name": "客户列表",
+        "name": "Customer List",
         "router": "/crm/customer/list",
         "perms": "crm:customerList:page",
         "type": 1,
@@ -22,7 +22,7 @@
         "isShow": true,
         "childMenus": [
           {
-            "name": "分页",
+            "name": "Page",
             "router": null,
             "perms": "crm:customerList:page",
             "type": 2,
@@ -34,7 +34,7 @@
             "childMenus": []
           },
           {
-            "name": "新增",
+            "name": "Add",
             "router": null,
             "perms": "crm:customerList:add",
             "type": 2,
@@ -46,7 +46,7 @@
             "childMenus": []
           },
           {
-            "name": "编辑",
+            "name": "Update",
             "router": null,
             "perms": "crm:customerList:update",
             "type": 2,
@@ -58,7 +58,7 @@
             "childMenus": []
           },
           {
-            "name": "导入",
+            "name": "Import",
             "router": null,
             "perms": "crm:customerList:import",
             "type": 2,
@@ -70,7 +70,7 @@
             "childMenus": []
           },
           {
-            "name": "跟进记录",
+            "name": "Follow",
             "router": null,
             "perms": "crm:customerList:follow",
             "type": 2,
@@ -82,7 +82,7 @@
             "childMenus": []
           },
           {
-            "name": "查看报价单",
+            "name": "Quote View",
             "router": null,
             "perms": "crm:customerList:quotationView",
             "type": 2,
@@ -94,7 +94,7 @@
             "childMenus": []
           },
           {
-            "name": "新增报价单",
+            "name": "Quote Add",
             "router": null,
             "perms": "crm:customerList:quotationAdd",
             "type": 2,
@@ -106,7 +106,7 @@
             "childMenus": []
           },
           {
-            "name": "移入公池",
+            "name": "Move To Pool",
             "router": null,
             "perms": "crm:customerList:moveToPool",
             "type": 2,
@@ -118,7 +118,7 @@
             "childMenus": []
           },
           {
-            "name": "设为VIP",
+            "name": "Set VIP",
             "router": null,
             "perms": "crm:customerList:setVip",
             "type": 2,
@@ -130,7 +130,7 @@
             "childMenus": []
           },
           {
-            "name": "取消VIP",
+            "name": "Cancel VIP",
             "router": null,
             "perms": "crm:customerList:cancelVip",
             "type": 2,
@@ -144,18 +144,18 @@
         ]
       },
       {
-        "name": "客户公池",
+        "name": "Customer Pool",
         "router": "/crm/customer/pool",
         "perms": "crm:customerPool:page",
         "type": 1,
         "icon": "icon-folder",
-        "orderNum": 2,
+        "orderNum": 8,
         "viewPath": "modules/customer/views/pool.vue",
         "keepAlive": true,
         "isShow": true,
         "childMenus": [
           {
-            "name": "分页",
+            "name": "Page",
             "router": null,
             "perms": "crm:customerPool:page",
             "type": 2,
@@ -167,7 +167,7 @@
             "childMenus": []
           },
           {
-            "name": "新增",
+            "name": "Add",
             "router": null,
             "perms": "crm:customerPool:add",
             "type": 2,
@@ -179,7 +179,7 @@
             "childMenus": []
           },
           {
-            "name": "编辑",
+            "name": "Update",
             "router": null,
             "perms": "crm:customerPool:update",
             "type": 2,
@@ -191,7 +191,7 @@
             "childMenus": []
           },
           {
-            "name": "删除",
+            "name": "Delete",
             "router": null,
             "perms": "crm:customerPool:delete",
             "type": 2,
@@ -203,7 +203,7 @@
             "childMenus": []
           },
           {
-            "name": "导入",
+            "name": "Import",
             "router": null,
             "perms": "crm:customerPool:import",
             "type": 2,
@@ -215,12 +215,573 @@
             "childMenus": []
           },
           {
-            "name": "分配业务员",
+            "name": "Assign Salesman",
             "router": null,
             "perms": "crm:customerPool:assignSalesman",
             "type": 2,
             "icon": null,
             "orderNum": 6,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "發送郵件",
+            "router": null,
+            "perms": "crm:customerPool:sendMail",
+            "type": 2,
+            "icon": null,
+            "orderNum": 7,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "報價單管理",
+    "router": "/crm/quote",
+    "perms": null,
+    "type": 0,
+    "icon": "icon-list",
+    "orderNum": 3,
+    "viewPath": null,
+    "keepAlive": true,
+    "isShow": true,
+    "childMenus": [
+      {
+        "name": "報價單列表",
+        "router": "/crm/quote/list",
+        "perms": "crm:quoteOrder:page",
+        "type": 1,
+        "icon": "icon-list",
+        "orderNum": 1,
+        "viewPath": "modules/customer/views/quote.vue",
+        "keepAlive": true,
+        "isShow": true,
+        "childMenus": [
+          {
+            "name": "列表",
+            "router": null,
+            "perms": "crm:quoteOrder:page",
+            "type": 2,
+            "icon": null,
+            "orderNum": 1,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "新增報價單",
+            "router": null,
+            "perms": "crm:quoteOrder:add",
+            "type": 2,
+            "icon": null,
+            "orderNum": 2,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "Update",
+            "router": null,
+            "perms": "crm:quoteOrder:update",
+            "type": 2,
+            "icon": null,
+            "orderNum": 3,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "Delete",
+            "router": null,
+            "perms": "crm:quoteOrder:delete",
+            "type": 2,
+            "icon": null,
+            "orderNum": 4,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "檢視報價單",
+            "router": null,
+            "perms": "crm:quoteOrder:info",
+            "type": 2,
+            "icon": null,
+            "orderNum": 5,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "Submit Audit",
+            "router": null,
+            "perms": "crm:quoteOrder:submitAudit",
+            "type": 2,
+            "icon": null,
+            "orderNum": 6,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "Audit",
+            "router": null,
+            "perms": "crm:quoteOrder:audit",
+            "type": 2,
+            "icon": null,
+            "orderNum": 7,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "Assign",
+            "router": null,
+            "perms": "crm:quoteOrder:assign",
+            "type": 2,
+            "icon": null,
+            "orderNum": 8,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "Send Quote",
+            "router": null,
+            "perms": "crm:quoteOrder:sendQuote",
+            "type": 2,
+            "icon": null,
+            "orderNum": 9,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "Upload Contract",
+            "router": null,
+            "perms": "crm:quoteOrder:uploadContract",
+            "type": 2,
+            "icon": null,
+            "orderNum": 10,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "Copy Create",
+            "router": null,
+            "perms": "crm:quoteOrder:copyCreate",
+            "type": 2,
+            "icon": null,
+            "orderNum": 11,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "Receipt",
+            "router": null,
+            "perms": "crm:quoteOrder:receipt",
+            "type": 2,
+            "icon": null,
+            "orderNum": 12,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "Invoice",
+            "router": null,
+            "perms": "crm:quoteOrder:invoice",
+            "type": 2,
+            "icon": null,
+            "orderNum": 13,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "歷史記錄",
+            "router": null,
+            "perms": "crm:quoteOrder:history",
+            "type": 2,
+            "icon": null,
+            "orderNum": 14,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "報價單PDF下載",
+            "router": null,
+            "perms": "crm:quoteOrder:downloadPdf",
+            "type": 2,
+            "icon": null,
+            "orderNum": 15,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "成本核算",
+            "router": null,
+            "perms": "crm:quoteOrder:departmentCost",
+            "type": 2,
+            "icon": null,
+            "orderNum": 16,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "財務管理",
+    "router": "/crm/finance",
+    "perms": null,
+    "type": 0,
+    "icon": "icon-wallet",
+    "orderNum": 4,
+    "viewPath": null,
+    "keepAlive": true,
+    "isShow": true,
+    "childMenus": [
+      {
+        "name": "發票審核",
+        "router": "/crm/invoice/audit",
+        "perms": "crm:quoteInvoice:page",
+        "type": 1,
+        "icon": "icon-list",
+        "orderNum": 1,
+        "viewPath": "modules/customer/views/invoice-audit.vue",
+        "keepAlive": true,
+        "isShow": true,
+        "childMenus": [
+          {
+            "name": "列表",
+            "router": null,
+            "perms": "crm:quoteInvoice:page",
+            "type": 2,
+            "icon": null,
+            "orderNum": 1,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "詳情",
+            "router": null,
+            "perms": "crm:quoteInvoice:info",
+            "type": 2,
+            "icon": null,
+            "orderNum": 2,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "檢視報價單",
+            "router": null,
+            "perms": "crm:quoteInvoice:quoteInfo",
+            "type": 2,
+            "icon": null,
+            "orderNum": 3,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "審核",
+            "router": null,
+            "perms": "crm:quoteInvoice:audit",
+            "type": 2,
+            "icon": null,
+            "orderNum": 4,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "預覽",
+            "router": null,
+            "perms": "crm:quoteInvoice:preview",
+            "type": 2,
+            "icon": null,
+            "orderNum": 5,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "發送發票",
+            "router": null,
+            "perms": "crm:quoteInvoice:send",
+            "type": 2,
+            "icon": null,
+            "orderNum": 6,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          }
+        ]
+      },
+      {
+        "name": "獎金統計",
+        "router": "/crm/bonus/accounting",
+        "perms": "crm:bonusAccounting:page",
+        "type": 1,
+        "icon": "icon-chart",
+        "orderNum": 2,
+        "viewPath": "modules/customer/views/bonus-accounting.vue",
+        "keepAlive": true,
+        "isShow": true,
+        "childMenus": [
+          {
+            "name": "列表",
+            "router": null,
+            "perms": "crm:bonusAccounting:page",
+            "type": 2,
+            "icon": null,
+            "orderNum": 1,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "詳情",
+            "router": null,
+            "perms": "crm:bonusAccounting:detail",
+            "type": 2,
+            "icon": null,
+            "orderNum": 2,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          }
+        ]
+      },
+      {
+        "name": "匯款管理",
+        "router": "/crm/remittance/list",
+        "perms": "crm:remittance:page",
+        "type": 1,
+        "icon": "icon-money",
+        "orderNum": 3,
+        "viewPath": "modules/customer/views/remittance.vue",
+        "keepAlive": true,
+        "isShow": true,
+        "childMenus": [
+          {
+            "name": "列表",
+            "router": null,
+            "perms": "crm:remittance:page",
+            "type": 2,
+            "icon": null,
+            "orderNum": 1,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "新增",
+            "router": null,
+            "perms": "crm:remittance:add",
+            "type": 2,
+            "icon": null,
+            "orderNum": 2,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "編輯",
+            "router": null,
+            "perms": "crm:remittance:update",
+            "type": 2,
+            "icon": null,
+            "orderNum": 3,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "刪除",
+            "router": null,
+            "perms": "crm:remittance:delete",
+            "type": 2,
+            "icon": null,
+            "orderNum": 4,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "檢視",
+            "router": null,
+            "perms": "crm:remittance:info",
+            "type": 2,
+            "icon": null,
+            "orderNum": 5,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "匯款",
+            "router": null,
+            "perms": "crm:remittance:remit",
+            "type": 2,
+            "icon": null,
+            "orderNum": 6,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "業績管理",
+    "router": "/crm/performance",
+    "perms": null,
+    "type": 0,
+    "icon": "icon-chart",
+    "orderNum": 5,
+    "viewPath": null,
+    "keepAlive": true,
+    "isShow": true,
+    "childMenus": [
+      {
+        "name": "月度考核",
+        "router": "/crm/performance/list",
+        "perms": "crm:performance:page",
+        "type": 1,
+        "icon": "icon-chart",
+        "orderNum": 1,
+        "viewPath": "modules/customer/views/performance.vue",
+        "keepAlive": true,
+        "isShow": true,
+        "childMenus": [
+          {
+            "name": "列表",
+            "router": null,
+            "perms": "crm:performance:page",
+            "type": 2,
+            "icon": null,
+            "orderNum": 1,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "預計獎金",
+            "router": null,
+            "perms": "crm:performance:expectedDetail",
+            "type": 2,
+            "icon": null,
+            "orderNum": 2,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "實際獎金",
+            "router": null,
+            "perms": "crm:performance:actualDetail",
+            "type": 2,
+            "icon": null,
+            "orderNum": 3,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "檢視詳情",
+            "router": null,
+            "perms": "crm:performance:detail",
+            "type": 2,
+            "icon": null,
+            "orderNum": 4,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          }
+        ]
+      },
+      {
+        "name": "年度考核",
+        "router": "/crm/annual-assessment/list",
+        "perms": "crm:annualAssessment:page",
+        "type": 1,
+        "icon": "icon-chart",
+        "orderNum": 2,
+        "viewPath": "modules/customer/views/annual-assessment.vue",
+        "keepAlive": true,
+        "isShow": true,
+        "childMenus": [
+          {
+            "name": "列表",
+            "router": null,
+            "perms": "crm:annualAssessment:page",
+            "type": 2,
+            "icon": null,
+            "orderNum": 1,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "詳情",
+            "router": null,
+            "perms": "crm:annualAssessment:detail",
+            "type": 2,
+            "icon": null,
+            "orderNum": 2,
             "viewPath": null,
             "keepAlive": false,
             "isShow": false,

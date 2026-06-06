@@ -33,22 +33,22 @@ const ClContextMenu = defineComponent({
 	setup(props, { expose, slots }) {
 		const { refs, setRefs } = useRefs();
 
-		// 是否可见
+		// 是否可見
 		const visible = ref(props.show || false);
 
-		// 按钮列表
+		// 按鈕列表
 		const list = ref<ClContextMenu.Item[]>([]);
 
-		// 样式
+		// 樣式
 		const style = reactive({
 			left: "0px",
 			top: "0px"
 		});
 
-		// 选中值
+		// 選中值
 		const ids = ref("");
 
-		// 阻止默认事件
+		// 阻止預設事件
 		function stopDefault(e: any) {
 			if (e.preventDefault) {
 				e.preventDefault();
@@ -76,10 +76,10 @@ const ClContextMenu = defineComponent({
 			return list;
 		}
 
-		// 目标元素
+		// 目標元素
 		let targetEl: any;
 
-		// 关闭
+		// 關閉
 		function close() {
 			visible.value = false;
 			ids.value = "";
@@ -89,18 +89,18 @@ const ClContextMenu = defineComponent({
 			}
 		}
 
-		// 打开
+		// 開啟
 		function open(event: any, options: ClContextMenu.Options = {}) {
-			// 阻止默认事件
+			// 阻止預設事件
 			stopDefault(event);
 
-			// 显示
+			// 顯示
 			visible.value = true;
 
 			// 元素
 			const el = refs["context-menu"].querySelector(".cl-context-menu__box") as HTMLElement;
 
-			// 点击样式
+			// 點選樣式
 			if (options?.hover) {
 				const d = options.hover === true ? {} : options.hover;
 				targetEl = event.target;
@@ -116,22 +116,22 @@ const ClContextMenu = defineComponent({
 				}
 			}
 
-			// 自定义样式
+			// 自定義樣式
 			if (options?.class) {
 				addClass(el, options.class);
 			}
 
-			// 菜单列表
+			// 選單列表
 			if (options?.list) {
 				list.value = parseList(options.list);
 			}
 
 			nextTick(() => {
-				// 计算位置
+				// 計算位置
 				let left = event.pageX;
 				let top = event.pageY;
 
-				// 组件方式用 offset 计算
+				// 元件方式用 offset 計算
 				if (!props.show) {
 					left = event.offsetX;
 					top = event.offsetY;
@@ -157,7 +157,7 @@ const ClContextMenu = defineComponent({
 			};
 		}
 
-		// 行点击
+		// 行點選
 		function rowClick(item: ClContextMenu.Item, id: string) {
 			ids.value = id;
 
@@ -185,9 +185,9 @@ const ClContextMenu = defineComponent({
 			if (visible.value) {
 				const { body, documentElement } = props.event.target.ownerDocument;
 
-				// 添加到 body 下
+				// 新增到 body 下
 				body.appendChild(refs["context-menu"]);
-				// 关闭事件
+				// 關閉事件
 				(documentElement || body).addEventListener("mousedown", (e: any) => {
 					const el = refs["context-menu"];
 					if (!contains(el, e.target) && el != e.target) {
@@ -195,7 +195,7 @@ const ClContextMenu = defineComponent({
 					}
 				});
 
-				// 默认打开
+				// 預設開啟
 				open(props.event, props?.options);
 			}
 		});
@@ -210,7 +210,7 @@ const ClContextMenu = defineComponent({
 								const id = `${pId}-${i}`;
 
 								if (!e.suffixIcon) {
-									// 默认图标
+									// 預設圖示
 									if (e.children) {
 										e.suffixIcon = ArrowRight;
 									}
@@ -228,15 +228,15 @@ const ClContextMenu = defineComponent({
 											ev.stopPropagation();
 										}}
 									>
-										{/* 前缀图标 */}
+										{/* 字首圖示 */}
 										{e.prefixIcon && <ElIcon>{h(toRaw(e.prefixIcon))}</ElIcon>}
 
-										{/* 标题 */}
+										{/* 標題 */}
 										<span>
 											{e.label}
 										</span>
 
-										{/* 后缀图标 */}
+										{/* 字尾圖示 */}
 										{e.suffixIcon && <ElIcon>{h(toRaw(e.suffixIcon))}</ElIcon>}
 
 										{/* 子集 */}

@@ -39,7 +39,7 @@ export function useRender() {
 					/>
 				);
 
-				// 操作按钮
+				// 操作按鈕
 				if (item.type === "op") {
 					const props = assign(
 						{
@@ -60,11 +60,11 @@ export function useRender() {
 						}
 					});
 				}
-				// 多选，序号
+				// 多選，序號
 				else if (["selection", "index"].includes(item.type)) {
 					return h(ElTableColumn, item);
 				}
-				// 默认
+				// 預設
 				else {
 					function deep(item: ClTable.Column) {
 						if (item.hidden) {
@@ -94,7 +94,7 @@ export function useRender() {
 										item
 									});
 								} else {
-									// 绑定值
+									// 繫結值
 									let value = scope.row[item.prop];
 
 									// 格式化
@@ -111,7 +111,7 @@ export function useRender() {
 										}
 									}
 
-									// 自定义渲染
+									// 自定義渲染
 									if (item.render) {
 										return item.render(
 											scope.row,
@@ -120,7 +120,7 @@ export function useRender() {
 											scope.$index
 										);
 									}
-									// 自定义渲染2
+									// 自定義渲染2
 									else if (item.component) {
 										return renderNode(item.component, {
 											prop: item.prop,
@@ -132,11 +132,11 @@ export function useRender() {
 											}
 										});
 									}
-									// 字典状态
+									// 字典狀態
 									else if (item.dict) {
 										return renderDict(value, item);
 									}
-									// 空数据
+									// 空資料
 									else if (isEmpty(value)) {
 										return scope.emptyText;
 									} else {
@@ -153,7 +153,7 @@ export function useRender() {
 			.filter(Boolean);
 	}
 
-	// 渲染操作按钮
+	// 渲染操作按鈕
 	function renderOpButtons(buttons: any, { scope }: any) {
 		const list = getValue(buttons || ["edit", "delete"], { scope }) as ClTable.OpButton;
 
@@ -230,13 +230,13 @@ export function useRender() {
 
 	// 渲染字典
 	function renderDict(value: any, item: ClTable.Column) {
-		// 选项列表
+		// 選項列表
 		const list = cloneDeep(item.dict || []) as DictOptions;
 
-		// 字符串分隔符
+		// 字串分隔符
 		const separator = item.dictSeparator === undefined ? "," : item.dictSeparator;
 
-		// 设置颜色
+		// 設定顏色
 		if (item.dictColor) {
 			list.forEach((e, i) => {
 				if (!e.color) {
@@ -245,7 +245,7 @@ export function useRender() {
 			});
 		}
 
-		// 绑定值
+		// 繫結值
 		let values: any[] = [];
 
 		// 格式化值

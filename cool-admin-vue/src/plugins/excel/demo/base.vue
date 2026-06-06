@@ -1,15 +1,15 @@
 <template>
 	<cl-crud ref="Crud">
 		<cl-row>
-			<!-- 刷新按钮 -->
+			<!-- 重新整理按鈕 -->
 			<cl-refresh-btn />
 
 			<cl-flex1 />
 
-			<!-- 导入 -->
-			<cl-import-btn template="/用户导入模版.xlsx" :on-submit="onImpSubmit" />
+			<!-- 匯入 -->
+			<cl-import-btn template="/使用者匯入模版.xlsx" :on-submit="onImpSubmit" />
 
-			<!-- 导出 -->
+			<!-- 匯出 -->
 			<cl-export-btn :columns="Table?.columns" />
 		</cl-row>
 
@@ -21,7 +21,7 @@
 		<cl-row>
 			<cl-flex1 />
 
-			<!-- 分页 -->
+			<!-- 分頁 -->
 			<cl-pagination />
 		</cl-row>
 	</cl-crud>
@@ -52,11 +52,11 @@ const Table = useTable({
 			prop: 'name'
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone'
 		},
 		{
-			label: '账号',
+			label: '賬號',
 			prop: 'account'
 		},
 		{
@@ -73,6 +73,6 @@ const Table = useTable({
 
 function onImpSubmit(data: { list: any[]; file: File }, { done, close }: any) {
 	close();
-	ElMessage.success(`已提交${data.list.length}条数据`);
+	ElMessage.success(`已提交${data.list.length}條資料`);
 }
 </script>

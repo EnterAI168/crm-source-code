@@ -7,7 +7,7 @@
 		<template v-else>
 			<el-breadcrumb :separator-icon="ArrowRightBold">
 				<el-breadcrumb-item v-for="(item, index) in list" :key="index">
-					<span class="text-[14px]">{{ item.meta?.label || item.name }}</span>
+					<span class="text-[14px]">{{ localeText(item.meta?.label || item.name) }}</span>
 				</el-breadcrumb-item>
 			</el-breadcrumb>
 		</template>
@@ -24,11 +24,12 @@ import { flattenDeep, last } from 'lodash-es';
 import { ArrowRightBold } from '@element-plus/icons-vue';
 import { useCool } from '/@/cool';
 import { useBase } from '/$/base';
+import { localeText } from '/@/utils/localeText';
 
 const { route, browser } = useCool();
 const { menu } = useBase();
 
-// 数据列表
+// 資料列表
 const list = computed(() => {
 	function deep(item: any) {
 		if (route.path === '/') {
@@ -55,8 +56,8 @@ const list = computed(() => {
 	return flattenDeep(menu.group.map(deep).filter(Boolean));
 });
 
-// 最后一个节点名称
-const lastName = computed(() => last(list.value)?.meta?.label);
+// 最後一個節點名稱
+const lastName = computed(() => localeText(last(list.value)?.meta?.label));
 </script>
 
 <style lang="scss" scoped>

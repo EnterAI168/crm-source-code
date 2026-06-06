@@ -1,5 +1,5 @@
 <template>
-	<error-page :code="401" :desc="$t('认证失败，请重新登录！')" />
+	<error-page :code="401" :desc="$t('認證失敗，請重新登入！')" />
 </template>
 
 <script lang="ts" setup>

@@ -27,11 +27,11 @@ const tab = reactive({
 
 	list: [
 		{
-			label: t('销售金额'),
+			label: t('銷售金額'),
 			value: 'sales'
 		},
 		{
-			label: t('销售订单'),
+			label: t('銷售訂單'),
 			value: 'order'
 		}
 	]

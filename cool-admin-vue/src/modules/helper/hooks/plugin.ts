@@ -7,7 +7,7 @@ export const usePlugin = () => {
 		return file.name.replace('.cool', '');
 	}
 
-	// 注册
+	// 註冊
 	function register() {
 		document.body.addEventListener('dragover', e => {
 			e.preventDefault();
@@ -20,11 +20,11 @@ export const usePlugin = () => {
 
 				if (file.name.endsWith('.cool')) {
 					ElMessageBox.confirm(
-						t('检测到插件「{name}」，是否安装？', { name: getName(file) }),
+						t('檢測到外掛「{name}」，是否安裝？', { name: getName(file) }),
 						t('提示'),
 						{
 							type: 'warning',
-							confirmButtonText: t('安装')
+							confirmButtonText: t('安裝')
 						}
 					)
 						.then(() => {
@@ -36,7 +36,7 @@ export const usePlugin = () => {
 		});
 	}
 
-	// 安装
+	// 安裝
 	function install(file: File) {
 		const next = (force: boolean) => {
 			const data = new FormData();
@@ -55,19 +55,19 @@ export const usePlugin = () => {
 				})
 				.then(res => {
 					if (!res) {
-						// 发送事件
+						// 發送事件
 						mitt.emit('plugin.refresh');
 
-						// 标题
-						const title = t('插件「{name}」安装成功', { name: getName(file) });
+						// 標題
+						const title = t('外掛「{name}」安裝成功', { name: getName(file) });
 
-						// 是否插件页面
+						// 是否外掛頁面
 						if (router.currentRoute.value.path == '/helper/plugins') {
 							ElMessage.success(title);
 						} else {
 							ElMessageBox.alert(title, t('提示'), {
 								type: 'success',
-								confirmButtonText: t('点击查看'),
+								confirmButtonText: t('點選檢視'),
 								showCancelButton: true
 							})
 								.then(() => {
@@ -93,7 +93,7 @@ export const usePlugin = () => {
 					if (res.type == 1 || res.type == 2) {
 						ElMessageBox.confirm(res.message, t('提示'), {
 							type: 'warning',
-							confirmButtonText: t('继续')
+							confirmButtonText: t('繼續')
 						})
 							.then(() => {
 								next(true);

@@ -4,7 +4,7 @@ import { uuid } from "../utils";
 const userList = [
 	{
 		id: 1,
-		name: "楚行云",
+		name: "楚行雲",
 		createTime: "1996-09-14",
 		wages: 73026,
 		status: 1,
@@ -14,7 +14,7 @@ const userList = [
 	},
 	{
 		id: 2,
-		name: "秦尘",
+		name: "秦塵",
 		createTime: "1977-11-09",
 		wages: 74520,
 		status: 0,
@@ -24,7 +24,7 @@ const userList = [
 	},
 	{
 		id: 3,
-		name: "叶凡",
+		name: "葉凡",
 		createTime: "1982-11-28",
 		wages: 81420,
 		status: 0,
@@ -34,7 +34,7 @@ const userList = [
 	},
 	{
 		id: 4,
-		name: "白小纯",
+		name: "白小純",
 		createTime: "2012-12-17",
 		wages: 65197,
 		status: 1,
@@ -44,7 +44,7 @@ const userList = [
 	},
 	{
 		id: 5,
-		name: "韩立",
+		name: "韓立",
 		createTime: "1982-07-10",
 		wages: 99107,
 		status: 1,
@@ -74,7 +74,7 @@ const userList = [
 	},
 	{
 		id: 8,
-		name: "李强",
+		name: "李強",
 		createTime: "2016-04-26",
 		wages: 71782,
 		status: 1,
@@ -95,20 +95,20 @@ const userList = [
 ];
 
 class TestService {
-	// 分页列表
+	// 分頁列表
 	async page(params: any) {
 		const { keyWord, page, size, sort, order } = params || {};
 
-		// 关键字查询
+		// 關鍵字查詢
 		const keyWordLikeFields = ["phone", "name"];
 
-		// 等值查询
+		// 等值查詢
 		const fieldEq = ["createTime", "occupation", "status"];
 
-		// 模糊查询
+		// 模糊查詢
 		const likeFields = ["phone", "name"];
 
-		// 过滤后的列表
+		// 過濾後的列表
 		const list = orderBy(userList, order, sort).filter((e: any) => {
 			let f = true;
 
@@ -136,7 +136,7 @@ class TestService {
 		});
 
 		return new Promise((resolve) => {
-			// 模拟延迟
+			// 模擬延遲
 			setTimeout(() => {
 				resolve({
 					list: list.slice((page - 1) * size, page * size),
@@ -176,13 +176,13 @@ class TestService {
 		return id;
 	}
 
-	// 详情
+	// 詳情
 	async info(params: { id: any }) {
 		const { id } = params || {};
 		return userList.find((e) => e.id == id);
 	}
 
-	// 删除
+	// 刪除
 	async delete(params: { ids: any[] }) {
 		const { ids = [] } = params || {};
 
@@ -208,8 +208,8 @@ class TestService {
 		fieldLike: [
 			{
 				propertyName: "status",
-				comment: "状态",
-				dict: ["关闭", "开启"],
+				comment: "狀態",
+				dict: ["關閉", "開啟"],
 				source: "a.status"
 			}
 		],
@@ -221,7 +221,7 @@ class TestService {
 			},
 			{
 				propertyName: "phone",
-				comment: "手机号",
+				comment: "手機號",
 				source: "a.phone"
 			}
 		]

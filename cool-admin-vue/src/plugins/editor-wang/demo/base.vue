@@ -6,6 +6,6 @@
 import { ref } from 'vue';
 
 const value = ref(
-	'<p><span style="font-size: 22px;"><em>富文本编</em></span><span style="color: rgb(216, 68, 147); font-size: 22px;"><em>辑器</em></span></p>'
+	'<p><span style="font-size: 22px;"><em>富文本編</em></span><span style="color: rgb(216, 68, 147); font-size: 22px;"><em>輯器</em></span></p>'
 );
 </script>

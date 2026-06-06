@@ -2,19 +2,19 @@ import { BaseEntity } from '../../base/entity/base';
 import { Entity, Column, Index } from 'typeorm';
 
 /**
- * 用户模块-收货地址
+ * 使用者模組-收貨地址
  */
 @Entity('user_address')
 export class UserAddressEntity extends BaseEntity {
   @Index()
-  @Column({ comment: '用户ID' })
+  @Column({ comment: '使用者ID' })
   userId: number;
 
-  @Column({ comment: '联系人' })
+  @Column({ comment: '聯絡人' })
   contact: string;
 
   @Index()
-  @Column({ comment: '手机号', length: 11 })
+  @Column({ comment: '手機號', length: 11 })
   phone: string;
 
   @Column({ comment: '省' })
@@ -23,12 +23,12 @@ export class UserAddressEntity extends BaseEntity {
   @Column({ comment: '市' })
   city: string;
 
-  @Column({ comment: '区' })
+  @Column({ comment: '區' })
   district: string;
 
   @Column({ comment: '地址' })
   address: string;
 
-  @Column({ comment: '是否默认', default: false })
+  @Column({ comment: '是否預設', default: false })
   isDefault: boolean;
 }

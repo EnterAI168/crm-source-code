@@ -4,7 +4,7 @@ import { emitter } from "./emitter";
 import { locale } from "./locale";
 import { merge } from "./utils";
 
-// 设置配置
+// 設定配置
 function setConfig(app: App, options: Options = {}) {
 	const config = merge(
 		{
@@ -84,15 +84,15 @@ function setConfig(app: App, options: Options = {}) {
 	return config;
 }
 
-// 设置浏览器
+// 設定瀏覽器
 function setBrowser(app: App) {
-	// 浏览器信息
+	// 瀏覽器資訊
 	const browser = reactive({
 		isMini: false,
 		screen: "full"
 	});
 
-	// 更新信息
+	// 更新資訊
 	function update() {
 		const w = document.body.clientWidth;
 
@@ -111,7 +111,7 @@ function setBrowser(app: App) {
 		browser.isMini = browser.screen === "xs";
 	}
 
-	// 监听浏览器窗口变化
+	// 監聽瀏覽器視窗變化
 	window.addEventListener("resize", () => {
 		update();
 

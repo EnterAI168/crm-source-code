@@ -12,50 +12,50 @@ export function useUpload() {
 	const { user } = useBase();
 	const { t } = useI18n();
 
-	// 上传
+	// 上傳
 	async function toUpload(file: File, opts: Upload.Options = {}): Upload.Response {
 		return new Promise((resolve, reject) => {
 			const executor = async () => {
-				// 合并配置
+				// 合併配置
 				const { prefixPath, onProgress } = merge({}, options, opts);
 
-				// 文件id
+				// 檔案id
 				const fileId = uuid('');
 
 				try {
-					// 上传模式、类型
+					// 上傳模式、型別
 					const { mode, type } = await service.base.comm.uploadMode();
 
-					// 本地上传
+					// 本地上傳
 					const isLocal = mode == 'local';
 
-					// 文件扩展名
+					// 副檔名
 					const ext = extname(file.name);
 
-					// 文件名
+					// 檔名
 					const name = filename(file.name) + '_' + fileId + '.' + ext;
 
 					// Key
 					let key = isLocal ? name : pathJoin(prefixPath!, name);
 
-					// 多种上传请求
+					// 多種上傳請求
 					const next = async ({ host, preview, data }: Upload.Request) => {
 						const fd = new FormData();
 
 						// key
 						fd.append('key', key);
 
-						// 签名数据
+						// 簽名資料
 						for (const i in data) {
 							if (!fd.has(i)) {
 								fd.append(i, data[i]);
 							}
 						}
 
-						// 文件
+						// 檔案
 						fd.append('file', file);
 
-						// 上传进度
+						// 上傳進度
 						let progress = 0;
 
 						const reqData = {
@@ -81,7 +81,7 @@ export function useUpload() {
 							reqData.data = file;
 						}
 
-						// 上传
+						// 上傳
 						await service
 							.request(reqData as any)
 							.then(res => {
@@ -126,7 +126,7 @@ export function useUpload() {
 							)
 							.then(res => {
 								switch (type) {
-									// 腾讯
+									// 騰訊
 									case 'cos':
 										next({
 											host: res.url,
@@ -174,7 +174,7 @@ export function useUpload() {
 							.catch(reject);
 					}
 				} catch (err) {
-					ElMessage.error(t('文件上传失败'));
+					ElMessage.error(t('檔案上傳失敗'));
 					console.error('[upload]', err);
 					reject(err);
 				}

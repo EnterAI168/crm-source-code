@@ -8,26 +8,26 @@ import { assign, merge } from "lodash";
 import { uniappX } from "./uniapp-x";
 
 export function cool(options: Config.Options) {
-	// 应用类型，admin | app
+	// 應用型別，admin | app
 	config.type = options.type;
 
-	// 请求地址
+	// 請求地址
 	config.reqUrl = getProxyTarget(options.proxy);
 
 	if (config.type == "uniapp-x") {
-		// 编译平台
+		// 編譯平台
 		config.utsPlatform = process.env.UNI_UTS_PLATFORM ?? "web";
 
-		// 是否纯净版
+		// 是否純淨版
 		config.clean = options.clean ?? true;
 
 		if (config.clean) {
-			// 默认设置为测试地址
+			// 預設設定為測試地址
 			config.reqUrl = "https://show.cool-admin.com/api";
 		}
 	}
 
-	// 是否开启名称标签
+	// 是否開啟名稱標籤
 	config.nameTag = options.nameTag ?? true;
 
 	// svg
@@ -39,26 +39,26 @@ export function cool(options: Config.Options) {
 	if (options.eps) {
 		const { dist, mapping, api, enable = true } = options.eps;
 
-		// 是否开启
+		// 是否開啟
 		config.eps.enable = enable;
 
-		// 类型
+		// 型別
 		if (api) {
 			config.eps.api = api;
 		}
 
-		// 输出目录
+		// 輸出目錄
 		if (dist) {
 			config.eps.dist = dist;
 		}
 
-		// 匹配规则
+		// 匹配規則
 		if (mapping) {
 			merge(config.eps.mapping, mapping);
 		}
 	}
 
-	// 如果类型为 uniapp-x，则关闭 eps
+	// 如果型別為 uniapp-x，則關閉 eps
 	if (config.type == "uniapp-x") {
 		config.eps.enable = false;
 	}

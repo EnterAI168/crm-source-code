@@ -1,35 +1,35 @@
 <template>
 	<cl-crud ref="Crud">
 		<cl-row>
-			<!-- 刷新按钮 -->
+			<!-- 重新整理按鈕 -->
 			<cl-refresh-btn />
 
-			<!-- 新增按钮 -->
+			<!-- 新增按鈕 -->
 			<cl-add-btn />
 
-			<!-- 删除 -->
+			<!-- 刪除 -->
 			<cl-multi-delete-btn />
 
-			<!-- 自动创建菜单 -->
+			<!-- 自動建立選單 -->
 			<auto-menu />
 
 			<cl-flex1 />
 
-			<!-- 导入 -->
+			<!-- 匯入 -->
 			<menu-imp />
 
-			<!-- 导出 -->
+			<!-- 匯出 -->
 			<menu-exp :data="Table?.data" />
 		</cl-row>
 
 		<cl-row>
 			<cl-table ref="Table">
-				<!-- 图标 -->
+				<!-- 圖示 -->
 				<template #column-icon="{ scope }">
 					<cl-svg :name="scope.row.icon" :size="16" />
 				</template>
 
-				<!-- 是否显示 -->
+				<!-- 是否顯示 -->
 				<template #column-isShow="{ scope }">
 					<cl-switch
 						v-if="scope.row.type != 2"
@@ -41,7 +41,7 @@
 					<span v-else></span>
 				</template>
 
-				<!-- 图标 -->
+				<!-- 圖示 -->
 				<template #column-keepAlive="{ scope }">
 					<cl-switch
 						v-if="scope.row.type == 1"
@@ -63,17 +63,17 @@
 			</cl-table>
 		</cl-row>
 
-		<!-- 新增、编辑 -->
+		<!-- 新增、編輯 -->
 		<cl-upsert ref="Upsert">
 			<template #slot-parentId="{ scope }">
 				<cl-menu-select v-model="scope.parentId" :type="scope.type" />
 			</template>
 
 			<template #slot-perms="{ scope }">
-				<!-- 选择权限 -->
+				<!-- 選擇權限 -->
 				<cl-menu-perms v-model="scope.perms" />
 
-				<!-- 自动添加权限 -->
+				<!-- 自動新增權限 -->
 				<auto-perms :menu-id="scope.parentId" @open="Upsert?.close()" @close="refresh()" />
 			</template>
 		</cl-upsert>
@@ -103,17 +103,17 @@ const { t } = useI18n();
 const options = reactive({
 	type: [
 		{
-			label: t('目录'),
+			label: t('目錄'),
 			value: 0,
 			type: 'warning'
 		},
 		{
-			label: t('菜单'),
+			label: t('選單'),
 			value: 1,
 			type: 'success'
 		},
 		{
-			label: t('权限'),
+			label: t('權限'),
 			value: 2,
 			type: 'danger'
 		}
@@ -137,7 +137,7 @@ const Table = useTable({
 		'delete',
 		row => {
 			return {
-				label: t('权限'),
+				label: t('權限'),
 				hidden: !(row.type != 2 && service.base.sys.user._permission.add),
 				callback(done) {
 					addPermission(row);
@@ -152,46 +152,46 @@ const Table = useTable({
 		},
 		{
 			prop: 'name',
-			label: t('名称'),
+			label: t('名稱'),
 			align: 'left',
 			width: 200,
 			fixed: 'left'
 		},
 		{
 			prop: 'isShow',
-			label: t('是否显示'),
+			label: t('是否顯示'),
 			width: 100
 		},
 		{
 			prop: 'icon',
-			label: t('图标'),
+			label: t('圖示'),
 			width: 100
 		},
 		{
 			prop: 'type',
-			label: t('类型'),
+			label: t('型別'),
 			width: 110,
 			dict: options.type
 		},
 		{
 			prop: 'router',
-			label: t('节点路由'),
+			label: t('節點路由'),
 			minWidth: 170
 		},
 		{
 			prop: 'keepAlive',
-			label: t('路由缓存'),
+			label: t('路由快取'),
 			width: 100
 		},
 		{
 			prop: 'viewPath',
-			label: t('文件路径'),
+			label: t('檔案路徑'),
 			minWidth: 200,
 			showOverflowTooltip: true
 		},
 		{
 			prop: 'perms',
-			label: t('权限'),
+			label: t('權限'),
 			headerAlign: 'center',
 			minWidth: 300,
 			component: {
@@ -200,14 +200,14 @@ const Table = useTable({
 		},
 		{
 			prop: 'orderNum',
-			label: t('排序号'),
+			label: t('排序號'),
 			width: 100,
 			fixed: 'right',
 			sortable: 'asc'
 		},
 		{
 			prop: 'updateTime',
-			label: t('更新时间'),
+			label: t('更新時間'),
 			sortable: 'custom',
 			width: 170
 		},
@@ -246,7 +246,7 @@ const Upsert = useUpsert({
 		{
 			prop: 'type',
 			value: 0,
-			label: t('节点类型'),
+			label: t('節點型別'),
 			required: true,
 			component: {
 				name: 'el-radio-group',
@@ -255,7 +255,7 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'name',
-			label: t('节点名称'),
+			label: t('節點名稱'),
 			component: {
 				name: 'el-input'
 			},
@@ -263,7 +263,7 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'parentId',
-			label: t('上级节点'),
+			label: t('上級節點'),
 			hook: {
 				submit(value) {
 					return value || null;
@@ -275,29 +275,29 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'router',
-			label: t('节点路由'),
+			label: t('節點路由'),
 			hidden: ({ scope }) => scope.type != 1,
 			component: {
 				name: 'el-input',
 				props: {
-					placeholder: t('请输入节点路由，如：/test')
+					placeholder: t('請輸入節點路由，如：/test')
 				}
 			}
 		},
 		{
 			prop: 'keepAlive',
 			value: true,
-			label: t('路由缓存'),
+			label: t('路由快取'),
 			hidden: ({ scope }) => scope.type != 1,
 			component: {
 				name: 'el-radio-group',
 				options: [
 					{
-						label: t('开启'),
+						label: t('開啟'),
 						value: true
 					},
 					{
-						label: t('关闭'),
+						label: t('關閉'),
 						value: false
 					}
 				]
@@ -305,7 +305,7 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'isShow',
-			label: t('是否显示'),
+			label: t('是否顯示'),
 			value: true,
 			hidden: ({ scope }) => scope.type == 2,
 			flex: false,
@@ -315,7 +315,7 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'viewPath',
-			label: t('文件路径'),
+			label: t('檔案路徑'),
 			hidden: ({ scope }) => scope.type != 1,
 			component: {
 				name: 'cl-menu-file'
@@ -323,7 +323,7 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'icon',
-			label: t('图标'),
+			label: t('圖示'),
 			hidden: ({ scope }) => scope.type == 2,
 			component: {
 				name: 'cl-menu-icon',
@@ -334,11 +334,11 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'orderNum',
-			label: t('排序号'),
+			label: t('排序號'),
 			component: {
 				name: 'el-input-number',
 				props: {
-					placeholder: t('请填写排序号'),
+					placeholder: t('請填寫排序號'),
 					min: 0,
 					max: 99,
 					'controls-position': 'right'
@@ -347,7 +347,7 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'perms',
-			label: '权限',
+			label: '權限',
 			hidden: ({ scope }) => scope.type != 2,
 			component: {
 				name: 'slot-perms'
@@ -376,7 +376,7 @@ const Crud = useCrud(
 	}
 );
 
-// 刷新
+// 重新整理
 function refresh(params?: any) {
 	Crud.value?.refresh(params);
 }
@@ -392,7 +392,7 @@ function append({ type = 0, id }: Eps.BaseSysMenuEntity) {
 	});
 }
 
-// 设置权限
+// 設定權限
 function addPermission({ id }: Eps.BaseSysMenuEntity) {
 	Crud.value?.rowAppend({
 		parentId: id,

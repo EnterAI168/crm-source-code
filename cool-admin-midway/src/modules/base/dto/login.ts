@@ -1,21 +1,21 @@
 import { Rule, RuleType } from '@midwayjs/validate';
 /**
- * 登录参数校验
+ * 登入參數校驗
  */
 export class LoginDTO {
-  // 用户名
+  // 使用者名稱
   @Rule(RuleType.string().required())
   username: string;
 
-  // 密码
+  // 密碼
   @Rule(RuleType.string().required())
   password: string;
 
-  // 验证码ID
+  // 驗證碼ID
   @Rule(RuleType.string().required())
   captchaId: string;
 
-  // 验证码
+  // 驗證碼
   @Rule(RuleType.required())
   verifyCode: number;
 }

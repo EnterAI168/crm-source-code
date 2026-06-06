@@ -25,13 +25,13 @@ export default defineComponent({
 		const browser = useBrowser();
 		const { Form, config, form, visible, saving, loading, disabled } = useForm();
 
-		// 关闭的操作类型
+		// 關閉的操作型別
 		let closeAction: ClForm.CloseAction = "close";
 
-		// 旧表单数据
+		// 舊錶單資料
 		let defForm: obj | undefined;
 
-		// 选项卡
+		// 選項卡
 		const Tabs = useTabs({ config, Form });
 
 		// 操作
@@ -50,30 +50,30 @@ export default defineComponent({
 			Form
 		);
 
-		// 插件
+		// 外掛
 		const plugin = usePlugins(props.enablePlugin, { visible });
 
-		// 显示加载中
+		// 顯示載入中
 		function showLoading() {
 			loading.value = true;
 		}
 
-		// 隐藏加载
+		// 隱藏載入
 		function hideLoading() {
 			loading.value = false;
 		}
 
-		// 设置是否禁用
+		// 設定是否停用
 		function setDisabled(val: boolean = true) {
 			disabled.value = val;
 		}
 
-		// 请求表单保存状态
+		// 請求表單儲存狀態
 		function done() {
 			saving.value = false;
 		}
 
-		// 关闭表单
+		// 關閉表單
 		function close(action?: ClForm.CloseAction) {
 			if (action) {
 				closeAction = action;
@@ -85,7 +85,7 @@ export default defineComponent({
 			});
 		}
 
-		// 关闭前
+		// 關閉前
 		function beforeClose(done: fn) {
 			if (config.on?.close) {
 				config.on.close(closeAction, done);
@@ -94,13 +94,13 @@ export default defineComponent({
 			}
 		}
 
-		// 关闭后
+		// 關閉後
 		function onClosed() {
 			Tabs.clear();
 			Form.value?.clearValidate();
 		}
 
-		// 清空表单验证
+		// 清空表單驗證
 		function clear() {
 			for (const i in form) {
 				delete form[i];
@@ -120,14 +120,14 @@ export default defineComponent({
 			}
 		}
 
-		// 转换表单值，处理多层级等数据
+		// 轉換表單值，處理多層級等資料
 		function invokeData(d: any) {
 			for (const i in d) {
 				if (i.includes("-")) {
-					// 结构参数
+					// 結構參數
 					const [a, ...arr] = i.split("-");
 
-					// 关键值的key
+					// 關鍵值的key
 					const k: string = arr.pop() || "";
 
 					if (!d[a]) {
@@ -136,7 +136,7 @@ export default defineComponent({
 
 					let f: any = d[a];
 
-					// 设置默认值
+					// 設定預設值
 					arr.forEach((e) => {
 						if (!f[e]) {
 							f[e] = {};
@@ -145,7 +145,7 @@ export default defineComponent({
 						f = f[e];
 					});
 
-					// 设置关键值
+					// 設定關鍵值
 					f[k] = d[i];
 
 					delete d[i];
@@ -153,27 +153,27 @@ export default defineComponent({
 			}
 		}
 
-		// 表单提交
+		// 表單提交
 		function submit(callback?: fn) {
-			// 验证表单
+			// 驗證表單
 			Form.value.validate(async (valid: boolean, error: any) => {
 				if (valid) {
 					saving.value = true;
 
-					// 拷贝表单值
+					// 複製表單值
 					const d = cloneDeep(form);
 
 					config.items.forEach((e) => {
 						function deep(e: ClForm.Item) {
 							if (e.prop) {
-								// 过滤隐藏的表单项
+								// 過濾隱藏的表單項
 								if (e._hidden) {
 									if (e.prop) {
 										delete d[e.prop];
 									}
 								}
 
-								// hook 提交处理
+								// hook 提交處理
 								if (e.hook) {
 									formHook.submit({
 										...e,
@@ -191,7 +191,7 @@ export default defineComponent({
 						deep(e);
 					});
 
-					// 处理数据
+					// 處理資料
 					invokeData(d);
 
 					const submit = callback || config.on?.submit;
@@ -208,7 +208,7 @@ export default defineComponent({
 						done();
 					}
 				} else {
-					// 切换到对应的选项卡
+					// 切換到對應的選項卡
 					Tabs.toGroup({
 						refs,
 						config,
@@ -218,7 +218,7 @@ export default defineComponent({
 			});
 		}
 
-		// 打开表单
+		// 開啟表單
 		function open(options?: ClForm.Options, plugins?: ClForm.Plugin[]) {
 			if (!options) {
 				return console.error("Options is not null");
@@ -229,16 +229,16 @@ export default defineComponent({
 				clear();
 			}
 
-			// 显示对话框
+			// 顯示對話方塊
 			visible.value = true;
 
-			// 默认关闭方式
+			// 預設關閉方式
 			closeAction = "close";
 
-			// 合并配置
+			// 合併配置
 			for (const i in config) {
 				switch (i) {
-					// 表单项
+					// 表單項
 					case "items":
 						function deep(arr: any[]): any[] {
 							return arr.map((e) => {
@@ -253,7 +253,7 @@ export default defineComponent({
 
 						config.items = deep(options.items || []);
 						break;
-					// 事件、参数、操作
+					// 事件、參數、操作
 					case "on":
 					case "op":
 					case "props":
@@ -268,14 +268,14 @@ export default defineComponent({
 				}
 			}
 
-			// 预设表单值
+			// 預設表單值
 			if (options?.form) {
 				for (const i in options.form) {
 					form[i] = options.form[i];
 				}
 			}
 
-			// 设置表单数据
+			// 設定表單資料
 			config.items.forEach((e) => {
 				function deep(e: ClForm.Item) {
 					if (e.prop) {
@@ -284,17 +284,17 @@ export default defineComponent({
 							e.prop = e.prop.replace(/\./g, "-");
 						}
 
-						// prop 合并
+						// prop 合併
 						Tabs.mergeProp(e);
 
-						// hook 绑定值
+						// hook 繫結值
 						formHook.bind({
 							...e,
 							value: form[e.prop] !== undefined ? form[e.prop] : cloneDeep(e.value),
 							form
 						});
 
-						// 表单验证
+						// 表單驗證
 						if (e.required) {
 							e.rules = {
 								required: true,
@@ -303,7 +303,7 @@ export default defineComponent({
 						}
 					}
 
-					// 设置 tabs 默认值
+					// 設定 tabs 預設值
 					if (e.type == "tabs") {
 						Tabs.set(e.value);
 					}
@@ -317,18 +317,18 @@ export default defineComponent({
 				deep(e);
 			});
 
-			// 设置默认值
+			// 設定預設值
 			if (!defForm) {
 				defForm = cloneDeep(form);
 			}
 
-			// 创建插件
+			// 建立外掛
 			plugin.create(plugins);
 
-			// 打开回调
+			// 開啟回撥
 			nextTick(() => {
 				setTimeout(() => {
-					// 打开事件
+					// 開啟事件
 					if (config.on?.open) {
 						config.on.open(form);
 					}
@@ -336,7 +336,7 @@ export default defineComponent({
 			});
 		}
 
-		// 绑定表单数据
+		// 繫結表單資料
 		function bindForm(data: any) {
 			config.items.forEach((e) => {
 				function deep(e: ClForm.Item) {
@@ -357,7 +357,7 @@ export default defineComponent({
 			assign(form, data);
 		}
 
-		// 渲染表单项
+		// 渲染表單項
 		function renderFormItem(e: ClForm.Item) {
 			const { isDisabled } = config._data;
 
@@ -367,18 +367,18 @@ export default defineComponent({
 				);
 			}
 
-			// 是否隐藏
+			// 是否隱藏
 			e._hidden = parseHidden(e.hidden, {
 				scope: form
 			});
 
-			// 分组显示
+			// 分組顯示
 			const inGroup = e.group ? e.group === Tabs.active.value : true;
 
-			// 是否已加载完成
+			// 是否已載入完成
 			const isLoaded = e.component && Tabs.isLoaded(e.group);
 
-			// 表单项
+			// 表單項
 			const FormItem = h(
 				<el-form-item
 					class={{
@@ -475,7 +475,7 @@ export default defineComponent({
 				span = 24;
 			}
 
-			// 是否行内
+			// 是否行內
 			const Item = props.inline ? (
 				FormItem
 			) : (
@@ -487,12 +487,12 @@ export default defineComponent({
 			return isLoaded ? Item : null;
 		}
 
-		// 渲染表单
+		// 渲染表單
 		function renderContainer() {
-			// 表单项列表
+			// 表單項列表
 			const children = config.items.map(renderFormItem);
 
-			// 表单标签位置
+			// 表單標籤位置
 			const labelPosition =
 				browser.isMini && !props.inline
 					? "top"
@@ -543,7 +543,7 @@ export default defineComponent({
 			);
 		}
 
-		// 渲染表单底部按钮
+		// 渲染表單底部按鈕
 		function renderFooter() {
 			const { hidden, buttons, saveButtonText, closeButtonText, justify } = config.op;
 

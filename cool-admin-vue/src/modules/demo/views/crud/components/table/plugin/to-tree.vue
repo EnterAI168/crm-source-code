@@ -2,15 +2,15 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>toTree</el-tag>
-			<span>转树形表格</span>
+			<span>轉樹形表格</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['table/plugin/to-tree.vue']" />
 
-			<!-- 自定义表格组件 -->
-			<cl-dialog v-model="visible" title="转树形表格" width="80%">
+			<!-- 自定義表格元件 -->
+			<cl-dialog v-model="visible" title="轉樹形表格" width="80%">
 				<cl-crud ref="Crud">
 					<cl-row>
 						<cl-table ref="Table" />
@@ -41,7 +41,7 @@ const { service } = useCool();
 // cl-crud 配置
 const Crud = useCrud(
 	{
-		// 【很重要】必须包含 parentId 字段，否则无法转树形表格。如：
+		// 【很重要】必須包含 parentId 欄位，否則無法轉樹形表格。如：
 		service: service.base.sys.menu
 	},
 	app => {
@@ -56,7 +56,7 @@ const Table = useTable({
 
 	columns: [
 		{
-			label: '节点名称',
+			label: '節點名稱',
 			prop: 'name',
 			minWidth: 140,
 			align: 'left',
@@ -68,14 +68,14 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '创建时间',
+			label: '建立時間',
 			prop: 'createTime',
 			minWidth: 170,
 			sortable: 'desc'
 		}
 	],
 
-	//【很重要】配置插件
+	//【很重要】配置外掛
 	plugins: [Plugins.Table.toTree()]
 });
 

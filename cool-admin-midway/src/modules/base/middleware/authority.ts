@@ -13,7 +13,7 @@ import { CachingFactory, MidwayCache } from '@midwayjs/cache-manager';
 import { Utils } from '../../../comm/utils';
 
 /**
- * 权限校验
+ * 權限校驗
  */
 @Middleware()
 export class BaseAuthorityMiddleware
@@ -51,16 +51,16 @@ export class BaseAuthorityMiddleware
       url = url.replace(this.prefix, '').split('?')[0];
       const token = ctx.get('Authorization');
       const adminUrl = '/admin/';
-      // 路由地址为 admin前缀的 需要权限校验
+      // 路由地址為 admin字首的 需要權限校驗
       if (_.startsWith(url, adminUrl)) {
         try {
           ctx.admin = jwt.verify(token, this.jwtConfig.jwt.secret);
           if (ctx.admin.isRefresh) {
             ctx.status = 401;
-            throw new CoolCommException('登录失效~', ctx.status);
+            throw new CoolCommException('登入失效~', ctx.status);
           }
         } catch (error) {}
-        // 使用matchUrl方法来检查URL是否应该被忽略
+        // 使用matchUrl方法來檢查URL是否應該被忽略
         const isIgnored = this.ignoreUrls.some(pattern =>
           this.utils.matchUrl(pattern, url)
         );
@@ -72,37 +72,37 @@ export class BaseAuthorityMiddleware
           const rToken = await this.midwayCache.get(
             `admin:token:${ctx.admin.userId}`
           );
-          // 判断密码版本是否正确
+          // 判斷密碼版本是否正確
           const passwordV = await this.midwayCache.get(
             `admin:passwordVersion:${ctx.admin.userId}`
           );
           if (passwordV != ctx.admin.passwordVersion) {
-            throw new CoolCommException('登录失效~', 401);
+            throw new CoolCommException('登入失效~', 401);
           }
-          // 超管拥有所有权限
+          // 超管擁有所有權限
           if (ctx.admin.username == 'admin' && !ctx.admin.isRefresh) {
             if (rToken !== token && this.jwtConfig.jwt.sso) {
-              throw new CoolCommException('登录失效~', 401);
+              throw new CoolCommException('登入失效~', 401);
             } else {
               await next();
               return;
             }
           }
-          // 要登录每个人都有权限的接口
+          // 要登入每個人都有權限的介面
           if (
             new RegExp(`^${adminUrl}?.*/comm/`).test(url) ||
-            // 字典接口
+            // 字典介面
             url == '/admin/dict/info/data'
           ) {
             await next();
             return;
           }
-          // 如果传的token是refreshToken则校验失败
+          // 如果傳的token是refreshToken則校驗失敗
           if (ctx.admin.isRefresh) {
-            throw new CoolCommException('登录失效~', 401);
+            throw new CoolCommException('登入失效~', 401);
           }
           if (!rToken) {
-            throw new CoolCommException('登录失效或无权限访问~', 401);
+            throw new CoolCommException('登入失效或無權限訪問~', 401);
           }
           if (rToken !== token && this.jwtConfig.jwt.sso) {
             statusCode = 401;
@@ -116,11 +116,11 @@ export class BaseAuthorityMiddleware
               });
               const requestPerm = url.split('?')[0].replace('/admin/', '');
               const aliasPerms: Record<string, string[]> = {
-                // 用户管理-用户列表改为读取系统用户接口时，兼容原有 user:info:page 权限
+                // 使用者管理-使用者列表改為讀取系統使用者介面時，相容原有 user:info:page 權限
                 'base/sys/user/page': ['user/info/page'],
                 /**
-                 * CRM 客户：控制器 prefix 为 crmCustomerList / crmCustomerPool 等，
-                 * 与菜单权限 crm:customerList:*（转后为 crm/customerList/*）路径不一致，需映射
+                 * CRM 客戶：控制器 prefix 為 crmCustomerList / crmCustomerPool 等，
+                 * 與選單權限 crm:customerList:*（轉後為 crm/customerList/*）路徑不一致，需對映
                  */
                 'crmCustomerList/page': ['crm/customerList/page'],
                 'crmCustomerList/add': ['crm/customerList/add'],
@@ -129,7 +129,7 @@ export class BaseAuthorityMiddleware
                   'crm/customerList/update',
                   'crm/customerList/add',
                 ],
-                /** 编辑/查看详情必调 info；菜单常未单独配 info，与列表/新增/编辑互通 */
+                /** 編輯/檢視詳情必調 info；選單常未單獨配 info，與列表/新增/編輯互通 */
                 'crmCustomerList/info': [
                   'crm/customerList/info',
                   'crm/customerList/page',
@@ -142,9 +142,8 @@ export class BaseAuthorityMiddleware
                 'crmCustomerList/cancelVip': ['crm/customerList/cancelVip'],
                 'crmCustomerList/importData': [
                   'crm/customerList/import',
-                  'crm/customerList/add',
                 ],
-                /** 列表业务员下拉：与公池分配业务员同一能力 */
+                /** 列表業務員下拉：與公池分配業務員同一能力 */
                 'crmCustomerList/salesmenOptions': [
                   'crm/customerPool/assignSalesman',
                 ],
@@ -155,7 +154,7 @@ export class BaseAuthorityMiddleware
                   'crm/customerPool/update',
                   'crm/customerPool/add',
                 ],
-                /** 公池编辑先调 info；角色常有新增/分页无详情、无单独编辑时与列表一致 */
+                /** 公池編輯先調 info；角色常有新增/分頁無詳情、無單獨編輯時與列表一致 */
                 'crmCustomerPool/info': [
                   'crm/customerPool/info',
                   'crm/customerPool/page',
@@ -164,12 +163,269 @@ export class BaseAuthorityMiddleware
                 ],
                 'crmCustomerPool/list': ['crm/customerPool/list'],
                 'crmCustomerPool/importData': ['crm/customerPool/import'],
-                'crmCustomerPool/assignSalesman': ['crm/customerPool/assignSalesman'],
-                'crmCustomerPool/salesmenOptions': ['crm/customerPool/assignSalesman'],
-                'crmCustomerFollowup/page': ['crm/customerList/follow'],
+                'crmCustomerPool/assignSalesman': [
+                  'crm/customerPool/assignSalesman',
+                ],
+                'crmCustomerPool/salesmenOptions': [
+                  'crm/customerPool/assignSalesman',
+                ],
+                'crmCustomerPool/sendMail': ['crm/customerPool/sendMail'],
+                'crmCustomerFollowup/page': [
+                  'crm/customerList/follow',
+                  'crm/quoteOrder/info',
+                  'crm/quoteOrder/history',
+                  'crm/quoteOrder/departmentCost',
+                  'crm/customerList/quotationView',
+                ],
                 'crmCustomerFollowup/add': ['crm/customerList/follow'],
+                'crmQuoteOrder/page': [
+                  'crm/quoteOrder/page',
+                  'crm/customerList/quotationView',
+                ],
+                'crmQuoteOrder/add': ['crm/quoteOrder/add'],
+                'crmQuoteOrder/update': [
+                  'crm/quoteOrder/update',
+                  'crm/quoteOrder/add',
+                ],
+                'crmQuoteOrder/delete': ['crm/quoteOrder/delete'],
+                'crmQuoteOrder/info': [
+                  'crm/quoteOrder/info',
+                  'crm/quoteOrder/page',
+                  'crm/quoteOrder/add',
+                  'crm/quoteOrder/update',
+                  'crm/quoteOrder/departmentCost',
+                  'crm/customerList/quotationView',
+                  'crm/quoteInvoice/quoteInfo',
+                ],
+                'crmQuoteOrder/customerOptions': [
+                  'crm/quoteOrder/page',
+                  'crm/quoteOrder/add',
+                  'crm/quoteOrder/info',
+                  'crm/quoteOrder/update',
+                  'crm/quoteOrder/departmentCost',
+                  'crm/customerList/quotationView',
+                  'crm/quoteInvoice/quoteInfo',
+                ],
+                'crmQuoteOrder/productOptions': [
+                  'crm/quoteOrder/page',
+                  'crm/quoteOrder/add',
+                  'crm/quoteOrder/info',
+                  'crm/quoteOrder/update',
+                  'crm/quoteOrder/departmentCost',
+                  'crm/customerList/quotationView',
+                  'crm/quoteInvoice/quoteInfo',
+                ],
+                'crmQuoteOrder/duty': [
+                  'crm/quoteOrder/page',
+                  'crm/quoteOrder/add',
+                  'crm/quoteOrder/info',
+                  'crm/quoteOrder/update',
+                  'crm/quoteOrder/departmentCost',
+                  'crm/customerList/quotationView',
+                  'crm/quoteInvoice/quoteInfo',
+                ],
+                'crmQuoteOrder/quoteTerms': [
+                  'crm/quoteOrder/page',
+                  'crm/quoteOrder/add',
+                  'crm/quoteOrder/info',
+                  'crm/quoteOrder/update',
+                  'crm/quoteOrder/departmentCost',
+                  'crm/customerList/quotationView',
+                  'crm/quoteInvoice/quoteInfo',
+                ],
+                'crmQuoteOrder/assigneeOptions': [
+                  'crm/quoteOrder/assign',
+                  'crm/quoteOrder/page',
+                ],
+                'crmQuoteOrder/submitAudit': ['crm/quoteOrder/submitAudit'],
+                'crmQuoteOrder/audit': ['crm/quoteOrder/audit'],
+                'crmQuoteOrder/assign': ['crm/quoteOrder/assign'],
+                'crmQuoteOrder/departmentAudits': [
+                  'crm/quoteOrder/page',
+                  'crm/quoteOrder/info',
+                  'crm/quoteOrder/departmentCost',
+                  'crm/customerList/quotationView',
+                  'crm/quoteOrder/audit',
+                  'crm/quoteOrder/assign',
+                ],
+                'crmQuoteOrder/auditDepartment': ['crm/quoteOrder/audit'],
+                'crmQuoteOrder/assignDepartment': ['crm/quoteOrder/assign'],
+                'crmQuoteOrder/departmentAssigneeOptions': [
+                  'crm/quoteOrder/assign',
+                ],
+                'crmQuoteOrder/submitDepartmentCosts': [
+                  'crm/quoteOrder/departmentCost',
+                  'crm/quoteOrder/page',
+                ],
+                'crmQuoteOrder/sendQuote': ['crm/quoteOrder/sendQuote'],
+                'crmQuoteOrder/uploadContract': [
+                  'crm/quoteOrder/uploadContract',
+                ],
+                'crmQuoteOrder/caseMeetingScope': ['crm/quoteOrder/page'],
+                'crmQuoteOrder/updateCaseMeeting': ['crm/quoteOrder/page'],
+                'crmQuoteOrder/downloadContract': [
+                  'crm/quoteOrder/uploadContract',
+                  'crm/quoteOrder/info',
+                  'crm/customerList/quotationView',
+                ],
+                'crmQuoteOrder/receiptStages': ['crm/quoteOrder/receipt'],
+                'crmQuoteOrder/submitReceipt': ['crm/quoteOrder/receipt'],
+                'crmQuoteOrder/invoiceStages': ['crm/quoteOrder/invoice'],
+                'crmQuoteOrder/applyInvoice': ['crm/quoteOrder/invoice'],
+                'crmQuoteOrder/voidInvoice': ['crm/quoteOrder/invoice'],
+                'crmQuoteOrder/copyCreate': ['crm/quoteOrder/copyCreate'],
+                'crmQuoteOrder/quoteHistories': [
+                  'crm/quoteOrder/history',
+                  'crm/quoteOrder/info',
+                  'crm/quoteOrder/departmentCost',
+                  'crm/customerList/quotationView',
+                ],
+                'crmQuoteOrder/quoteHistoryDetail': [
+                  'crm/quoteOrder/history',
+                  'crm/quoteOrder/info',
+                  'crm/quoteOrder/departmentCost',
+                  'crm/customerList/quotationView',
+                ],
+                'crmQuoteOrder/quoteHistoryPdf': [
+                  'crm/quoteOrder/history',
+                  'crm/quoteOrder/info',
+                  'crm/quoteOrder/departmentCost',
+                  'crm/customerList/quotationView',
+                ],
+                'crmQuoteOrder/nextNo': ['crm/quoteOrder/add'],
+                /**
+                 * 供應商管理：控制器 prefix 為 crmSupplier，
+                 * 選單權限為 crm:supplier:*，需要做路由別名對映
+                 */
+                'crmSupplier/page': ['crm/supplier/page'],
+                'crmSupplier/add': ['crm/supplier/add'],
+                'crmSupplier/delete': ['crm/supplier/delete'],
+                'crmSupplier/update': [
+                  'crm/supplier/update',
+                  'crm/supplier/add',
+                ],
+                'crmSupplier/info': [
+                  'crm/supplier/info',
+                  'crm/supplier/page',
+                  'crm/supplier/add',
+                  'crm/supplier/update',
+                ],
+                'crmSupplier/list': ['crm/supplier/list'],
+                /**
+                 * 匯款單：控制器 prefix 為 crmRemittance，
+                 * 選單權限為 crm:remittance:*，需要做路由別名對映
+                 */
+                'crmRemittance/page': ['crm/remittance/page'],
+                'crmRemittance/add': ['crm/remittance/add'],
+                'crmRemittance/delete': ['crm/remittance/delete'],
+                'crmRemittance/update': [
+                  'crm/remittance/update',
+                  'crm/remittance/add',
+                ],
+                'crmRemittance/info': [
+                  'crm/remittance/info',
+                  'crm/remittance/page',
+                  'crm/remittance/add',
+                  'crm/remittance/update',
+                ],
+                'crmRemittance/list': ['crm/remittance/list'],
+                'crmRemittance/remittanceStages': [
+                  'crm/remittance/info',
+                  'crm/remittance/page',
+                  'crm/remittance/remit',
+                ],
+                'crmRemittance/submitRemittance': ['crm/remittance/remit'],
+                'crmRemittance/quoteOrderOptions': [
+                  'crm/remittance/page',
+                  'crm/remittance/add',
+                  'crm/remittance/update',
+                ],
+                'crmRemittance/supplierOptions': [
+                  'crm/remittance/page',
+                  'crm/remittance/add',
+                  'crm/remittance/update',
+                ],
+                'crmRemittance/nextNo': ['crm/remittance/add'],
+                'crmQuoteInvoice/page': ['crm/quoteInvoice/page'],
+                'crmQuoteInvoice/info': [
+                  'crm/quoteInvoice/info',
+                  'crm/quoteInvoice/audit',
+                  'crm/quoteInvoice/preview',
+                  'crm/quoteInvoice/send',
+                ],
+                'crmQuoteInvoice/audit': ['crm/quoteInvoice/audit'],
+                'crmQuoteInvoice/preview': ['crm/quoteInvoice/preview'],
+                'crmQuoteInvoice/send': ['crm/quoteInvoice/send'],
+                'crmQuoteInvoice/handleScheduled': ['crm/quoteInvoice/audit'],
+                'crmPerformance/page': ['crm/performance/page'],
+                'crmPerformance/expectedDetail': [
+                  'crm/performance/expectedDetail',
+                  'crm/performance/page',
+                ],
+                'crmPerformance/actualDetail': [
+                  'crm/performance/actualDetail',
+                  'crm/performance/page',
+                ],
+                'crmPerformance/internalDetail': [
+                  'crm/performance/detail',
+                  'crm/performance/page',
+                ],
+                'crmPerformance/syncMonth': ['crm/performance/page'],
+                'crmPerformance/platformStatistics': [
+                  'crm/platformStatistics/page',
+                ],
+                'crmPerformance/invoiceStatistics': [
+                  'crm/invoiceStatistics/page',
+                ],
+                'crmPerformance/bonusAccountingPage': [
+                  'crm/bonusAccounting/page',
+                ],
+                'crmPerformance/bonusAccountingDetail': [
+                  'crm/bonusAccounting/detail',
+                  'crm/bonusAccounting/page',
+                ],
+                'crmPerformance/annualAssessmentPage': [
+                  'crm/annualAssessment/page',
+                ],
+                'crmPerformance/annualAssessmentDetail': [
+                  'crm/annualAssessment/detail',
+                  'crm/annualAssessment/page',
+                ],
+                'crmBonusConfig/page': ['crm/bonusConfig/page'],
+                'crmBonusConfig/list': [
+                  'crm/bonusConfig/page',
+                  'crm/bonusConfig/list',
+                ],
+                'crmBonusConfig/add': ['crm/bonusConfig/add'],
+                'crmBonusConfig/update': [
+                  'crm/bonusConfig/update',
+                  'crm/bonusConfig/add',
+                ],
+                'crmBonusConfig/delete': ['crm/bonusConfig/delete'],
+                'crmBonusConfig/initDefault': [
+                  'crm/bonusConfig/add',
+                  'crm/bonusConfig/update',
+                ],
+                'crmContractReminder/unreadCount': [
+                  'crm/quoteOrder/page',
+                  'crm/customerList/page',
+                  'crm/performance/page',
+                ],
+                'crmContractReminder/page': [
+                  'crm/quoteOrder/page',
+                  'crm/customerList/page',
+                  'crm/performance/page',
+                ],
+                'crmContractReminder/markRead': [
+                  'crm/quoteOrder/page',
+                  'crm/customerList/page',
+                  'crm/performance/page',
+                ],
               };
-              const allowPerms = [requestPerm, ...(aliasPerms[requestPerm] || [])];
+              const allowPerms = [
+                requestPerm,
+                ...(aliasPerms[requestPerm] || []),
+              ];
               if (!allowPerms.some(item => perms.includes(item))) {
                 statusCode = 403;
               }
@@ -181,7 +437,7 @@ export class BaseAuthorityMiddleware
           statusCode = 401;
         }
         if (statusCode > 200) {
-          throw new CoolCommException('登录失效或无权限访问~', statusCode);
+          throw new CoolCommException('登入失效或無權限訪問~', statusCode);
         }
       }
       await next();

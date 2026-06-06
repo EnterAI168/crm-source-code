@@ -3,8 +3,8 @@ import { orderBy } from 'lodash-es';
 import { useDict } from '/$/dict';
 
 /**
- * 行业字典：与「数据字典」里字典类型的标识（key）对齐。
- * 推荐标识：crmIndustry；若配置了其它 key，会按候选列表自动匹配第一个有数据的。
+ * 行業字典：與「資料字典」裡字典型別的標識（key）對齊。
+ * 推薦標識：crmIndustry；若配置了其它 key，會按候選列表自動匹配第一個有資料的。
  */
 export const CRM_INDUSTRY_DICT_KEYS = [
 	'crmIndustry',
@@ -26,7 +26,7 @@ export function useCrmIndustryDict() {
 		return CRM_INDUSTRY_DICT_KEYS[0];
 	});
 
-	/** 供 cl-select：普通数组，避免 dict.get() 的 ComputedRef 在 upsert 里未解包导致无选项 */
+	/** 供 cl-select：普通陣列，避免 dict.get() 的 ComputedRef 在 upsert 裡未解包導致無選項 */
 	const options = computed(() => {
 		const tree = dict.data[activeKey.value];
 		if (!Array.isArray(tree) || !tree.length) {

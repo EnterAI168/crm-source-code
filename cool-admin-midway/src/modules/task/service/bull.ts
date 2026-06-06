@@ -20,7 +20,7 @@ import { IMidwayApplication } from '@midwayjs/core';
 import * as moment from 'moment';
 
 /**
- * 任务
+ * 任務
  */
 @Provide()
 @Scope(ScopeEnum.Request, { allowDowngrade: true })
@@ -47,7 +47,7 @@ export class TaskBullService extends BaseService {
   keepDays: number;
 
   /**
-   * 停止任务
+   * 停止任務
    * @param id
    */
   async stop(id) {
@@ -66,7 +66,7 @@ export class TaskBullService extends BaseService {
     }
   }
   /**
-   * 移除任务
+   * 移除任務
    * @param taskId
    */
   async remove(taskId) {
@@ -78,7 +78,7 @@ export class TaskBullService extends BaseService {
     }
   }
   /**
-   * 开始任务
+   * 開始任務
    * @param id
    * @param type
    */
@@ -91,7 +91,7 @@ export class TaskBullService extends BaseService {
     await this.addOrUpdate(task);
   }
   /**
-   * 手动执行一次
+   * 手動執行一次
    * @param id
    */
   async once(id) {
@@ -111,7 +111,7 @@ export class TaskBullService extends BaseService {
     }
   }
   /**
-   * 检查任务是否存在
+   * 檢查任務是否存在
    * @param jobId
    */
   async exist(jobId) {
@@ -162,7 +162,7 @@ export class TaskBullService extends BaseService {
           repeat,
         });
         if (!result?.repeatJobKey) {
-          throw new Error('任务添加失败，请检查任务配置');
+          throw new Error('任務新增失敗，請檢查任務配置');
         }
         jobId = result.repeatJobKey;
         repeatConf = result.opts;
@@ -178,7 +178,7 @@ export class TaskBullService extends BaseService {
     }
   }
   /**
-   * 删除
+   * 刪除
    * @param ids
    */
   async delete(ids) {
@@ -200,7 +200,7 @@ export class TaskBullService extends BaseService {
   }
 
   /**
-   * 保存任务记录，成功任务每个任务保留最新20条日志，失败日志不会删除
+   * 儲存任務記錄，成功任務每個任務保留最新20條日誌，失敗日誌不會刪除
    * @param task
    * @param status
    * @param detail
@@ -217,14 +217,14 @@ export class TaskBullService extends BaseService {
       status,
       detail: detail || '',
     });
-    // 删除时间超过20天的日志
+    // 刪除時間超過20天的日誌
     await this.taskLogEntity.delete({
       taskId: info.id,
       createTime: LessThan(moment().subtract(this.keepDays, 'days').toDate()),
     });
   }
   /**
-   * 初始化任务
+   * 初始化任務
    */
   async initTask() {
     try {
@@ -233,7 +233,7 @@ export class TaskBullService extends BaseService {
       const runningTasks = await this.taskInfoEntity.findBy({ status: 1 });
       if (!_.isEmpty(runningTasks)) {
         for (const task of runningTasks) {
-          const job = await this.exist(task.jobId); // 任务已存在就不添加
+          const job = await this.exist(task.jobId); // 任務已存在就不新增
           if (!job) {
             this.logger.info(`init task ${task.name}`);
             await this.addOrUpdate(task);
@@ -243,7 +243,7 @@ export class TaskBullService extends BaseService {
     } catch (e) {}
   }
   /**
-   * 任务ID
+   * 任務ID
    * @param jobId
    */
   async getNextRunTime(jobId) {
@@ -258,7 +258,7 @@ export class TaskBullService extends BaseService {
     return nextRunTime;
   }
   /**
-   * 更新下次执行时间
+   * 更新下次執行時間
    * @param jobId
    */
   async updateNextRunTime(jobId) {
@@ -274,7 +274,7 @@ export class TaskBullService extends BaseService {
     );
   }
   /**
-   * 详情
+   * 詳情
    * @param id
    * @returns
    */
@@ -286,7 +286,7 @@ export class TaskBullService extends BaseService {
     };
   }
   /**
-   * 刷新任务状态
+   * 重新整理任務狀態
    */
   async updateStatus(jobId: number) {
     const task = await this.taskInfoEntity.findOneBy({ id: jobId });
@@ -305,7 +305,7 @@ export class TaskBullService extends BaseService {
     }
   }
   /**
-   * 调用service
+   * 呼叫service
    * @param serviceStr
    */
   async invokeService(serviceStr) {
@@ -329,7 +329,7 @@ export class TaskBullService extends BaseService {
               try {
                 return JSON.parse(param);
               } catch (e) {
-                return param; // 如果不是有效的JSON,则返回原始字符串
+                return param; // 如果不是有效的JSON,則返回原始字串
               }
             });
             return service[methodName](...parsedParams);

@@ -16,11 +16,11 @@
 					field="name"
 					:field-list="[
 						{
-							label: '昵称',
+							label: '暱稱',
 							value: 'name'
 						},
 						{
-							label: '手机号',
+							label: '手機號',
 							value: 'phone'
 						}
 					]"
@@ -60,12 +60,12 @@ const Upsert = useUpsert<Data>({
 			props: {
 				labels: [
 					{
-						label: "基础",
+						label: "基礎",
 						value: "A",
 						icon: EditPen
 					},
 					{
-						label: "高级",
+						label: "高階",
 						value: "B"
 					}
 				]
@@ -74,7 +74,7 @@ const Upsert = useUpsert<Data>({
 		{
 			group: "A",
 			prop: "age",
-			label: "年龄",
+			label: "年齡",
 			component: {
 				name: "el-input"
 			}
@@ -82,7 +82,7 @@ const Upsert = useUpsert<Data>({
 		{
 			group: "A",
 			prop: "name",
-			label: "昵称",
+			label: "暱稱",
 			component: {
 				name: "el-input"
 			},
@@ -93,7 +93,7 @@ const Upsert = useUpsert<Data>({
 		{
 			group: "B",
 			prop: "phone",
-			label: "手机",
+			label: "手機",
 			component: {
 				name: "el-input"
 			},
@@ -118,11 +118,11 @@ const Table = useTable<Data>(
 	{
 		contextMenu: [
 			{
-				label: "带图标",
+				label: "帶圖示",
 				prefixIcon: EditPen
 			},
 			{
-				label: "多层级",
+				label: "多層級",
 				children: [
 					{
 						label: "A",
@@ -150,7 +150,7 @@ const Table = useTable<Data>(
 				}
 			},
 			{
-				label: "手机号",
+				label: "手機號",
 				prop: "phone",
 				search: {
 					component: {

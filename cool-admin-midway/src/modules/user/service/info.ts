@@ -10,7 +10,7 @@ import { UserSmsService } from './sms';
 import { UserWxService } from './wx';
 
 /**
- * 用户信息
+ * 使用者資訊
  */
 @Provide()
 export class UserInfoService extends BaseService {
@@ -27,7 +27,7 @@ export class UserInfoService extends BaseService {
   userWxService: UserWxService;
 
   /**
-   * 绑定小程序手机号
+   * 繫結小程式手機號
    * @param userId
    * @param code
    * @param encryptedData
@@ -40,7 +40,7 @@ export class UserInfoService extends BaseService {
   }
 
   /**
-   * 获取用户信息
+   * 獲取使用者資訊
    * @param id
    * @returns
    */
@@ -51,7 +51,7 @@ export class UserInfoService extends BaseService {
   }
 
   /**
-   * 注销
+   * 登出
    * @param userId
    */
   async logoff(userId: number) {
@@ -61,23 +61,23 @@ export class UserInfoService extends BaseService {
         status: 2,
         phone: null,
         unionid: null,
-        nickName: `已注销-00${userId}`,
+        nickName: `已登出-00${userId}`,
         avatarUrl: null,
       }
     );
   }
 
   /**
-   * 更新用户信息
+   * 更新使用者資訊
    * @param id
    * @param param
    * @returns
    */
   async updatePerson(id, param) {
     const info = await this.person(id);
-    if (!info) throw new CoolCommException('用户不存在');
+    if (!info) throw new CoolCommException('使用者不存在');
     try {
-      // 修改了头像要重新处理
+      // 修改了頭像要重新處理
       if (param.avatarUrl && info.avatarUrl != param.avatarUrl) {
         const file = await this.pluginService.getInstance('upload');
         param.avatarUrl = await file.downAndUpload(
@@ -89,27 +89,27 @@ export class UserInfoService extends BaseService {
     try {
       return await this.userInfoEntity.update({ id }, param);
     } catch (err) {
-      throw new CoolCommException('更新失败，参数错误或者手机号已存在');
+      throw new CoolCommException('更新失敗，參數錯誤或者手機號已存在');
     }
   }
 
   /**
-   * 更新密码
+   * 更新密碼
    * @param userId
    * @param password
-   * @param 验证码
+   * @param 驗證碼
    */
   async updatePassword(userId, password, code) {
     const user = await this.userInfoEntity.findOneBy({ id: userId });
     const check = await this.userSmsService.checkCode(user.phone, code);
     if (!check) {
-      throw new CoolCommException('验证码错误');
+      throw new CoolCommException('驗證碼錯誤');
     }
     await this.userInfoEntity.update(user.id, { password: md5(password) });
   }
 
   /**
-   * 绑定手机号
+   * 繫結手機號
    * @param userId
    * @param phone
    * @param code
@@ -117,7 +117,7 @@ export class UserInfoService extends BaseService {
   async bindPhone(userId, phone, code) {
     const check = await this.userSmsService.checkCode(phone, code);
     if (!check) {
-      throw new CoolCommException('验证码错误');
+      throw new CoolCommException('驗證碼錯誤');
     }
     await this.userInfoEntity.update({ id: userId }, { phone });
   }

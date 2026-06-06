@@ -2,14 +2,14 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>options</el-tag>
-			<span>选项框配置</span>
+			<span>選項框配置</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['form/options.vue']" />
 
-			<!-- 自定义表单组件 -->
+			<!-- 自定義表單元件 -->
 			<cl-form ref="Form"></cl-form>
 		</div>
 
@@ -25,14 +25,14 @@ import { computed, reactive } from 'vue';
 
 const Form = useForm();
 
-// 觉得麻烦就 any，如 { user: [] as any[] }
+// 覺得麻煩就 any，如 { user: [] as any[] }
 const options = reactive<{ [key: string]: { label: string; value: any }[] }>({
 	user: []
 });
 
 function open() {
 	Form.value?.open({
-		title: '选项框配置',
+		title: '選項框配置',
 		items: [
 			{
 				label: '下拉框',
@@ -63,29 +63,29 @@ function open() {
 				}
 			},
 			{
-				label: '单选框',
+				label: '單選框',
 				prop: 'radio',
 				value: 1,
 				component: {
 					name: 'el-radio-group',
 					options: [
 						{
-							label: '手机',
+							label: '手機',
 							value: 1
 						},
 						{
-							label: '电脑',
+							label: '電腦',
 							value: 2
 						},
 						{
-							label: '电视',
+							label: '電視',
 							value: 3
 						}
 					]
 				}
 			},
 			{
-				label: '多选框',
+				label: '多選框',
 				prop: 'checkbox',
 				value: [2, 3],
 				component: {
@@ -96,11 +96,11 @@ function open() {
 							value: 1
 						},
 						{
-							label: '汉堡',
+							label: '漢堡',
 							value: 2
 						},
 						{
-							label: '炸鸡',
+							label: '炸雞',
 							value: 3
 						},
 						{
@@ -111,30 +111,30 @@ function open() {
 				}
 			},
 			{
-				label: '动态配置1',
+				label: '動態配置1',
 				prop: 'd1',
 				component: {
 					name: 'el-select',
-					// 动态设置方法1，在 on.open 事件配置 options
+					// 動態設定方法1，在 on.open 事件配置 options
 					options: []
 				}
 			},
 			{
-				label: '动态配置2',
+				label: '動態配置2',
 				prop: 'd2',
 				component: {
 					name: 'el-select',
-					// 动态设置方法2，使用 computed 更新 options
+					// 動態設定方法2，使用 computed 更新 options
 					options: computed(() => options.user)
 				}
 			}
 		],
 		on: {
 			open() {
-				// 模拟 1.5s 后取的数据
+				// 模擬 1.5s 後取的資料
 				setTimeout(() => {
-					// 动态设置方法1，使用 setOptions 方法设置
-					// d1 为 prop 值
+					// 動態設定方法1，使用 setOptions 方法設定
+					// d1 為 prop 值
 					Form.value?.setOptions('d1', [
 						{
 							label: '😊',
@@ -150,7 +150,7 @@ function open() {
 						}
 					]);
 
-					// 动态设置方法2，直接设置 options.user，由 computed 更新
+					// 動態設定方法2，直接設定 options.user，由 computed 更新
 					options.user = [
 						{
 							label: '💰',

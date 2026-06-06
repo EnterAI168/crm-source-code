@@ -15,10 +15,10 @@ import { Context } from '@midwayjs/koa';
 import { Validate } from '@midwayjs/validate';
 
 /**
- * 不需要登录的后台接口
+ * 不需要登入的後台介面
  */
 @Provide()
-@CoolController({ description: '开放接口' })
+@CoolController({ description: '開放介面' })
 @CoolUrlTag()
 export class BaseOpenController extends BaseController {
   @Inject()
@@ -34,40 +34,40 @@ export class BaseOpenController extends BaseController {
   eps: CoolEps;
 
   /**
-   * 实体信息与路径
+   * 實體資訊與路徑
    * @returns
    */
   @CoolTag(TagTypes.IGNORE_TOKEN)
-  @Get('/eps', { summary: '实体信息与路径' })
+  @Get('/eps', { summary: '實體資訊與路徑' })
   public async getEps() {
     return this.ok(this.eps.admin);
   }
 
   /**
-   * 根据配置参数key获得网页内容(富文本)
+   * 根據配置參數key獲得網頁內容(富文本)
    */
   @CoolTag(TagTypes.IGNORE_TOKEN)
-  @Get('/html', { summary: '获得网页内容的参数值' })
+  @Get('/html', { summary: '獲得網頁內容的參數值' })
   async htmlByKey(@Query('key') key: string) {
     this.ctx.body = await this.baseSysParamService.htmlByKey(key);
   }
 
   /**
-   * 登录
+   * 登入
    * @param login
    */
   @CoolTag(TagTypes.IGNORE_TOKEN)
-  @Post('/login', { summary: '登录' })
+  @Post('/login', { summary: '登入' })
   @Validate()
   async login(@Body() login: LoginDTO) {
     return this.ok(await this.baseSysLoginService.login(login));
   }
 
   /**
-   * 获得验证码
+   * 獲得驗證碼
    */
   @CoolTag(TagTypes.IGNORE_TOKEN)
-  @Get('/captcha', { summary: '验证码' })
+  @Get('/captcha', { summary: '驗證碼' })
   async captcha(
     @Query('width') width: number,
     @Query('height') height: number,
@@ -79,10 +79,10 @@ export class BaseOpenController extends BaseController {
   }
 
   /**
-   * 刷新token
+   * 重新整理token
    */
   @CoolTag(TagTypes.IGNORE_TOKEN)
-  @Get('/refreshToken', { summary: '刷新token' })
+  @Get('/refreshToken', { summary: '重新整理token' })
   async refreshToken(@Query('refreshToken') refreshToken: string) {
     try {
       const token = await this.baseSysLoginService.refreshToken(refreshToken);
@@ -91,7 +91,7 @@ export class BaseOpenController extends BaseController {
       this.ctx.status = 401;
       this.ctx.body = {
         code: RESCODE.COMMFAIL,
-        message: '登录失效~',
+        message: '登入失效~',
       };
     }
   }

@@ -4,7 +4,7 @@ import { BaseSysMenuEntity } from '../../../entity/sys/menu';
 import { BaseSysMenuService } from '../../../service/sys/menu';
 
 /**
- * 菜单
+ * 選單
  */
 @Provide()
 @CoolController({
@@ -27,18 +27,18 @@ export class BaseSysMenuController extends BaseController {
     );
   }
 
-  @Post('/create', { summary: '创建代码' })
+  @Post('/create', { summary: '建立程式碼' })
   async create(@Body() body) {
     await this.baseSysMenuService.create(body);
     return this.ok();
   }
 
-  @Post('/export', { summary: '导出' })
+  @Post('/export', { summary: '匯出' })
   async export(@Body('ids') ids: number[]) {
     return this.ok(await this.baseSysMenuService.export(ids));
   }
 
-  @Post('/import', { summary: '导入' })
+  @Post('/import', { summary: '匯入' })
   async import(@Body('menus') menus: any[]) {
     await this.baseSysMenuService.import(menus);
     return this.ok();

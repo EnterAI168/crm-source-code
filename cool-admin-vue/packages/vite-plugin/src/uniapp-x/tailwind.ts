@@ -12,7 +12,7 @@ import {
 } from "./utils";
 
 /**
- * 转换类名中的特殊字符为安全字符
+ * 轉換類名中的特殊字元為安全字元
  */
 export function toSafeClass(className: string): string {
 	if (config.utsPlatform == "web") {
@@ -23,19 +23,19 @@ export function toSafeClass(className: string): string {
 		return className;
 	}
 
-	// 如果是表达式,则不进行转换
+	// 如果是表示式,則不進行轉換
 	if (["!=", "!==", "?", ":", "="].includes(className)) {
 		return className;
 	}
 
 	let safeClassName = className;
 
-	// 移除转义字符
+	// 移除跳脫字元
 	if (safeClassName.includes("\\")) {
 		safeClassName = safeClassName.replace(/\\/g, "");
 	}
 
-	// 处理暗黑模式
+	// 處理暗黑模式
 	if (safeClassName.includes(":is")) {
 		if (safeClassName.includes(":is(.dark *)")) {
 			safeClassName = safeClassName.replace(/:is\(.dark \*\)/g, "");
@@ -46,7 +46,7 @@ export function toSafeClass(className: string): string {
 		}
 	}
 
-	// 替换特殊字符
+	// 替換特殊字元
 	for (const [char, replacement] of Object.entries(SAFE_CHAR_MAP)) {
 		const regex = new RegExp("\\" + char, "g");
 		if (regex.test(safeClassName)) {
@@ -58,7 +58,7 @@ export function toSafeClass(className: string): string {
 }
 
 /**
- * 转换 RGB 为 RGBA 格式
+ * 轉換 RGB 為 RGBA 格式
  */
 function rgbToRgba(rgbValue: string): string {
 	const match = rgbValue.match(/rgb\(([\d\s]+)\/\s*([\d.]+)\)/);
@@ -82,8 +82,8 @@ function remToRpx(remValue: string): string {
 }
 
 /**
- * PostCSS 插件
- * 处理类名和单位转换
+ * PostCSS 外掛
+ * 處理類名和單位轉換
  */
 function postcssPlugin(): Plugin {
 	return {
@@ -99,7 +99,7 @@ function postcssPlugin(): Plugin {
 								postcssPlugin: "vite-cool-uniappx-class-mapping",
 								prepare() {
 									return {
-										// 处理选择器规则
+										// 處理選擇器規則
 										Rule(rule: any) {
 											if (
 												[
@@ -113,11 +113,11 @@ function postcssPlugin(): Plugin {
 												return;
 											}
 
-											// 转换选择器为安全的类名格式
+											// 轉換選擇器為安全的類名格式
 											rule.selector = toSafeClass(rule.selector);
 										},
 
-										// 处理声明规则
+										// 處理宣告規則
 										Declaration(decl: any) {
 											const className = decl.parent.selector || "";
 
@@ -125,7 +125,7 @@ function postcssPlugin(): Plugin {
 												decl.parent._twValues = {};
 											}
 
-											// 处理 Tailwind 自定义属性
+											// 處理 Tailwind 自定義屬性
 											if (decl.prop.includes("--tw-")) {
 												decl.parent._twValues[decl.prop] =
 													decl.value.includes("rem")
@@ -136,7 +136,7 @@ function postcssPlugin(): Plugin {
 												return;
 											}
 
-											// 转换 RGB 颜色为 RGBA 格式
+											// 轉換 RGB 顏色為 RGBA 格式
 											if (
 												decl.value.includes("rgb(") &&
 												decl.value.includes("/")
@@ -144,7 +144,7 @@ function postcssPlugin(): Plugin {
 												decl.value = rgbToRgba(decl.value);
 											}
 
-											// 处理文本大小相关样式
+											// 處理文本大小相關樣式
 											if (
 												decl.value.includes("rpx") &&
 												decl.prop == "color" &&
@@ -153,30 +153,30 @@ function postcssPlugin(): Plugin {
 												decl.prop = "font-size";
 											}
 
-											// 删除不支持的属性
+											// 刪除不支援的屬性
 											if (["filter"].includes(decl.prop)) {
 												decl.remove();
 												return;
 											}
 
-											// 处理 flex-1
+											// 處理 flex-1
 											if (decl.prop == "flex") {
 												if (decl.value.startsWith("1")) {
 													decl.value = "1";
 												}
 											}
 
-											// 处理 vertical-align 属性
+											// 處理 vertical-align 屬性
 											if (decl.prop == "vertical-align") {
 												decl.remove();
 											}
 
-											// 处理 visibility 属性
+											// 處理 visibility 屬性
 											if (decl.prop == "visibility") {
 												decl.remove();
 											}
 
-											// 处理 sticky 属性
+											// 處理 sticky 屬性
 											if (className == ".sticky") {
 												if (
 													decl.prop == "position" ||
@@ -186,13 +186,13 @@ function postcssPlugin(): Plugin {
 												}
 											}
 
-											// 解析声明值
+											// 解析宣告值
 											const parsed = valueParser(decl.value);
 											let hasChanges = false;
 
-											// 遍历并处理声明值中的节点
+											// 遍歷並處理宣告值中的節點
 											parsed.walk((node: any) => {
-												// 处理单位转换(rem -> rpx)
+												// 處理單位轉換(rem -> rpx)
 												if (node.type === "word") {
 													const unit = valueParser.unit(node.value);
 
@@ -204,14 +204,14 @@ function postcssPlugin(): Plugin {
 													}
 												}
 
-												// 处理 CSS 变量
+												// 處理 CSS 變數
 												if (
 													node.type === "function" &&
 													node.value === "var"
 												) {
 													const twKey = node.nodes[0]?.value;
 
-													// 替换 Tailwind 变量为实际值
+													// 替換 Tailwind 變數為實際值
 													if (twKey?.startsWith("--tw-")) {
 														if (decl.parent._twValues) {
 															node.type = "word";
@@ -225,12 +225,12 @@ function postcssPlugin(): Plugin {
 												}
 											});
 
-											// 更新声明值
+											// 更新宣告值
 											if (hasChanges) {
 												decl.value = parsed.toString();
 											}
 
-											// 移除 Tailwind 生成的无效 none 变换
+											// 移除 Tailwind 生成的無效 none 變換
 											const nones = [
 												"translate(none, none)",
 												"rotate(none)",
@@ -262,7 +262,7 @@ function postcssPlugin(): Plugin {
 }
 
 /**
- * uvue class 转换插件
+ * uvue class 轉換外掛
  */
 function transformPlugin(): Plugin {
 	return {
@@ -272,19 +272,19 @@ function transformPlugin(): Plugin {
 		async transform(code, id) {
 			const { darkTextClass } = config.tailwind!;
 
-			// 判断是否为 uvue 文件
+			// 判斷是否為 uvue 檔案
 			if (id.endsWith(".uvue") || id.includes(".uvue?type=page")) {
-				// 避免影响到其他模块/插件
+				// 避免影響到其他模組/外掛
 				if (id.includes("uni_modules/") && !id.includes("uni_modules/cool-")) {
 					return null;
 				}
 
 				let modifiedCode = code;
 
-				// 获取所有节点
+				// 獲取所有節點
 				const nodes = getNodes(code);
 
-				// 遍历处理每个节点
+				// 遍歷處理每個節點
 				nodes.forEach((node) => {
 					if (node.startsWith("<!--")) {
 						return;
@@ -292,20 +292,20 @@ function transformPlugin(): Plugin {
 
 					let _node = node;
 
-					// uniappx 插件模式
+					// uniappx 外掛模式
 					if (!config.uniapp.isPlugin) {
-						// 为 text 节点添加暗黑模式文本颜色
+						// 為 text 節點新增暗黑模式文本顏色
 						if (!_node.includes(darkTextClass) && _node.startsWith("<text")) {
 							let classIndex = _node.indexOf("class=");
 
-							// 处理动态 class
+							// 處理動態 class
 							if (classIndex >= 0) {
 								if (_node[classIndex - 1] == ":") {
 									classIndex = _node.lastIndexOf("class=");
 								}
 							}
 
-							// 添加暗黑模式类名
+							// 新增暗黑模式類名
 							if (classIndex >= 0) {
 								_node =
 									_node.substring(0, classIndex + 7) +
@@ -320,10 +320,10 @@ function transformPlugin(): Plugin {
 						}
 					}
 
-					// 获取所有类名
+					// 獲取所有類名
 					const classNames = getClassNames(_node);
 
-					// 转换 Tailwind 类名为安全类名
+					// 轉換 Tailwind 類名為安全類名
 					classNames.forEach((name, index) => {
 						if (isTailwindClass(name)) {
 							const safeName = toSafeClass(name);
@@ -332,29 +332,29 @@ function transformPlugin(): Plugin {
 						}
 					});
 
-					// 检查是否存在动态类名
+					// 檢查是否存在動態類名
 					const hasDynamicClass = _node.includes(":class=");
 
-					// 如果没有动态类名,添加空的动态类名绑定
+					// 如果沒有動態類名,新增空的動態類名繫結
 					if (!hasDynamicClass) {
-						// 优化写法，避免重复字符串拼接
+						// 最佳化寫法，避免重複字串拼接
 						const insertIndex = _node.length - (_node.endsWith("/>") ? 2 : 1);
 
 						_node =
 							_node.slice(0, insertIndex) + ` :class="{}"` + _node.slice(insertIndex);
 					}
 
-					// 获取暗黑模式类名
+					// 獲取暗黑模式類名
 					let darkClassNames = classNames.filter(
 						(name) => name.startsWith("dark-colon-") || name.startsWith("dark:"),
 					);
 
-					// 插件模式，不支持 dark:
+					// 外掛模式，不支援 dark:
 					if (config.uniapp.isPlugin) {
 						darkClassNames = [];
 					}
 
-					// 生成暗黑模式类名的动态绑定
+					// 生成暗黑模式類名的動態繫結
 					const darkClassContent = darkClassNames
 						.map((name) => {
 							_node = _node.replaceAll(name, "");
@@ -362,10 +362,10 @@ function transformPlugin(): Plugin {
 						})
 						.join(",");
 
-					// 获取所有 class 内容
+					// 獲取所有 class 內容
 					const classContents = getClassContent(_node);
 
-					// 处理对象形式的动态类名
+					// 處理物件形式的動態類名
 					const dynamicClassContent_1 = classContents.find(
 						(content) => content.startsWith("{") && content.endsWith("}"),
 					);
@@ -379,7 +379,7 @@ function transformPlugin(): Plugin {
 						_node = _node.replaceAll(dynamicClassContent_1, v);
 					}
 
-					// 处理数组形式的动态类名
+					// 處理陣列形式的動態類名
 					const dynamicClassContent_2 = classContents.find(
 						(content) => content.startsWith("[") && content.endsWith("]"),
 					);
@@ -393,13 +393,13 @@ function transformPlugin(): Plugin {
 						_node = _node.replaceAll(dynamicClassContent_2, v);
 					}
 
-					// 更新节点内容
+					// 更新節點內容
 					modifiedCode = modifiedCode.replace(node, _node);
 				});
 
-				// 如果代码有修改
+				// 如果程式碼有修改
 				if (modifiedCode !== code) {
-					// 添加暗黑模式依赖
+					// 新增暗黑模式依賴
 					if (modifiedCode.includes("__isDark")) {
 						if (!modifiedCode.includes("<script")) {
 							modifiedCode += '<script lang="ts" setup></script>';
@@ -413,7 +413,7 @@ function transformPlugin(): Plugin {
 						}
 					}
 
-					// 清理空的类名绑定
+					// 清理空的類名繫結
 					modifiedCode = modifiedCode
 						.replaceAll(':class="{}"', "")
 						.replaceAll('class=""', "")
@@ -434,7 +434,7 @@ function transformPlugin(): Plugin {
 }
 
 /**
- * Tailwind 类名转换插件
+ * Tailwind 類名轉換外掛
  */
 export function tailwindPlugin() {
 	return [postcssPlugin(), transformPlugin()];

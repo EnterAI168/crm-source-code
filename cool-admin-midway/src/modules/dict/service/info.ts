@@ -7,7 +7,7 @@ import { Repository, In } from 'typeorm';
 import * as _ from 'lodash';
 
 /**
- * 字典信息
+ * 字典資訊
  */
 @Provide()
 export class DictInfoService extends BaseService {
@@ -21,7 +21,7 @@ export class DictInfoService extends BaseService {
   ormType: string;
 
   /**
-   * 获得字典数据
+   * 獲得字典資料
    * @param types
    */
   async data(types: string[]) {
@@ -65,7 +65,7 @@ export class DictInfoService extends BaseService {
   }
 
   /**
-   * 获得字典key
+   * 獲得字典key
    * @returns
    */
   async types() {
@@ -73,36 +73,36 @@ export class DictInfoService extends BaseService {
   }
 
   /**
-   * 获得单个或多个字典值
-   * @param value 字典值或字典值数组
-   * @param key 字典类型
+   * 獲得單個或多個字典值
+   * @param value 字典值或字典值陣列
+   * @param key 字典型別
    * @returns
    */
   async getValues(value: string | string[], key: string) {
-    // 获取字典类型
+    // 獲取字典型別
     const type = await this.dictTypeEntity.findOneBy({ key });
     if (!type) {
-      return null; // 或者适当的错误处理
+      return null; // 或者適當的錯誤處理
     }
 
-    // 根据typeId获取所有相关的字典信息
+    // 根據typeId獲取所有相關的字典資訊
     const dictValues = await this.dictInfoEntity.find({
       where: { typeId: type.id },
     });
 
-    // 如果value是字符串，直接查找
+    // 如果value是字串，直接查詢
     if (typeof value === 'string') {
       return this.findValueInDictValues(value, dictValues);
     }
 
-    // 如果value是数组，遍历数组，对每个元素进行查找
+    // 如果value是陣列，遍歷陣列，對每個元素進行查詢
     return value.map(val => this.findValueInDictValues(val, dictValues));
   }
 
   /**
-   * 在字典值数组中查找指定的值
-   * @param value 要查找的值
-   * @param dictValues 字典值数组
+   * 在字典值陣列中查詢指定的值
+   * @param value 要查詢的值
+   * @param dictValues 字典值陣列
    * @returns
    */
   findValueInDictValues(value: string, dictValues: any[]) {
@@ -110,11 +110,11 @@ export class DictInfoService extends BaseService {
     if (!result) {
       result = dictValues.find(dictValue => dictValue.id === parseInt(value));
     }
-    return result ? result.name : null; // 或者适当的错误处理
+    return result ? result.name : null; // 或者適當的錯誤處理
   }
 
   /**
-   * 修改之后
+   * 修改之後
    * @param data
    * @param type
    */
@@ -127,7 +127,7 @@ export class DictInfoService extends BaseService {
   }
 
   /**
-   * 删除子字典
+   * 刪除子字典
    * @param id
    */
   private async delChildDict(id) {

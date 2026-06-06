@@ -2,14 +2,14 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>children</el-tag>
-			<span>层级显示</span>
+			<span>層級顯示</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['form/children.vue']" />
 
-			<!-- 自定义表单组件 -->
+			<!-- 自定義表單元件 -->
 			<cl-form ref="Form"></cl-form>
 		</div>
 
@@ -26,7 +26,7 @@ const Form = useForm();
 
 function open() {
 	Form.value?.open({
-		title: '层级显示',
+		title: '層級顯示',
 		items: [
 			{
 				label: '姓名',
@@ -36,7 +36,7 @@ function open() {
 				}
 			},
 			{
-				label: '年龄',
+				label: '年齡',
 				prop: 'age',
 				value: 18,
 				component: {
@@ -44,28 +44,28 @@ function open() {
 				}
 			},
 
-			// 基础信息
+			// 基礎資訊
 			{
 				component: {
-					//【很重要】使用 cl-form-card 组件渲染，也可以使用自定义
+					//【很重要】使用 cl-form-card 元件渲染，也可以使用自定義
 					name: 'cl-form-card',
 					props: {
-						// 标题
-						label: '基础信息',
-						// 是否展开，默认 true
+						// 標題
+						label: '基礎資訊',
+						// 是否展開，預設 true
 						expand: true
 					}
 				},
 				children: [
 					{
-						label: '账号',
+						label: '賬號',
 						prop: 'account',
 						component: {
 							name: 'el-input'
 						}
 					},
 					{
-						label: '密码',
+						label: '密碼',
 						prop: 'password',
 						component: {
 							name: 'el-input'
@@ -74,32 +74,32 @@ function open() {
 				]
 			},
 
-			// 其他信息
+			// 其他資訊
 			{
 				component: {
 					name: 'cl-form-card',
 					props: {
-						label: '其他信息',
+						label: '其他資訊',
 						expand: false
 					}
 				},
 				children: [
 					{
-						label: '身份证',
+						label: '身份證',
 						prop: 'idcard',
 						component: {
 							name: 'el-input'
 						}
 					},
 					{
-						label: '学校',
+						label: '學校',
 						prop: 'school',
 						component: {
 							name: 'el-input'
 						}
 					},
 					{
-						label: '专业',
+						label: '專業',
 						prop: 'major',
 						component: {
 							name: 'el-input'

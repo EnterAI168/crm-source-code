@@ -5,7 +5,7 @@ import { BaseTranslateService } from '../service/translate';
 import * as _ from 'lodash';
 import { RESCODE } from '@cool-midway/core';
 /**
- * 翻译中间件
+ * 翻譯中介軟體
  */
 @Middleware()
 export class BaseTranslateMiddleware
@@ -19,11 +19,11 @@ export class BaseTranslateMiddleware
 
   @Config('cool.i18n')
   config: {
-    /** 是否开启 */
+    /** 是否開啟 */
     enable: boolean;
-    /** 语言 */
+    /** 語言 */
     languages: string[];
-    /** 翻译服务 */
+    /** 翻譯服務 */
     serviceUrl?: string;
   };
 
@@ -36,7 +36,7 @@ export class BaseTranslateMiddleware
         data = await next();
       } catch (error) {
         this.logger.error(error);
-        // 处理翻译消息
+        // 處理翻譯訊息
         if (error.name == 'CoolCommException') {
           if (error.message && error.message !== 'success') {
             ctx.status = error.statusCode || 200;
@@ -61,7 +61,7 @@ export class BaseTranslateMiddleware
       if (!this.config.enable) {
         return;
       }
-      // 处理菜单翻译
+      // 處理選單翻譯
       if (url == '/admin/base/comm/permmenu') {
         for (const menu of data.data.menus) {
           if (menu.name) {
@@ -84,7 +84,7 @@ export class BaseTranslateMiddleware
           }
         }
       }
-      // 处理字典翻译
+      // 處理字典翻譯
       if (url == '/admin/dict/info/list') {
         for (const dict of data.data) {
           dict.name = await this.baseTranslateService.translate(

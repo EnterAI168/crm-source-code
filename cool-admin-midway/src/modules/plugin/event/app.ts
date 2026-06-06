@@ -13,7 +13,7 @@ import { PLUGIN_CACHE_KEY, PluginCenterService } from '../service/center';
 import { PluginTypesService } from '../service/types';
 
 /**
- * 插件事件
+ * 外掛事件
  */
 @CoolEvent()
 export class PluginAppEvent {

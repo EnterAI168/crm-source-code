@@ -5,7 +5,7 @@ import { PassThrough } from 'stream';
 import { IMidwayKoaContext } from '@midwayjs/koa';
 
 /**
- * 事件流 服务端主动推送
+ * 事件流 服務端主動推送
  */
 @CoolController()
 export class OpenDemoSSEController extends BaseController {
@@ -15,26 +15,26 @@ export class OpenDemoSSEController extends BaseController {
   @Inject()
   pluginService: PluginService;
 
-  @Get('/call', { summary: '事件流 服务端主动推送' })
+  @Get('/call', { summary: '事件流 服務端主動推送' })
   async call() {
-    // 设置响应头
+    // 設定響應頭
     this.ctx.set('Content-Type', 'text/event-stream');
     this.ctx.set('Cache-Control', 'no-cache');
     this.ctx.set('Connection', 'keep-alive');
 
     const stream = new PassThrough();
 
-    // 发送数据
+    // 發送資料
     const send = (data: any) => {
       stream.write(`data: ${JSON.stringify(data)}\n\n`);
     };
 
-    // 获取插件实例
+    // 獲取外掛例項
     const instance: any = await this.pluginService.getInstance('ollama');
-    // 调用chat
+    // 呼叫chat
     const messages = [
-      { role: 'system', content: '你叫小酷，是个编程助手' },
-      { role: 'user', content: '用js写个Hello World' },
+      { role: 'system', content: '你叫小酷，是個程式設計助手' },
+      { role: 'user', content: '用js寫個Hello World' },
     ];
     instance.chat(messages, { stream: true }, res => {
       send(res);

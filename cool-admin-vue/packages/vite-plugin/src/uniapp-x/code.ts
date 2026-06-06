@@ -3,7 +3,7 @@ import { SAFE_CHAR_MAP_LOCALE } from "./config";
 import { createCtx } from "../ctx";
 import { readFile, rootDir } from "../utils";
 
-// 获取 tailwind.config.ts 中的颜色
+// 獲取 tailwind.config.ts 中的顏色
 function getTailwindColor() {
 	const config = readFile(rootDir("tailwind.config.ts"));
 
@@ -12,19 +12,19 @@ function getTailwindColor() {
 	}
 
 	try {
-		// 从配置文件中动态提取主色和表面色
+		// 從配置檔案中動態提取主色和表面色
 		const colorResult: Record<string, string> = {};
 
-		// 提取 getPrimary 调用中的颜色名称
+		// 提取 getPrimary 呼叫中的顏色名稱
 		const primaryMatch = config.match(/getPrimary\(["']([^"']+)["']\)/);
 		const primaryColorName = primaryMatch?.[1];
 
-		// 提取 getSurface 调用中的颜色名称
+		// 提取 getSurface 呼叫中的顏色名稱
 		const surfaceMatch = config.match(/getSurface\(["']([^"']+)["']\)/);
 		const surfaceColorName = surfaceMatch?.[1];
 
 		if (primaryColorName) {
-			// 提取 PRIMARY_COLOR_PALETTES 中对应的调色板
+			// 提取 PRIMARY_COLOR_PALETTES 中對應的調色盤
 			const primaryPaletteMatch = config.match(
 				new RegExp(
 					`{\\s*name:\\s*["']${primaryColorName}["'],\\s*palette:\\s*({[^}]+})`,
@@ -33,7 +33,7 @@ function getTailwindColor() {
 			);
 
 			if (primaryPaletteMatch) {
-				// 解析调色板对象
+				// 解析調色盤物件
 				const paletteStr = primaryPaletteMatch[1];
 				const paletteEntries = paletteStr.match(/(\d+):\s*["']([^"']+)["']/g);
 
@@ -50,7 +50,7 @@ function getTailwindColor() {
 		}
 
 		if (surfaceColorName) {
-			// 提取 SURFACE_PALETTES 中对应的调色板
+			// 提取 SURFACE_PALETTES 中對應的調色盤
 			const surfacePaletteMatch = config.match(
 				new RegExp(
 					`{\\s*name:\\s*["']${surfaceColorName}["'],\\s*palette:\\s*({[^}]+})`,
@@ -59,7 +59,7 @@ function getTailwindColor() {
 			);
 
 			if (surfacePaletteMatch) {
-				// 解析调色板对象
+				// 解析調色盤物件
 				const paletteStr = surfacePaletteMatch[1];
 				const paletteEntries = paletteStr.match(/(\d+):\s*["']([^"']+)["']/g);
 
@@ -68,7 +68,7 @@ function getTailwindColor() {
 						const match = entry.match(/(\d+):\s*["']([^"']+)["']/);
 						if (match) {
 							const [, key, value] = match;
-							// 0 对应 surface，其他对应 surface-*
+							// 0 對應 surface，其他對應 surface-*
 							const colorKey = key === "0" ? "surface" : `surface-${key}`;
 							colorResult[colorKey] = value;
 						}
@@ -83,7 +83,7 @@ function getTailwindColor() {
 	}
 }
 
-// 获取版本号
+// 獲取版本號
 function getVersion() {
 	const pkg = readFile(rootDir("package.json"), true);
 	return pkg?.version || "0.0.0";
@@ -98,13 +98,13 @@ export function codePlugin(): Plugin[] {
 				if (id.includes("/cool/ctx/index.ts")) {
 					const ctx = await createCtx();
 
-					// 主题配置
+					// 主題配置
 					const theme = readFile(rootDir("theme.json"), true);
 
-					// 主题配置
+					// 主題配置
 					ctx["theme"] = theme || {};
 
-					// 颜色值
+					// 顏色值
 					ctx["color"] = getTailwindColor();
 
 					if (!ctx.subPackages) {
@@ -119,7 +119,7 @@ export function codePlugin(): Plugin[] {
 						ctx.uniIdRouter = {};
 					}
 
-					// 安全字符映射
+					// 安全字元對映
 					ctx["SAFE_CHAR_MAP_LOCALE"] = [];
 					for (const i in SAFE_CHAR_MAP_LOCALE) {
 						ctx["SAFE_CHAR_MAP_LOCALE"].push([i, SAFE_CHAR_MAP_LOCALE[i]]);
@@ -171,7 +171,7 @@ export function codePlugin(): Plugin[] {
 						}
 					}
 
-					// 转字符串，不然会报错：Method too large
+					// 轉字串，不然會報錯：Method too large
 					if (id.includes("/locale/")) {
 						let t: string[] = [];
 

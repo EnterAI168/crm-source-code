@@ -2,11 +2,11 @@ import { BaseEntity } from '../base';
 import { Column, Entity } from 'typeorm';
 
 /**
- * 用户角色
+ * 使用者角色
  */
 @Entity('base_sys_user_role')
 export class BaseSysUserRoleEntity extends BaseEntity {
-  @Column({ comment: '用户ID' })
+  @Column({ comment: '使用者ID' })
   userId: number;
 
   @Column({ comment: '角色ID' })

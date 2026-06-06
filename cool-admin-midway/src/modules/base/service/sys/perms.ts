@@ -10,7 +10,7 @@ import { In, Repository } from 'typeorm';
 import { InjectEntityModel } from '@midwayjs/typeorm';
 
 /**
- * 权限
+ * 權限
  */
 @Provide()
 export class BaseSysPermsService extends BaseService {
@@ -37,17 +37,28 @@ export class BaseSysPermsService extends BaseService {
   base: any;
 
   /**
-   * 刷新权限
-   * @param userId 用户ID
+   * 重新整理權限
+   * @param userId 使用者ID
    */
   async refreshPerms(userId) {
-    await this.midwayCache.del(`admin:token:${userId}`);
+    await this.rebuildPermsCache(userId);
+  }
+
+  /**
+   * 重建權限快取
+   * @param userId 使用者ID
+   * @param clearToken 是否清除登入態
+   */
+  async rebuildPermsCache(userId, clearToken = true) {
+    if (clearToken) {
+      await this.midwayCache.del(`admin:token:${userId}`);
+    }
     const roleIds = await this.baseSysRoleService.getByUser(userId);
     const isMenuAdmin = await this.isMenuAdmin(roleIds);
     const isAdmin = await this.isAdmin(roleIds);
     const perms = await this.baseSysMenuService.getPerms(roleIds, isMenuAdmin);
     await this.midwayCache.set(`admin:perms:${userId}`, perms);
-    // 更新部门权限
+    // 更新部門權限
     const departments = await this.baseSysDepartmentService.getByRoleIds(
       roleIds,
       isAdmin
@@ -56,7 +67,7 @@ export class BaseSysPermsService extends BaseService {
   }
 
   /**
-   * 根据角色判断是不是超管
+   * 根據角色判斷是不是超管
    * @param roleIds
    */
   async isAdmin(roleIds: number[]) {
@@ -65,7 +76,7 @@ export class BaseSysPermsService extends BaseService {
   }
 
   /**
-   * 获得权限菜单
+   * 獲得權限選單
    * @param roleIds
    */
   async permmenu(roleIds: number[]) {
@@ -80,16 +91,16 @@ export class BaseSysPermsService extends BaseService {
     return roles.map(item => item.label);
   }
 
-  // 菜单与按钮权限仅 admin 走超管逻辑，boss 需要按角色勾选生效
+  // 選單與按鈕權限僅 admin 走超管邏輯，boss 需要按角色勾選生效
   async isMenuAdmin(roleIds: number[]) {
     const roleLabels = await this.getRoleLabels(roleIds);
     return roleLabels.includes(this.ADMIN_LABEL);
   }
 
   /**
-   * 根据用户ID获得部门权限
+   * 根據使用者ID獲得部門權限
    * @param userId
-   * @return 部门ID数组
+   * @return 部門ID陣列
    */
   async departmentIds(userId: number) {
     const department: any = await this.midwayCache.get(

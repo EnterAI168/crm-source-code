@@ -1,6 +1,6 @@
 <template>
 	<cl-editor-preview v-if="!isHide" :ref="setRefs('preview')" type="code" :tabs="tabs">
-		<el-button @click="open">代码</el-button>
+		<el-button @click="open">程式碼</el-button>
 	</cl-editor-preview>
 </template>
 
@@ -24,10 +24,10 @@ const props = defineProps({
 
 const { refs, setRefs } = useCool();
 
-// 是否隐藏
+// 是否隱藏
 const isHide = computed(() => isEmpty(demo));
 
-// 文件列表
+// 檔案列表
 const tabs = computed(() => {
 	return props.files?.map(e => {
 		return {
@@ -38,7 +38,7 @@ const tabs = computed(() => {
 	});
 });
 
-// 打开
+// 開啟
 function open() {
 	refs.preview.open();
 }

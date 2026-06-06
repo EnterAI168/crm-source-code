@@ -3,7 +3,7 @@ import { IMidwayApplication } from '@midwayjs/core';
 import { App } from '@midwayjs/core';
 
 /**
- * 普通队列
+ * 普通佇列
  */
 @CoolQueue()
 export class DemoCommQueue extends BaseCoolQueue {
@@ -11,10 +11,10 @@ export class DemoCommQueue extends BaseCoolQueue {
   app: IMidwayApplication;
 
   async data(job: any, done: any): Promise<void> {
-    // 这边可以执行定时任务具体的业务或队列的业务
-    console.log('数据', job.data);
-    // 抛出错误 可以让队列重试，默认重试5次
-    //throw new Error('错误');
+    // 這邊可以執行定時任務具體的業務或佇列的業務
+    console.log('資料', job.data);
+    // 丟擲錯誤 可以讓佇列重試，預設重試5次
+    //throw new Error('錯誤');
     done();
   }
 }

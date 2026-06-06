@@ -1,7 +1,7 @@
 <template>
 	<div class="card">
 		<div class="card__header">
-			<span class="label">{{ $t('类别占比') }}</span>
+			<span class="label">{{ $t('類別佔比') }}</span>
 		</div>
 
 		<div class="card__container">
@@ -45,10 +45,10 @@ const chartOption = reactive({
 				color: textColor
 			},
 			data: [
-				{ value: 387, name: '电子产品' },
-				{ value: 314, name: '服装' },
+				{ value: 387, name: '電子產品' },
+				{ value: 314, name: '服裝' },
 				{ value: 253, name: '家居用品' },
-				{ value: 198, name: '书籍' },
+				{ value: 198, name: '書籍' },
 				{ value: 123, name: '其他' }
 			]
 		}

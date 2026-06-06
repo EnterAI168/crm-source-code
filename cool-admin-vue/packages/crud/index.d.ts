@@ -51,19 +51,19 @@ declare interface Emitter {
 // 方法
 declare type fn = () => void;
 
-// 对象
+// 物件
 declare type obj = {
 	[key: string]: any;
 };
 
-// 全部可选
+// 全部可選
 declare type DeepPartial<T> = T extends Function
 	? T
 	: T extends object
 		? { [P in keyof T]?: DeepPartial<T[P]> }
 		: T;
 
-// 合并
+// 合併
 declare type Merge<A, B> = Omit<A, keyof B> & B;
 
 // 移除 [key]
@@ -74,13 +74,13 @@ declare type RemoveIndex<T> = {
 // 任用列表
 declare type List<T> = Array<DeepPartial<T> | (() => DeepPartial<T>)>;
 
-// 获取keys
+// 獲取keys
 declare type PropKey<T> = keyof RemoveIndex<T> | (string & {});
 
-// 任意字符串
+// 任意字串
 declare type AnyString = string & {};
 
-// 类型或者 Ref 泛型
+// 型別或者 Ref 泛型
 declare type RefData<T = any> = T | Vue.Ref<T>;
 
 // browser
@@ -89,7 +89,7 @@ declare type Browser = {
 	isMini: boolean;
 };
 
-// 字典选项
+// 字典選項
 declare type DictOptions = {
 	label?: string;
 	value?: any;

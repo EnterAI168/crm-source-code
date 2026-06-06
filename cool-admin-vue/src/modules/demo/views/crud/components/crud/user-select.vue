@@ -2,14 +2,14 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>user-select</el-tag>
-			<span>选择成员</span>
+			<span>選擇成員</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['crud/user-select.vue']" />
 
-			<!-- 自定义表格组件 -->
+			<!-- 自定義表格元件 -->
 			<cl-form ref="Form" />
 		</div>
 
@@ -26,10 +26,10 @@ const Form = useForm();
 
 function open() {
 	Form.value?.open({
-		title: '选择成员',
+		title: '選擇成員',
 		items: [
 			{
-				label: '单选',
+				label: '單選',
 				prop: 'userId',
 				component: {
 					name: 'cl-user-select',
@@ -43,7 +43,7 @@ function open() {
 				required: true
 			},
 			{
-				label: '多选',
+				label: '多選',
 				prop: 'userIds',
 				component: {
 					name: 'cl-user-select',
@@ -57,19 +57,19 @@ function open() {
 				required: true
 			},
 			{
-				label: '回显',
+				label: '回顯',
 				prop: 'testId',
 				component: {
 					name: 'cl-user-select',
 					props: {
-						// 【很重要】立即刷新
+						// 【很重要】立即重新整理
 						immediate: true
 					}
 				}
 			}
 		],
 		form: {
-			// 【很重要】手动设置值，实际根据接口返回
+			// 【很重要】手動設定值，實際根據介面返回
 			testId: 2
 		}
 	});

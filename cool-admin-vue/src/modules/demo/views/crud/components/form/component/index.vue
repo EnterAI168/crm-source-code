@@ -2,11 +2,11 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>component</el-tag>
-			<span>组件渲染</span>
+			<span>元件渲染</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code
 				:files="[
 					'form/component/index.vue',
@@ -17,11 +17,11 @@
 				]"
 			/>
 
-			<!-- 自定义表单组件 -->
+			<!-- 自定義表單元件 -->
 			<cl-form ref="Form">
-				<!-- 年龄插槽 -->
+				<!-- 年齡插槽 -->
 				<template #slot-age="{ scope }">
-					<!-- scope 为表单值 -->
+					<!-- scope 為表單值 -->
 					<el-input-number v-model="scope.age" :min="18" :max="100"></el-input-number>
 				</template>
 			</cl-form>
@@ -44,26 +44,26 @@ const Form = useForm();
 
 function open() {
 	Form.value?.open({
-		title: '组件配置',
+		title: '元件配置',
 
 		items: [
 			{
-				label: '昵称',
+				label: '暱稱',
 				prop: 'name',
-				// 组件配置方式1：标签名（方便，但是不建议组件全局注册）
+				// 元件配置方式1：標籤名（方便，但是不建議元件全域性註冊）
 				value: '神仙',
 				component: {
-					// 必须是“全局注册”的组件名，如 element-plus 的 el-input、el-date-picker 等
+					// 必須是“全域性註冊”的元件名，如 element-plus 的 el-input、el-date-picker 等
 					name: 'el-input'
 				}
 			},
 			{
-				label: '手机号',
+				label: '手機號',
 				prop: 'phone',
 				value: '13255022000',
 				component: {
 					name: 'el-input',
-					// 自定义插槽
+					// 自定義插槽
 					slots: {
 						prepend() {
 							return '+86';
@@ -72,40 +72,40 @@ function open() {
 				}
 			},
 			{
-				label: '年龄',
+				label: '年齡',
 				prop: 'age',
-				// 组件配置方式2：插槽（万能，就是代码多写点）
+				// 元件配置方式2：插槽（萬能，就是程式碼多寫點）
 				value: 18,
 				component: {
-					// 必须是 "slot-" 开头
+					// 必須是 "slot-" 開頭
 					name: 'slot-age'
 				}
 			},
-			// -- start 组件配置方式3：组件实例（不想全局注册，但又想组件化）
+			// -- start 元件配置方式3：元件例項（不想全域性註冊，但又想元件化）
 			{
 				label: '工作',
 				prop: 'work',
-				value: '设计',
+				value: '設計',
 				component: {
-					// 双向绑定
+					// 雙向繫結
 					vm: SelectWork
 				}
 			},
 			{
-				label: '标签',
+				label: '標籤',
 				prop: 'labels',
 				value: ['多金', '深情'],
 				component: {
-					// scope[prop]绑定
+					// scope[prop]繫結
 					vm: SelectLabels
 				}
 			},
 			{
-				label: '状态',
+				label: '狀態',
 				prop: 'status',
 				value: 1,
 				component: {
-					// useForm 绑定
+					// useForm 繫結
 					vm: SelectStatus
 				}
 			}
@@ -114,7 +114,7 @@ function open() {
 		on: {
 			submit(data, { close }) {
 				ElMessage.info(
-					`${data.name || '无名'}（${data.age || 18}岁）工作：${data.work || '无'}`
+					`${data.name || '無名'}（${data.age || 18}歲）工作：${data.work || '無'}`
 				);
 				close();
 			}

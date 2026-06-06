@@ -7,21 +7,21 @@ import { assign, isArray, orderBy } from 'lodash-es';
 import { deepFind, isEmpty } from '../utils';
 
 const useDictStore = defineStore('dict', () => {
-	// 对象数据
+	// 物件資料
 	const data = reactive<Dict.Data>({});
 
-	// 获取
+	// 獲取
 	function get(name: Dict.Key, sort?: 'desc' | 'asc') {
 		return computed(() => orderBy(data[name] || [], 'orderNum', sort));
 	}
 
-	// 查找
+	// 查詢
 	function find(name: Dict.Key, value: any | any[]) {
 		const arr = isArray(value) ? value : [value];
 		return arr.filter(e => e !== undefined).map(v => deepFind(v, get(name).value));
 	}
 
-	// 刷新
+	// 重新整理
 	async function refresh(types?: Dict.Key[]) {
 		return service.dict.info
 			.data({
@@ -45,7 +45,7 @@ const useDictStore = defineStore('dict', () => {
 				assign(data, d);
 
 				if (isDev) {
-					console.group('字典数据');
+					console.group('字典資料');
 					console.log(toRaw(data));
 					console.groupEnd();
 				}

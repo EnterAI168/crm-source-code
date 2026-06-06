@@ -44,7 +44,7 @@
 				:disabled="!draggable"
 				@end="update"
 			>
-				<!-- 触发器 -->
+				<!-- 觸發器 -->
 				<template #footer>
 					<div v-if="(type == 'image' || drag) && isAdd" class="cl-upload__footer">
 						<el-upload
@@ -67,14 +67,14 @@
 									</el-icon>
 									<div>
 										{{
-											t('点击上传或将文件拖动到此处，文件大小限制{n}M', {
+											t('點選上傳或將檔案拖動到此處，檔案大小限制{n}M', {
 												n: limitSize
 											})
 										}}
 									</div>
 								</div>
 
-								<!-- 点击方式 -->
+								<!-- 點選方式 -->
 								<div v-else class="cl-upload__demo">
 									<el-icon :size="36">
 										<component :is="icon" v-if="icon" />
@@ -117,7 +117,7 @@
 									@remove="remove(index)"
 								/>
 
-								<!-- 小图模式 -->
+								<!-- 小圖模式 -->
 								<el-icon
 									v-if="small"
 									class="cl-upload__item-remove"
@@ -156,60 +156,60 @@ import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
 	...CrudProps,
-	// 绑定值，单选时字符串，多选时字符串数组
+	// 繫結值，單選時字串，多選時字串陣列
 	modelValue: {
 		type: [String, Array],
 		default: () => []
 	},
-	// 上传类型
+	// 上傳型別
 	type: {
 		type: String as PropType<'image' | 'file'>,
 		default: 'image'
 	},
-	// 允许上传的文件类型
+	// 允許上傳的檔案型別
 	accept: String,
-	// 是否多选
+	// 是否多選
 	multiple: Boolean,
-	// 限制数量
+	// 限制數量
 	limit: Number,
 	// 限制大小
 	limitSize: Number,
-	// 是否自动上传
+	// 是否自動上傳
 	autoUpload: {
 		type: Boolean,
 		default: true
 	},
 	// 元素大小
 	size: [String, Number, Array],
-	// 小图模式
+	// 小圖模式
 	small: Boolean,
-	// 显示图标
+	// 顯示圖示
 	icon: null,
-	// 显示文案
+	// 顯示文案
 	text: String,
-	// 显示角标
+	// 顯示角標
 	showTag: {
 		type: Boolean,
 		default: true
 	},
-	// 是否显示上传列表
+	// 是否顯示上傳列表
 	showFileList: {
 		type: Boolean,
 		default: true
 	},
 	// 列表是否可拖拽
 	draggable: Boolean,
-	// 是否拖拽到特定区域以进行上传
+	// 是否拖拽到特定區域以進行上傳
 	drag: Boolean,
-	// 是否禁用
+	// 是否停用
 	disabled: Boolean,
-	// 是否可删除
+	// 是否可刪除
 	deletable: Boolean,
-	// 自定义样式名
+	// 自定義樣式名
 	customClass: String,
-	// 上传前钩子
+	// 上傳前鉤子
 	beforeUpload: Function,
-	// 云端上传路径前缀
+	// 雲端上傳路徑字首
 	prefixPath: String
 });
 
@@ -227,15 +227,15 @@ const size = computed(() => {
 	return (isArray(d) ? d : [d, d]).map((e: string | number) => (isNumber(e) ? e + 'px' : e));
 });
 
-// 是否禁用
+// 是否停用
 const disabled = computed(() => {
 	return props.isDisabled || props.disabled;
 });
 
-// 最大上传数量
+// 最大上傳數量
 const limit = props.limit || options.limit.upload;
 
-// 图片大小限制
+// 圖片大小限制
 const limitSize = props.limitSize || options.limit.size;
 
 // 文案
@@ -245,10 +245,10 @@ const text = computed(() => {
 	} else {
 		switch (props.type) {
 			case 'file':
-				return t('选择文件');
+				return t('選擇檔案');
 
 			case 'image':
-				return t('选择图片');
+				return t('選擇圖片');
 
 			default:
 				return '';
@@ -256,7 +256,7 @@ const text = computed(() => {
 	}
 });
 
-// 请求头
+// 請求頭
 const headers = computed(() => {
 	return {
 		Authorization: user.token
@@ -266,7 +266,7 @@ const headers = computed(() => {
 // 列表
 const list = ref<Upload.Item[]>([]);
 
-// 显示上传列表
+// 顯示上傳列表
 const showList = computed(() => {
 	if (props.type == 'file') {
 		return props.showFileList ? !isEmpty(list.value) : false;
@@ -275,12 +275,12 @@ const showList = computed(() => {
 	}
 });
 
-// 文件格式
+// 檔案格式
 const accept = computed(() => {
 	return props.accept || (props.type == 'file' ? '' : 'image/*');
 });
 
-// 能否添加
+// 能否新增
 const isAdd = computed(() => {
 	const len = list.value.length;
 
@@ -291,7 +291,7 @@ const isAdd = computed(() => {
 	return len == 0;
 });
 
-// 上传前
+// 上傳前
 async function onBeforeUpload(file: any, item?: Upload.Item) {
 	function next() {
 		const d = {
@@ -299,29 +299,29 @@ async function onBeforeUpload(file: any, item?: Upload.Item) {
 			size: file.size,
 			name: file.name,
 			type: getType(file.name),
-			progress: props.autoUpload ? 0 : 100, // 非自动上传时默认100%
+			progress: props.autoUpload ? 0 : 100, // 非自動上傳時預設100%
 			url: '',
 			preload: '',
 			error: ''
 		};
 
-		// 图片预览地址
+		// 圖片預覽地址
 		if (d.type == 'image') {
 			if (file instanceof File) {
 				d.preload = window.webkitURL.createObjectURL(file);
 			}
 		}
 
-		// 上传事件
+		// 上傳事件
 		emit('upload', d, file);
 
-		// 赋值
+		// 賦值
 		if (item) {
 			assign(item, d);
 		} else {
 			if (props.multiple) {
 				if (!isAdd.value) {
-					ElMessage.warning(t('最多只能上传{n}个文件', { n: limit }));
+					ElMessage.warning(t('最多隻能上傳{n}個檔案', { n: limit }));
 					return false;
 				} else {
 					list.value.push(d);
@@ -334,13 +334,13 @@ async function onBeforeUpload(file: any, item?: Upload.Item) {
 		return true;
 	}
 
-	// 文件大小限制
+	// 檔案大小限制
 	if (file.size / 1024 / 1024 >= limitSize) {
-		ElMessage.error(t('上传文件大小不能超过 {n}MB!', { n: limitSize }));
+		ElMessage.error(t('上傳檔案大小不能超過 {n}MB!', { n: limitSize }));
 		return false;
 	}
 
-	// 自定义上传事件
+	// 自定義上傳事件
 	if (props.beforeUpload) {
 		let r = props.beforeUpload(file, item, { next });
 
@@ -369,7 +369,7 @@ function clear() {
 	list.value = [];
 }
 
-// 文件上传请求
+// 檔案上傳請求
 async function httpRequest(req: any, item?: Upload.Item) {
 	if (!item) {
 		item = list.value.find(e => e.uid == req.file.uid);
@@ -379,7 +379,7 @@ async function httpRequest(req: any, item?: Upload.Item) {
 		return false;
 	}
 
-	// 上传请求
+	// 上傳請求
 	toUpload(req.file, {
 		prefixPath: props.prefixPath,
 		onProgress(progress) {
@@ -398,7 +398,7 @@ async function httpRequest(req: any, item?: Upload.Item) {
 		});
 }
 
-// 检测是否还有未上传的文件
+// 檢測是否還有未上傳的檔案
 function check() {
 	return list.value.find(e => !e.url);
 }
@@ -410,7 +410,7 @@ function update() {
 
 		const val = props.multiple ? getUrls(list.value) : urls[0] || '';
 
-		// 更新绑定值
+		// 更新繫結值
 		emit('update:modelValue', val);
 		emit('change', val);
 
@@ -425,7 +425,7 @@ function update() {
 	}
 }
 
-// 手动上传
+// 手動上傳
 function upload(file: File) {
 	clear();
 
@@ -437,7 +437,7 @@ function upload(file: File) {
 	});
 }
 
-// 监听绑定值
+// 監聽繫結值
 watch(
 	() => props.modelValue,
 	(val: any[] | string) => {
@@ -460,7 +460,7 @@ watch(
 					{
 						type: getType(url),
 						url,
-						preload: old.url == url ? old.preload : url // 防止重复预览
+						preload: old.url == url ? old.preload : url // 防止重複預覽
 					}
 				);
 			})
@@ -473,7 +473,7 @@ watch(
 	}
 );
 
-// 导出
+// 匯出
 defineExpose({
 	isAdd,
 	list,

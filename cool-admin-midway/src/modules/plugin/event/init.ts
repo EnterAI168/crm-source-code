@@ -2,9 +2,9 @@ import { CoolEvent, Event } from '@cool-midway/core';
 import { Inject } from '@midwayjs/core';
 import { PluginCenterService } from '../service/center';
 
-// 插件初始化全局事件
+// 外掛初始化全域性事件
 export const GLOBAL_EVENT_PLUGIN_INIT = 'globalPluginInit';
-// 插件移除全局事件
+// 外掛移除全域性事件
 export const GLOBAL_EVENT_PLUGIN_REMOVE = 'globalPluginRemove';
 
 /**
@@ -16,7 +16,7 @@ export class PluginInitEvent {
   pluginCenterService: PluginCenterService;
 
   /**
-   * 插件初始化事件，某个插件重新初始化
+   * 外掛初始化事件，某個外掛重新初始化
    * @param key
    */
   @Event(GLOBAL_EVENT_PLUGIN_INIT)
@@ -25,7 +25,7 @@ export class PluginInitEvent {
   }
 
   /**
-   * 插件移除或者关闭事件
+   * 外掛移除或者關閉事件
    * @param key
    * @param isHook
    */

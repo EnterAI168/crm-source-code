@@ -38,7 +38,7 @@ const text = computed(() => {
 	const val = transitionedValue.value;
 
 	if (props.type === 'amount') {
-		// 若需要小数位数控制，可以使用 toFixed 再转数值：
+		// 若需要小數位數控制，可以使用 toFixed 再轉數值：
 		const fixedVal = props.fixed !== undefined ? Number(val.toFixed(props.fixed)) : val;
 
 		// 利用 toLocaleString 增加千分位分隔符

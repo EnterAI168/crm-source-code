@@ -9,7 +9,7 @@
 	</el-select>
 </template>
 
-<!-- 【很重要】必须要有name，避免注册后和其他冲突 -->
+<!-- 【很重要】必須要有name，避免註冊後和其他衝突 -->
 <script setup lang="ts">
 defineOptions({
 	name: 'select-work'
@@ -23,37 +23,37 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'change']);
 
-//【很重要】绑定值
-// 这种方式虽然麻烦，但是可扩展性高，一些复杂的数据结构可以按这种方式绑定值
+//【很重要】繫結值
+// 這種方式雖然麻煩，但是可擴充套件性高，一些複雜的資料結構可以按這種方式繫結值
 const active = ref();
 
-// 选项列表
+// 選項列表
 const list = ref<{ label: string; value: string }[]>([
 	{
 		label: '倒茶',
-		value: '倒茶' // 测试直接使用label，真实情况可能是1，2，3，4或者id
+		value: '倒茶' // 測試直接使用label，真實情況可能是1，2，3，4或者id
 	},
 	{
-		label: '设计',
-		value: '设计'
+		label: '設計',
+		value: '設計'
 	},
 	{
-		label: '开发',
-		value: '开发'
+		label: '開發',
+		value: '開發'
 	}
 ]);
 
-//【很重要】更新绑定值，表单提交才能得到选择后的
+//【很重要】更新繫結值，表單提交才能得到選擇後的
 function onChange(val: string) {
 	emit('update:modelValue', val);
 	emit('change', val);
 }
 
-//【很重要】使用监听的方式，避免表单打开数据是异步获取的情况
+//【很重要】使用監聽的方式，避免表單開啟資料是非同步獲取的情況
 watch(
 	() => props.modelValue,
 	val => {
-		// 设置选中的值
+		// 設定選中的值
 		active.value = val;
 	},
 	{

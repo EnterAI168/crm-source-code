@@ -2,11 +2,11 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>context-menu</el-tag>
-			<span>右键菜单</span>
+			<span>右鍵選單</span>
 		</div>
 
 		<div class="c">
-			<el-button @contextmenu="onContextMenu">预览</el-button>
+			<el-button @contextmenu="onContextMenu">預覽</el-button>
 			<demo-code :files="['other/context-menu.vue']" />
 		</div>
 
@@ -25,22 +25,22 @@ function onContextMenu(e: MouseEvent) {
 	ContextMenu.open(e, {
 		list: [
 			{
-				label: '基础',
+				label: '基礎',
 				callback: done => {
 					ElMessage.success('新增');
 					done();
 				}
 			},
 			{
-				label: '图标',
+				label: '圖示',
 				suffixIcon: Edit,
 				callback: done => {
-					ElMessage.success('图标');
+					ElMessage.success('圖示');
 					done();
 				}
 			},
 			{
-				label: '层级',
+				label: '層級',
 				children: [
 					{
 						label: '新增',
@@ -50,16 +50,16 @@ function onContextMenu(e: MouseEvent) {
 						}
 					},
 					{
-						label: '编辑',
+						label: '編輯',
 						callback: done => {
-							ElMessage.success('编辑');
+							ElMessage.success('編輯');
 							done();
 						}
 					},
 					{
-						label: '删除',
+						label: '刪除',
 						callback: done => {
-							ElMessage.success('删除');
+							ElMessage.success('刪除');
 							done();
 						}
 					}

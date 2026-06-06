@@ -1,0 +1,8 @@
+.browser-use-home/
+.chrome-browseruse/
+.tmpconfig/
+.vscode/
+*.rar
+*.zip
+*.7z
+*.log

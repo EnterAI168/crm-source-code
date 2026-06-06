@@ -4,7 +4,7 @@ import { TaskBullService } from '../service/bull';
 import { IMidwayApplication } from '@midwayjs/core';
 
 /**
- * 任务
+ * 任務
  */
 @CoolQueue()
 export abstract class TaskInfoQueue extends BaseCoolQueue {

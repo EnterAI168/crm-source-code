@@ -14,44 +14,44 @@ export default defineComponent({
 	},
 
 	props: {
-		// 是否可见
+		// 是否可見
 		modelValue: {
 			type: Boolean,
 			default: false
 		},
 		// Extraneous non-props attributes
 		props: Object,
-		// 标题
+		// 標題
 		title: {
 			type: String,
 			default: "-"
 		},
 		// 高度
 		height: String,
-		// 宽度
+		// 寬度
 		width: {
 			type: String,
 			default: "50%"
 		},
-		// 內间距
+		// 內間距
 		padding: {
 			type: String,
 			default: "20px"
 		},
-		// 是否缓存
+		// 是否快取
 		keepAlive: Boolean,
 		// 是否全屏
 		fullscreen: Boolean,
-		// 控制按钮
+		// 控制按鈕
 		controls: {
 			type: Array,
 			default: () => ["fullscreen", "close"]
 		},
-		// 隐藏头部元素
+		// 隱藏頭部元素
 		hideHeader: Boolean,
-		// 关闭前
+		// 關閉前
 		beforeClose: Function,
-		// 是否需要滚动条
+		// 是否需要捲軸
 		scrollbar: {
 			type: Boolean,
 			default: true
@@ -71,10 +71,10 @@ export default defineComponent({
 		// 是否全屏
 		const fullscreen = ref(false);
 
-		// 是否可见
+		// 是否可見
 		const visible = ref(false);
 
-		// 缓存数
+		// 快取數
 		const cacheKey = ref(0);
 
 		// 是否全屏
@@ -82,7 +82,7 @@ export default defineComponent({
 			return browser && browser.isMini ? true : fullscreen.value;
 		});
 
-		// 监听绑定值
+		// 監聽繫結值
 		watch(
 			() => props.modelValue,
 			(val) => {
@@ -96,7 +96,7 @@ export default defineComponent({
 			}
 		);
 
-		// 监听 fullscreen 变化
+		// 監聽 fullscreen 變化
 		watch(
 			() => props.fullscreen,
 			(val) => {
@@ -107,7 +107,7 @@ export default defineComponent({
 			}
 		);
 
-		// fullscreen-change 回调
+		// fullscreen-change 回撥
 		watch(fullscreen, (val: boolean) => {
 			emit("fullscreen-change", val);
 		});
@@ -118,12 +118,12 @@ export default defineComponent({
 			fullscreen: isFullscreen
 		});
 
-		// 打开
+		// 開啟
 		function open() {
 			fullscreen.value = true;
 		}
 
-		// 关闭
+		// 關閉
 		function close() {
 			function done() {
 				onClose();
@@ -136,24 +136,24 @@ export default defineComponent({
 			}
 		}
 
-		// 关闭后
+		// 關閉後
 		function onClose() {
 			emit("update:modelValue", false);
 		}
 
-		// 切换全屏
+		// 切換全屏
 		function changeFullscreen(val?: boolean) {
 			fullscreen.value = isBoolean(val) ? Boolean(val) : !fullscreen.value;
 		}
 
-		// 双击全屏
+		// 雙擊全屏
 		function dblClickFullscreen() {
 			if (isArray(props.controls) && props.controls.includes("fullscreen")) {
 				changeFullscreen();
 			}
 		}
 
-		// 渲染头部
+		// 渲染頭部
 		function renderHeader() {
 			return (
 				props.hideHeader || (
@@ -163,13 +163,13 @@ export default defineComponent({
 						<div class="cl-dialog__controls">
 							{props.controls.map((e: any) => {
 								switch (e) {
-									//全屏按钮
+									//全屏按鈕
 									case "fullscreen":
 										if (browser.screen === "xs") {
 											return null;
 										}
 
-										// 是否显示全屏按钮
+										// 是否顯示全屏按鈕
 										if (isFullscreen.value) {
 											return (
 												<button
@@ -198,7 +198,7 @@ export default defineComponent({
 											);
 										}
 
-									// 关闭按钮
+									// 關閉按鈕
 									case "close":
 										return (
 											<button type="button" class="close" onClick={close}>
@@ -208,7 +208,7 @@ export default defineComponent({
 											</button>
 										);
 
-									// 自定义按钮
+									// 自定義按鈕
 									default:
 										return renderNode(e, {
 											slots

@@ -2,7 +2,7 @@ import { assign } from "lodash-es";
 import { TestService } from "../test/service";
 import { watch, ref, nextTick, getCurrentInstance, type Ref, inject, provide } from "vue";
 
-// 获取上级
+// 獲取上級
 function useParent(name: string, r: Ref) {
 	const d = getCurrentInstance();
 
@@ -67,7 +67,7 @@ export function useCrud(options?: ClCrud.Options, cb?: (app: ClCrud.Ref) => void
 	useParent("cl-crud", Crud);
 
 	if (options) {
-		// 测试模式
+		// 測試模式
 		if (options.service == "test") {
 			options.service = new TestService();
 		}
@@ -86,7 +86,7 @@ export function useCrud(options?: ClCrud.Options, cb?: (app: ClCrud.Ref) => void
 	return Crud;
 }
 
-// 新增、编辑
+// 新增、編輯
 export function useUpsert<T = any>(options?: ClUpsert.Options<T>) {
 	const Upsert = ref<ClUpsert.Ref>();
 	useParent("cl-upsert", Upsert);
@@ -140,7 +140,7 @@ export function useTable<T = any>(options?: ClTable.Options<T>, cb?: (table: ClT
 	return Table;
 }
 
-// 表单
+// 表單
 export function useForm<T = any>(cb?: (app: ClForm.Ref<T>) => void) {
 	const Form = ref<ClForm.Ref<T>>();
 	useParent("cl-form", Form);
@@ -154,7 +154,7 @@ export function useForm<T = any>(cb?: (app: ClForm.Ref<T>) => void) {
 	return Form;
 }
 
-// 高级搜索
+// 高階搜尋
 export function useAdvSearch<T = any>(options?: ClAdvSearch.Options<T>) {
 	const AdvSearch = ref<ClAdvSearch.Ref<T>>();
 	useParent("cl-adv-search", AdvSearch);
@@ -166,7 +166,7 @@ export function useAdvSearch<T = any>(options?: ClAdvSearch.Options<T>) {
 	return AdvSearch;
 }
 
-// 搜索
+// 搜尋
 export function useSearch<T = any>(options?: ClSearch.Options<T>) {
 	const Search = ref<ClSearch.Ref<T>>();
 	useParent("cl-search", Search);
@@ -176,7 +176,7 @@ export function useSearch<T = any>(options?: ClSearch.Options<T>) {
 	return Search;
 }
 
-// 对话框
+// 對話方塊
 export function useDialog(options?: { onFullscreen(visible: boolean): void }) {
 	const Dialog = inject("dialog") as ClDialog.Provide;
 

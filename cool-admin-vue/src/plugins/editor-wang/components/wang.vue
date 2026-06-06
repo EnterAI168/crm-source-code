@@ -1,9 +1,9 @@
 <template>
 	<div :ref="setRefs('editor')" class="cl-editor-wang" :class="{ disabled }">
-		<!-- 工具栏 -->
+		<!-- 工具欄 -->
 		<toolbar v-if="!preview" :editor="Editor" :mode="mode" />
 
-		<!-- 编辑框 -->
+		<!-- 編輯框 -->
 		<editor-input
 			v-model="value"
 			:default-config="editorConfig"
@@ -17,7 +17,7 @@
 			@on-change="onChange"
 		/>
 
-		<!-- 文件空间 - 视频 -->
+		<!-- 檔案空間 - 影片 -->
 		<cl-upload-space
 			:ref="setRefs('video')"
 			accept="video/*"
@@ -25,7 +25,7 @@
 			@confirm="onFileConfirm"
 		/>
 
-		<!-- 文件空间 - 图片 -->
+		<!-- 檔案空間 - 圖片 -->
 		<cl-upload-space
 			v-if="isSpace"
 			:ref="setRefs('image')"
@@ -34,7 +34,7 @@
 			@confirm="onFileConfirm"
 		/>
 
-		<!-- 直接上传 - 图片 -->
+		<!-- 直接上傳 - 圖片 -->
 		<div v-else class="upload-inner">
 			<cl-upload :ref="setRefs('image')" accept="image/*" @success="onFileConfirm" />
 		</div>
@@ -67,11 +67,11 @@ const props = defineProps({
 		type: [String, Number],
 		default: 500
 	},
-	// 禁用
+	// 停用
 	disabled: Boolean,
-	// 是否预览模式
+	// 是否預覽模式
 	preview: Boolean,
-	// 是否使用文件空间
+	// 是否使用檔案空間
 	isSpace: {
 		type: Boolean,
 		default: false
@@ -83,10 +83,10 @@ const emit = defineEmits(['update:modelValue', 'change', 'focus', 'blur']);
 const { refs, setRefs } = useCool();
 const { t } = useI18n();
 
-// 编辑器
+// 編輯器
 const Editor = shallowRef();
 
-// 内容
+// 內容
 const value = ref();
 
 watch(
@@ -99,14 +99,14 @@ watch(
 	}
 );
 
-// 临时
+// 臨時
 const temp: { insertFn: ((url: string) => void) | null } = {
 	insertFn: null
 };
 
 // 配置
 const editorConfig: Partial<IEditorConfig> = {
-	placeholder: t('请输入'),
+	placeholder: t('請輸入'),
 	MENU_CONF: {
 		uploadImage: {},
 		uploadVideo: {
@@ -118,22 +118,22 @@ const editorConfig: Partial<IEditorConfig> = {
 	}
 };
 
-// 图片上传，两种模式
+// 圖片上傳，兩種模式
 if (props.isSpace) {
-	// 文件空间上传
+	// 檔案空間上傳
 	editorConfig.MENU_CONF!.uploadImage.customBrowseAndUpload = (fn: any) => {
 		temp.insertFn = fn;
 		refs.image.open();
 	};
 } else {
-	// 直接上传
+	// 直接上傳
 	editorConfig.MENU_CONF!.uploadImage.customUpload = (file: File, fn: any) => {
 		temp.insertFn = fn;
 		refs.image.upload(file);
 	};
 }
 
-// 创建后
+// 建立後
 function onCreated(editor: any) {
 	Editor.value = editor;
 	onDisabled();
@@ -149,7 +149,7 @@ function onBlur(editor: any) {
 	emit('blur', editor);
 }
 
-// 值改变
+// 值改變
 function onChange() {
 	if (value.value == '<p><br></p>') {
 		value.value = '';
@@ -159,7 +159,7 @@ function onChange() {
 	emit('change', value.value);
 }
 
-// 文件选择
+// 檔案選擇
 function onFileConfirm(files: any[]) {
 	if (!isArray(files)) {
 		files = [files];
@@ -174,7 +174,7 @@ function onFileConfirm(files: any[]) {
 	}
 }
 
-// 禁用
+// 停用
 function onDisabled() {
 	if (props.disabled || props.preview) {
 		Editor.value?.disable();
@@ -183,10 +183,10 @@ function onDisabled() {
 	}
 }
 
-// 监听
+// 監聽
 watch(() => [props.disabled, props.preview], onDisabled);
 
-// 销毁
+// 銷燬
 onBeforeUnmount(() => {
 	const editor = Editor.value;
 	if (editor == null) return;

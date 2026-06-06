@@ -1,7 +1,7 @@
 <template>
 	<el-button type="info" @click="open">
 		<cl-svg name="export" class="mr-[5px]" />
-		{{ $t('导出') }}
+		{{ $t('匯出') }}
 	</el-button>
 
 	<cl-form ref="Form" />
@@ -33,17 +33,17 @@ const Form = useForm();
 
 function open() {
 	Form.value?.open({
-		title: t('导出'),
+		title: t('匯出'),
 		width: '600px',
 		props: {
 			labelPosition: 'top'
 		},
 		op: {
-			saveButtonText: t('导出')
+			saveButtonText: t('匯出')
 		},
 		items: [
 			{
-				label: t('选择菜单'),
+				label: t('選擇選單'),
 				prop: 'ids',
 				component: {
 					name: 'el-tree-select',
@@ -69,7 +69,7 @@ function open() {
 				const ids = [...refs.ids.getCheckedKeys(), ...refs.ids.getHalfCheckedKeys()];
 
 				if (isEmpty(ids)) {
-					ElMessage.warning(t('请先选择要导出的菜单'));
+					ElMessage.warning(t('請先選擇要匯出的選單'));
 					done();
 				} else {
 					service.base.sys.menu
@@ -79,23 +79,23 @@ function open() {
 						.then(res => {
 							close();
 
-							// 创建 Blob 对象
+							// 建立 Blob 物件
 							const blob = new Blob([JSON.stringify(res)], {
 								type: 'application/json'
 							});
 
 							const url = URL.createObjectURL(blob);
 
-							// 创建一个 <a> 元素
+							// 建立一個 <a> 元素
 							const a = document.createElement('a');
 							a.href = url;
 							a.download =
-								t('菜单数据') + ` ${dayjs().format('MM-DD HH_mm_ss')}.json`;
+								t('選單資料') + ` ${dayjs().format('MM-DD HH_mm_ss')}.json`;
 
-							// 模拟点击 <a> 元素以触发下载
+							// 模擬點選 <a> 元素以觸發下載
 							a.click();
 
-							// 清理 URL 对象
+							// 清理 URL 物件
 							URL.revokeObjectURL(url);
 						})
 						.catch(err => {

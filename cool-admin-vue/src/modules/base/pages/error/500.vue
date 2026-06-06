@@ -1,5 +1,5 @@
 <template>
-	<error-page :code="500" :desc="$t('糟糕，出了点问题')" />
+	<error-page :code="500" :desc="$t('糟糕，出了點問題')" />
 </template>
 
 <script lang="ts" setup>

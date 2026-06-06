@@ -13,13 +13,13 @@ export class OpenDemoEventController extends BaseController {
   @Inject()
   coolEventManager: CoolEventManager;
 
-  @Post('/comm', { summary: '普通事件，本进程生效' })
+  @Post('/comm', { summary: '普通事件，本程式生效' })
   async comm() {
     await this.coolEventManager.emit('demo', { a: 2 }, 1);
     return this.ok();
   }
 
-  @Post('/global', { summary: '全局事件，多进程都有效' })
+  @Post('/global', { summary: '全域性事件，多程式都有效' })
   async global() {
     await this.coolEventManager.globalEmit('demo', false, { a: 2 }, 1);
     return this.ok();

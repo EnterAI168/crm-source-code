@@ -2,7 +2,7 @@ import { isEmpty, isFunction } from "lodash-es";
 import { useCore } from "../../../hooks";
 import { ContextMenu } from "../../context-menu";
 
-// 单元行事件
+// 單元行事件
 export function useRow({
 	Table,
 	config,
@@ -20,18 +20,18 @@ export function useRow({
 }) {
 	const { crud } = useCore();
 
-	// 右键菜单
+	// 右鍵選單
 	function onRowContextMenu(row: obj, column: obj, event: PointerEvent) {
-		// 菜单按钮
+		// 選單按鈕
 		const buttons = config.contextMenu;
-		// 是否开启
+		// 是否開啟
 		const enable = !isEmpty(buttons);
 
 		if (enable) {
 			// 高亮
 			Table.value.setCurrentRow(row);
 
-			// 解析按钮
+			// 解析按鈕
 			const list = buttons
 				.map((e) => {
 					switch (e) {
@@ -110,7 +110,7 @@ export function useRow({
 				})
 				.filter((e) => Boolean(e) && !e.hidden);
 
-			// 打开菜单
+			// 開啟選單
 			if (!isEmpty(list)) {
 				ContextMenu.open(event, {
 					list
@@ -118,7 +118,7 @@ export function useRow({
 			}
 		}
 
-		// 回调
+		// 回撥
 		if (config.onRowContextmenu) {
 			config.onRowContextmenu(row, column, event);
 		}

@@ -10,7 +10,7 @@ import { TaskBullService } from './bull';
 import { TaskLocalService } from './local';
 import { TaskLogEntity } from '../entity/log';
 /**
- * 任务
+ * 任務
  */
 @Provide()
 @Scope(ScopeEnum.Request, { allowDowngrade: true })
@@ -40,7 +40,7 @@ export class TaskInfoService extends BaseService {
   }
 
   /**
-   * 初始化任务类型
+   * 初始化任務型別
    */
   async initType() {
     try {
@@ -59,7 +59,7 @@ export class TaskInfoService extends BaseService {
   }
 
   /**
-   * 停止任务
+   * 停止任務
    * @param id
    */
   async stop(id) {
@@ -69,7 +69,7 @@ export class TaskInfoService extends BaseService {
   }
 
   /**
-   * 开始任务
+   * 開始任務
    * @param id
    * @param type
    */
@@ -79,7 +79,7 @@ export class TaskInfoService extends BaseService {
       : await this.taskLocalService.start(id, type);
   }
   /**
-   * 手动执行一次
+   * 手動執行一次
    * @param id
    */
   async once(id) {
@@ -88,7 +88,7 @@ export class TaskInfoService extends BaseService {
       : this.taskLocalService.once(id);
   }
   /**
-   * 检查任务是否存在
+   * 檢查任務是否存在
    * @param jobId
    */
   async exist(jobId) {
@@ -106,7 +106,7 @@ export class TaskInfoService extends BaseService {
       : this.taskLocalService.addOrUpdate(params);
   }
   /**
-   * 删除
+   * 刪除
    * @param ids
    */
   async delete(ids) {
@@ -115,7 +115,7 @@ export class TaskInfoService extends BaseService {
       : this.taskLocalService.delete(ids);
   }
   /**
-   * 任务日志
+   * 任務日誌
    * @param query
    */
   async log(query) {
@@ -132,7 +132,7 @@ export class TaskInfoService extends BaseService {
   }
 
   /**
-   * 初始化任务
+   * 初始化任務
    */
   async initTask() {
     this.type === 'bull'
@@ -141,7 +141,7 @@ export class TaskInfoService extends BaseService {
   }
 
   /**
-   * 详情
+   * 詳情
    * @param id
    * @returns
    */

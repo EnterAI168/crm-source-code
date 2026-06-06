@@ -1,12 +1,12 @@
 import { ModuleConfig } from '@cool-midway/core';
 
 /**
- * 产品管理模块
+ * 產品管理模組
  */
 export default () => {
   return {
-    name: '产品管理',
-    description: '产品分类与产品管理',
+    name: '產品管理',
+    description: '產品分類與產品管理',
     middlewares: [],
     globalMiddlewares: [],
     order: 0,

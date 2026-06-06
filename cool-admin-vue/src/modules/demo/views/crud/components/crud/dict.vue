@@ -2,15 +2,15 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>dict</el-tag>
-			<span>修改文案 / 接口</span>
+			<span>修改文案 / 介面</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['crud/dict.vue']" />
 
-			<!-- 自定义表格组件 -->
-			<cl-dialog v-model="visible" title="修改文案 / 接口" width="80%">
+			<!-- 自定義表格元件 -->
+			<cl-dialog v-model="visible" title="修改文案 / 介面" width="80%">
 				<cl-crud ref="Crud">
 					<cl-row>
 						<cl-refresh-btn />
@@ -31,7 +31,7 @@
 						<cl-pagination />
 					</cl-row>
 
-					<!-- 新增、编辑 -->
+					<!-- 新增、編輯 -->
 					<cl-upsert ref="Upsert" />
 				</cl-crud>
 			</cl-dialog>
@@ -56,10 +56,10 @@ const Crud = useCrud(
 		//【很重要】配置 service，如：service.base.sys.user
 		service: 'test',
 
-		//【很重要】字典配置，文案和请求方法等
+		//【很重要】字典配置，文案和請求方法等
 		dict: {
-			// 修改请求
-			// 比如说默认列表请求的是 page 接口，可以修改成 getUserList 等等，这取决于后端有没有这个接口。
+			// 修改請求
+			// 比如說預設列表請求的是 page 介面，可以修改成 getUserList 等等，這取決於後端有沒有這個介面。
 			api: {
 				list: 'list',
 				add: 'add',
@@ -72,12 +72,12 @@ const Crud = useCrud(
 			// 修改文案
 			label: {
 				op: '操作',
-				add: '添加',
+				add: '新增',
 				delete: '移除',
-				multiDelete: '批量移除',
+				multiDelete: '批次移除',
 				update: '修改',
-				refresh: '刷新',
-				info: '详情'
+				refresh: '重新整理',
+				info: '詳情'
 			}
 		}
 	},
@@ -101,7 +101,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			minWidth: 140
 		},
@@ -112,7 +112,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '创建时间',
+			label: '建立時間',
 			prop: 'createTime',
 			minWidth: 170,
 			sortable: 'desc'
@@ -135,7 +135,7 @@ const Upsert = useUpsert({
 			}
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			component: {
 				name: 'el-input'

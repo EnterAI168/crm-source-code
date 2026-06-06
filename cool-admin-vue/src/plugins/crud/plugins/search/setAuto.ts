@@ -4,10 +4,10 @@ import { useDict } from '/$/dict';
 import { useI18n } from 'vue-i18n';
 
 /**
- * 设置自动读取
- * @param options.hideLabel 是否隐藏标签
- * @param options.customComponent 自定义组件
- * @param options.ignoreFields 忽略的字段 prop
+ * 設定自動讀取
+ * @param options.hideLabel 是否隱藏標籤
+ * @param options.customComponent 自定義元件
+ * @param options.ignoreFields 忽略的欄位 prop
  * @returns
  */
 export function setAuto(
@@ -51,7 +51,7 @@ export function setAuto(
 				name: 'cl-select',
 				props: {
 					options,
-					placeholder: t('搜索{name}', { name: t(field.comment) })
+					placeholder: t('搜尋{name}', { name: t(field.comment) })
 				},
 				style: {
 					width: '150px'
@@ -61,7 +61,7 @@ export function setAuto(
 			return {
 				name: 'el-input',
 				props: {
-					placeholder: t('搜索{name}', { name: t(field.comment) }),
+					placeholder: t('搜尋{name}', { name: t(field.comment) }),
 					clearable: true
 				},
 				style: {
@@ -83,7 +83,7 @@ export function setAuto(
 				const { fieldEq, fieldLike, keyWordLikeFields } = Crud.value?.service.search;
 				const fields = [fieldEq, fieldLike].flat().filter(Boolean);
 
-				// 精确搜索
+				// 精確搜尋
 				if (!isEmpty(fields)) {
 					fields.forEach(e => {
 						if (options.ignoreFields?.includes(e.propertyName)) {
@@ -98,17 +98,17 @@ export function setAuto(
 					});
 				}
 
-				// 关键字搜索
+				// 關鍵字搜尋
 				if (!isEmpty(keyWordLikeFields)) {
 					const placeholder = keyWordLikeFields.map(e => t(e.comment)).join('、');
 
 					arr.push({
 						prop: 'keyWord',
-						label: inline ? undefined : t('关键字'),
+						label: inline ? undefined : t('關鍵字'),
 						component: {
 							name: 'el-input',
 							props: {
-								placeholder: t('搜索{name}', { name: placeholder }),
+								placeholder: t('搜尋{name}', { name: placeholder }),
 								clearable: true
 							},
 							style: {

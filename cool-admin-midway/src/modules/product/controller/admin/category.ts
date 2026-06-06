@@ -4,7 +4,7 @@ import { ProductCategoryEntity } from '../../entity/category';
 import { ProductCategoryService } from '../../service/category';
 
 /**
- * 产品分类
+ * 產品分類
  */
 @Provide()
 @CoolController({

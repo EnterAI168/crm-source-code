@@ -6,14 +6,14 @@
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['upsert/hook/index.vue', 'upsert/hook/reg-pca2.ts']" />
 
-			<!-- 自定义表格组件 -->
+			<!-- 自定義表格元件 -->
 			<cl-dialog v-model="visible" title="Hook的使用" width="80%">
 				<cl-crud ref="Crud">
 					<cl-row>
-						<!-- 打开新增表单的按钮 -->
+						<!-- 開啟新增表單的按鈕 -->
 						<cl-add-btn />
 					</cl-row>
 
@@ -26,7 +26,7 @@
 						<cl-pagination />
 					</cl-row>
 
-					<!--【很重要】新增、编辑的表单组件 -->
+					<!--【很重要】新增、編輯的表單元件 -->
 					<cl-upsert ref="Upsert" />
 				</cl-crud>
 			</cl-dialog>
@@ -67,12 +67,12 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			minWidth: 140
 		},
 		{
-			label: '省市区',
+			label: '省市區',
 			prop: 'pca',
 			formatter(row) {
 				return row.province ? row.province + '-' + row.city + '-' + row.district : '-';
@@ -86,7 +86,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '创建时间',
+			label: '建立時間',
 			prop: 'createTime',
 			minWidth: 170,
 			sortable: 'desc'
@@ -109,34 +109,34 @@ const Upsert = useUpsert({
 			}
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			component: {
 				name: 'el-input'
 			}
 		},
 		{
-			label: '省市区',
+			label: '省市區',
 			prop: 'pca2',
 
-			//【很重要】hook 参数配置
+			//【很重要】hook 參數配置
 			hook: {
 				bind(value, { form }) {
-					// 将3个参数合并成一个数组，带入级联选择器
+					// 將3個參數合併成一個陣列，帶入級聯選擇器
 					return [form.province, form.city, form.district];
 				},
 				submit(value, { form, prop }) {
-					// 提交的时候将数组拆分成3个字段提交
+					// 提交的時候將陣列拆分成3個欄位提交
 					const [province, city, district] = value || [];
 					form.province = province;
 					form.city = city;
 					form.district = district;
 
-					// 删除 prop 绑定值
+					// 刪除 prop 繫結值
 					form[prop] = undefined;
 				}
 			},
-			// 注册到全局后可直接使用，注册代码看 ./reg-pca2.ts
+			// 註冊到全域性後可直接使用，註冊程式碼看 ./reg-pca2.ts
 			// hook: "pca2",
 
 			component: {
@@ -144,16 +144,16 @@ const Upsert = useUpsert({
 			}
 		},
 		{
-			label: '标签',
+			label: '標籤',
 			prop: 'labels',
-			//【很重要】使用内置方法，避免一些辣鸡后端要你这么传给他
+			//【很重要】使用內建方法，避免一些辣雞後端要你這麼傳給他
 			hook: {
-				// labels 的数据为 1,2,3
+				// labels 的資料為 1,2,3
 
-				// 绑定的时候将 labels 按 , 分割成数组
+				// 繫結的時候將 labels 按 , 分割成陣列
 				bind: ['split', 'number'],
 
-				// 提交的时候将 labels 拼接成字符串
+				// 提交的時候將 labels 拼接成字串
 				submit: ['join']
 			},
 			component: {
@@ -163,7 +163,7 @@ const Upsert = useUpsert({
 				},
 				options: [
 					{
-						label: '帅气',
+						label: '帥氣',
 						value: 1
 					},
 					{
@@ -171,7 +171,7 @@ const Upsert = useUpsert({
 						value: 2
 					},
 					{
-						label: '有才华',
+						label: '有才華',
 						value: 3
 					}
 				]

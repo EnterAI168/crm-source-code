@@ -4,7 +4,7 @@ import { CrmCustomerInfoEntity } from '../../entity/info';
 import { CrmCustomerInfoService } from '../../service/info';
 
 /**
- * 客户管理 - 客户公池
+ * 客戶管理 - 客戶公池
  */
 @Provide()
 @CoolController({
@@ -18,7 +18,7 @@ export class AdminCrmCustomerPoolController extends BaseController {
   crmCustomerInfoService: CrmCustomerInfoService;
 
   /**
-   * 公池分页（仅未分配业务员）
+   * 公池分頁（僅未分配業務員）
    */
   @Post('/page')
   async pageQuery(@Body() query: any) {
@@ -26,7 +26,7 @@ export class AdminCrmCustomerPoolController extends BaseController {
   }
 
   /**
-   * 批量导入
+   * 批次匯入
    */
   @Post('/importData')
   async importData(@Body() body: { list: Partial<CrmCustomerInfoEntity>[] }) {
@@ -35,7 +35,7 @@ export class AdminCrmCustomerPoolController extends BaseController {
   }
 
   /**
-   * 分配业务员（仅老板/超管，且客户当前在公池）
+   * 分配業務員（僅老闆/超管，且客戶當前在公池）
    */
   @Post('/assignSalesman')
   async assignSalesman(
@@ -46,10 +46,16 @@ export class AdminCrmCustomerPoolController extends BaseController {
   }
 
   /**
-   * 可分配的业务员用户（角色 label = salesman）
+   * 可分配的業務員使用者（角色 label = salesman）
    */
   @Post('/salesmenOptions')
   async salesmenOptions() {
     return this.ok(await this.crmCustomerInfoService.listSalesmenForAssign());
   }
+
+  @Post('/sendMail')
+  async sendMail(@Body() body: any) {
+    return this.ok(await this.crmCustomerInfoService.sendPoolMail(body));
+  }
+
 }

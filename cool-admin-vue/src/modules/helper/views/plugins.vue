@@ -6,7 +6,7 @@
 			<el-input
 				class="search"
 				v-model="plugin.keyWord"
-				:placeholder="$t('搜索插件名称')"
+				:placeholder="$t('搜尋外掛名稱')"
 				clearable
 				@change="
 					plugin.refresh({
@@ -98,7 +98,7 @@
 													:type="item.isVue ? 'success' : 'info'"
 													v-if="isInstalled"
 												>
-													{{ item.isVue ? 'Vue' : $t('后端') }}
+													{{ item.isVue ? 'Vue' : $t('後端') }}
 												</el-tag>
 											</div>
 
@@ -107,7 +107,7 @@
 											</p>
 
 											<p class="desc line-clamp-2">
-												{{ item.description || $t('暂无描述') }}
+												{{ item.description || $t('暫無描述') }}
 											</p>
 
 											<div class="author">
@@ -142,14 +142,14 @@
 											@click="pic.preview(item.pics)"
 											v-if="!isEmpty(item.pics)"
 										>
-											{{ $t('预览') }}
+											{{ $t('預覽') }}
 										</el-button>
 
 										<el-button
 											@click="plugin.doc(item)"
 											v-if="item.doc || item.readme"
 										>
-											{{ $t('文档') }}
+											{{ $t('檔案') }}
 										</el-button>
 									</div>
 								</div>
@@ -162,7 +162,7 @@
 			</el-scrollbar>
 		</div>
 
-		<!-- 示例代码 -->
+		<!-- 示例程式碼 -->
 		<cl-dialog v-model="demo.visible" :title="demo.title" width="60%">
 			<el-tabs v-model="demo.active" type="card">
 				<el-tab-pane
@@ -177,10 +177,10 @@
 			</el-tabs>
 		</cl-dialog>
 
-		<!-- 图片预览 -->
+		<!-- 圖片預覽 -->
 		<cl-dialog
 			v-model="pic.visible"
-			:title="$t('图片预览')"
+			:title="$t('圖片預覽')"
 			width="80%"
 			padding="0"
 			hide-header
@@ -223,22 +223,22 @@
 			/>
 		</cl-dialog>
 
-		<!-- 详情预览 -->
+		<!-- 詳情預覽 -->
 		<cl-editor-preview
 			:ref="setRefs('editorPreview')"
 			name="wang"
 			:show-btn="false"
-			:title="`${plugin.data?.name}（v${plugin.data?.version}）${$t('说明文档')}`"
+			:title="`${plugin.data?.name}（v${plugin.data?.version}）${$t('說明檔案')}`"
 		>
 			<template #prepend>
 				<div class="flex align-center mb-[10px] select-none">
 					<span class="mr-[20px]">{{ $t('作者') }}：{{ plugin.data?.author }}</span>
-					<span>{{ $t('更新时间') }}：{{ plugin.data?.updateTime }}</span>
+					<span>{{ $t('更新時間') }}：{{ plugin.data?.updateTime }}</span>
 				</div>
 			</template>
 		</cl-editor-preview>
 
-		<!-- 插件配置 -->
+		<!-- 外掛配置 -->
 		<cl-form :ref="setRefs('config')">
 			<template #slot-tools>
 				<div class="flex align-center">
@@ -247,7 +247,7 @@
 					}}</el-button>
 					<cl-upload-space
 						:show-list="false"
-						:text="$t('插入文件链接')"
+						:text="$t('插入檔案連結')"
 						@confirm="config.onFileConfirm"
 					/>
 				</div>
@@ -301,22 +301,22 @@ const helper = module.get('helper');
 const { t } = useI18n();
 const { install } = usePlugin();
 
-// 选项卡
+// 選項卡
 const tab = reactive({
 	active: 'installed',
 	p: '',
 
 	list: [
 		{
-			label: t('已安装'),
+			label: t('已安裝'),
 			value: 'installed'
 		},
 		{
-			label: t('全部插件'),
+			label: t('全部外掛'),
 			value: 'shop'
 		},
 		{
-			label: t('插件开发'),
+			label: t('外掛開發'),
 			value: 'dev'
 		}
 	],
@@ -339,16 +339,16 @@ const tab = reactive({
 	}
 });
 
-// 是否已安装插件
+// 是否已安裝外掛
 const isInstalled = computed(() => tab.active == 'installed');
 
-// 插件
+// 外掛
 const plugin = reactive({
-	// 已安装
+	// 已安裝
 	installed: [] as Plugin[],
-	// 插件市场
+	// 外掛市場
 	shop: [] as Plugin[],
-	// 详情
+	// 詳情
 	data: null as Plugin | null,
 
 	// 初始化
@@ -358,16 +358,16 @@ const plugin = reactive({
 		// 移除事件
 		mitt.off('plugin.refresh');
 
-		// 监听刷新事件
+		// 監聽重新整理事件
 		mitt.on('plugin.refresh', () => {
 			tab.change('installed');
 			plugin.refresh();
 		});
 	},
 
-	// 卸载
+	// 解除安裝
 	remove(item: Eps.PluginInfoEntity, index: number) {
-		ElMessageBox.confirm(t(`确定要卸载插件【{name}】吗？`, { name: item.name }), t('提示'), {
+		ElMessageBox.confirm(t(`確定要解除安裝外掛【{name}】嗎？`, { name: item.name }), t('提示'), {
 			type: 'warning'
 		})
 			.then(() => {
@@ -377,7 +377,7 @@ const plugin = reactive({
 					})
 					.then(() => {
 						plugin.installed.splice(index, 1);
-						ElMessage.success(t('卸载成功'));
+						ElMessage.success(t('解除安裝成功'));
 					})
 					.catch(err => {
 						ElMessage.error(err.message);
@@ -386,7 +386,7 @@ const plugin = reactive({
 			.catch(() => null);
 	},
 
-	// 文档
+	// 檔案
 	async doc(item: Plugin) {
 		if (item.readme) {
 			plugin.data = item;
@@ -396,7 +396,7 @@ const plugin = reactive({
 		}
 	},
 
-	// 启用/禁用
+	// 啟用/停用
 	onEnable(item: Plugin) {
 		if (item.isVue) {
 			service.request({
@@ -416,7 +416,7 @@ const plugin = reactive({
 					status: item.status ? 1 : 0
 				})
 				.then(() => {
-					ElMessage.success(item.status ? t('启用成功') : t('禁用成功'));
+					ElMessage.success(item.status ? t('啟用成功') : t('停用成功'));
 				})
 				.catch(err => {
 					ElMessage.error(err.message);
@@ -424,7 +424,7 @@ const plugin = reactive({
 		}
 	},
 
-	// 分页列表
+	// 分頁列表
 	keyWord: '',
 
 	params: {
@@ -544,12 +544,12 @@ const plugin = reactive({
 	}, 100)
 });
 
-// 插件配置
+// 外掛配置
 const config = reactive({
 	insert(content: string) {
 		const input = refs.configInput.ref;
 
-		// 获取当前光标
+		// 獲取當前遊標
 		const cursor = input.selectionStart;
 
 		// 插入文案
@@ -565,7 +565,7 @@ const config = reactive({
 
 			return true;
 		} catch (err) {
-			ElMessage.error(t('参数格式错误') + '：' + err);
+			ElMessage.error(t('參數格式錯誤') + '：' + err);
 			return false;
 		}
 	},
@@ -579,7 +579,7 @@ const config = reactive({
 
 	open(item: Plugin) {
 		refs.config?.open({
-			title: t('设置'),
+			title: t('設定'),
 
 			form: {
 				id: item.id,
@@ -588,7 +588,7 @@ const config = reactive({
 
 			items: [
 				{
-					label: t('参数'),
+					label: t('參數'),
 					prop: 'config',
 					component: {
 						name: 'el-input',
@@ -653,7 +653,7 @@ const config = reactive({
 	}
 });
 
-// 插件示例
+// 外掛示例
 const demo = reactive({
 	visible: false,
 	title: '',
@@ -693,7 +693,7 @@ const demo = reactive({
 	}
 });
 
-// 图片预览
+// 圖片預覽
 const pic = reactive({
 	visible: false,
 	show: false,
@@ -733,13 +733,13 @@ const pic = reactive({
 	}
 });
 
-// 上传
+// 上傳
 function onBeforeUpload(file: File) {
 	install(file);
 	return false;
 }
 
-// 鼠标移动
+// 滑鼠移動
 function onMousemove(e: MouseEvent) {
 	if (!isInstalled.value) {
 		return false;

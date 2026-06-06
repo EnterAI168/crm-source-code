@@ -27,10 +27,10 @@ export class BaseSysLogService extends BaseService {
   baseSysConfService: BaseSysConfService;
 
   /**
-   * 记录
+   * 記錄
    * @param url URL地址
-   * @param params 参数
-   * @param userId 用户ID
+   * @param params 參數
+   * @param userId 使用者ID
    */
   async record(context: Context, url, params, userId) {
     const ip = await this.utils.getReqIP(context);
@@ -43,7 +43,7 @@ export class BaseSysLogService extends BaseService {
   }
 
   /**
-   * 日志
+   * 日誌
    * @param isAll 是否清除全部
    */
   async clear(isAll?) {

@@ -21,28 +21,28 @@ export default defineComponent({
 			type: Array,
 			default: () => []
 		},
-		// 是否自动计算高度
+		// 是否自動計算高度
 		autoHeight: {
 			type: Boolean,
 			default: null
 		},
 		// 固定高度
 		height: null,
-		// 右键菜单
+		// 右鍵選單
 		contextMenu: {
 			type: [Array, Boolean],
 			default: null
 		},
-		// 默认排序
+		// 預設排序
 		defaultSort: Object,
-		// 排序后是否刷新
+		// 排序後是否重新整理
 		sortRefresh: {
 			type: Boolean,
 			default: true
 		},
-		// 空数据显示文案
+		// 空資料顯示文案
 		emptyText: String,
-		// 当前行的 key
+		// 當前行的 key
 		rowKey: {
 			type: String,
 			default: "id"
@@ -70,10 +70,10 @@ export default defineComponent({
 		// 高度
 		const Height = useHeight({ config, Table });
 
-		// 数据
+		// 資料
 		const Data = useData({ config, Table });
 
-		// 多选
+		// 多選
 		const Selection = useSelection({ emit });
 
 		// 操作

@@ -5,7 +5,7 @@ import { cloneDeep } from "lodash-es";
 export function useForm() {
 	const { dict } = useConfig();
 
-	// 表单配置
+	// 表單配置
 	const config = reactive<ClForm.Config>({
 		title: "-",
 		height: undefined,
@@ -31,25 +31,25 @@ export function useForm() {
 
 	const Form = ref();
 
-	// 表单数据
+	// 表單資料
 	const form = reactive<obj>({});
 
-	// 表单数据备份
+	// 表單資料備份
 	const oldForm = ref<obj>({});
 
-	// 表单是否可见
+	// 表單是否可見
 	const visible = ref(false);
 
-	// 表单提交保存状态
+	// 表單提交儲存狀態
 	const saving = ref(false);
 
-	// 表单加载状态
+	// 表單載入狀態
 	const loading = ref(false);
 
-	// 表单禁用状态
+	// 表單停用狀態
 	const disabled = ref(false);
 
-	// 监听表单变化
+	// 監聽表單變化
 	watch(
 		() => form,
 		(val) => {

@@ -7,17 +7,17 @@ import { isFunction, isString } from "lodash-es";
 
 // 配置
 interface Options {
-	// 标识
+	// 標識
 	prop?: string;
-	// 数据值
+	// 資料值
 	scope?: any;
-	// 当前行
+	// 當前行
 	item?: any;
 	// 插槽
 	slots?: any;
 	// 子集
 	children?: any[] & any;
-	// 自定义
+	// 自定義
 	custom?: (vnode: any) => any;
 	// 渲染方式
 	render?: "slot" | null;
@@ -25,14 +25,14 @@ interface Options {
 	[key: string]: any;
 }
 
-// 临时注册组件列表
+// 臨時註冊元件列表
 const regs: Map<string, any> = new Map();
 
-// 解析节点
+// 解析節點
 export function parseNode(vnode: any, options: Options): VNode {
 	const { scope, prop, slots, children, _data } = options || {};
 
-	// 渲染后组件
+	// 渲染後元件
 	let comp: VNode | null = null;
 
 	// 插槽模式渲染
@@ -46,18 +46,18 @@ export function parseNode(vnode: any, options: Options): VNode {
 		}
 	}
 
-	// 实例模式下，先注册到全局，再分解组件渲染
+	// 例項模式下，先註冊到全域性，再分解元件渲染
 	if (vnode.vm && !regs.get(vnode.name)) {
 		global.vue.component(vnode.name, { ...vnode.vm });
 		regs.set(vnode.name, { ...vnode.vm });
 	}
 
-	// 处理 props
+	// 處理 props
 	if (isFunction(vnode.props)) {
 		vnode.props = vnode.props({ scope, prop, ..._data });
 	}
 
-	// 组件参数
+	// 元件參數
 	const props = {
 		...vnode.props,
 		..._data,
@@ -65,10 +65,10 @@ export function parseNode(vnode: any, options: Options): VNode {
 		scope
 	};
 
-	// 是否禁用
+	// 是否停用
 	props.disabled = _data?.isDisabled || props.disabled;
 
-	// 添加双向绑定
+	// 新增雙向繫結
 	if (props && scope) {
 		if (prop) {
 			props.modelValue = scope[prop];
@@ -78,7 +78,7 @@ export function parseNode(vnode: any, options: Options): VNode {
 		}
 	}
 
-	// 组件实例渲染
+	// 元件例項渲染
 	if (vnode.vm) {
 		comp = h(regs.get(vnode.name), props);
 	} else {
@@ -90,11 +90,11 @@ export function parseNode(vnode: any, options: Options): VNode {
 			slots.default = () => children;
 		}
 
-		// 渲染组件
+		// 渲染元件
 		comp = h(toRaw(resolveComponent(vnode.name)), props, slots);
 	}
 
-	// 挂载到 refs 中
+	// 掛載到 refs 中
 	const refBind = vnode.ref || options.ref;
 	if (isFunction(refBind)) {
 		setTimeout(() => {
@@ -105,7 +105,7 @@ export function parseNode(vnode: any, options: Options): VNode {
 	return comp;
 }
 
-// 渲染节点
+// 渲染節點
 export function renderNode(vnode: any, options: Options) {
 	const config = useConfig();
 	const { item, scope, children, _data, render } = options || {};
@@ -118,14 +118,14 @@ export function renderNode(vnode: any, options: Options) {
 		return vnode;
 	}
 
-	// 默认参数配置
+	// 預設參數配置
 	if (item) {
 		if (item.component) {
 			if (!item.component.props) {
 				item.component.props = {};
 			}
 
-			// 占位符
+			// 佔位符
 			let placeholder = "";
 
 			switch (item.component?.name) {
@@ -142,7 +142,7 @@ export function renderNode(vnode: any, options: Options) {
 		}
 	}
 
-	// 组件实例
+	// 元件例項
 	if (vnode.vm) {
 		if (!vnode.name) {
 			vnode.name = vnode.vm?.name || vnode.vm?.__hmrId;
@@ -151,7 +151,7 @@ export function renderNode(vnode: any, options: Options) {
 		return parseNode(vnode, options);
 	}
 
-	// 组件名渲染
+	// 元件名渲染
 	if (isString(vnode)) {
 		if (render == "slot") {
 			if (!vnode.includes("slot-")) {
@@ -162,7 +162,7 @@ export function renderNode(vnode: any, options: Options) {
 		return parseNode({ name: vnode }, options);
 	}
 
-	// 方法回调
+	// 方法回撥
 	if (isFunction(vnode)) {
 		return vnode({ scope, h, ..._data });
 	}

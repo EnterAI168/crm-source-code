@@ -11,9 +11,9 @@ export const config = {
 		dist: "./build/cool",
 		mapping: [
 			{
-				// 自定义匹配
+				// 自定義匹配
 				custom: ({ propertyName, type }: { propertyName: string; type: string }) => {
-					// 如果没有，返回null或者不返回，则继续遍历其他匹配规则
+					// 如果沒有，返回null或者不返回，則繼續遍歷其他匹配規則
 					return null;
 				},
 			},

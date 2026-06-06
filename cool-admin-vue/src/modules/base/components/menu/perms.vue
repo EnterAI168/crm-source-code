@@ -36,21 +36,21 @@ const emit = defineEmits(['update:modelValue']);
 
 const { service } = useCool();
 
-// 绑定值
+// 繫結值
 const value = ref<string[][]>([]);
 
-// 权限列表
+// 權限列表
 const data = ref<any[]>([]);
 
 // elm BUG
 const cascaderProps = reactive({ multiple: true });
 
-// 监听改变
+// 監聽改變
 function onChange(arr: any) {
 	emit('update:modelValue', arr.map((e: string[]) => e.join(':')).join(','));
 }
 
-// 监听值
+// 監聽值
 watch(
 	() => props.modelValue,
 	val => {

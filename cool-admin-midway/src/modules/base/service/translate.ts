@@ -18,7 +18,7 @@ import axios from 'axios';
 import { DictInfoEntity } from '../../dict/entity/info';
 import { DictTypeEntity } from '../../dict/entity/type';
 /**
- * 翻译服务
+ * 翻譯服務
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)
@@ -32,7 +32,7 @@ export class BaseTranslateService {
   @InjectEntityModel(DictTypeEntity)
   dictTypeEntity: Repository<DictTypeEntity>;
 
-  // 基础路径
+  // 基礎路徑
   basePath: string;
 
   @App()
@@ -43,11 +43,11 @@ export class BaseTranslateService {
 
   @Config('cool.i18n')
   config: {
-    /** 是否开启 */
+    /** 是否開啟 */
     enable: boolean;
-    /** 语言 */
+    /** 語言 */
     languages: string[];
-    /** 翻译服务 */
+    /** 翻譯服務 */
     serviceUrl?: string;
   };
 
@@ -57,11 +57,11 @@ export class BaseTranslateService {
 
   commMap: Record<string, string> = {};
 
-  // 添加字典映射
+  // 新增字典對映
   dictMap: Record<string, string> = {};
 
   /**
-   * 检查是否存在锁文件
+   * 檢查是否存在鎖檔案
    */
   private checkLockFile(type: 'menu' | 'msg' | 'comm'): boolean {
     const lockFile = path.join(this.basePath, type, '.lock');
@@ -69,7 +69,7 @@ export class BaseTranslateService {
   }
 
   /**
-   * 创建锁文件
+   * 建立鎖檔案
    */
   private createLockFile(type: 'menu' | 'msg' | 'comm'): void {
     const lockFile = path.join(this.basePath, type, '.lock');
@@ -77,7 +77,7 @@ export class BaseTranslateService {
   }
 
   /**
-   * 加载翻译文件到内存
+   * 載入翻譯檔案到記憶體
    */
   async loadTranslations() {
     if (!this.config?.enable) {
@@ -87,28 +87,28 @@ export class BaseTranslateService {
       this.basePath = path.join(this.app.getBaseDir(), '..', 'src', 'locales');
     }
 
-    // 清空现有映射
+    // 清空現有對映
     this.menuMap = {};
     this.msgMap = {};
     this.dictMap = {};
     this.commMap = {};
-    // 加载菜单翻译
+    // 載入選單翻譯
     await this.loadTypeTranslations('menu', this.menuMap);
 
-    // 加载消息翻译
+    // 載入訊息翻譯
     await this.loadTypeTranslations('msg', this.msgMap);
 
-    // 加载通用消息翻译
+    // 載入通用訊息翻譯
     await this.loadTypeTranslations('comm', this.commMap);
 
-    // 加载字典翻译
+    // 載入字典翻譯
     await this.loadDictTranslations();
   }
 
   /**
-   * 加载指定类型的翻译
-   * @param type 翻译类型
-   * @param map 映射对象
+   * 載入指定型別的翻譯
+   * @param type 翻譯型別
+   * @param map 對映物件
    */
   private async loadTypeTranslations(
     type: 'menu' | 'msg' | 'comm',
@@ -131,7 +131,7 @@ export class BaseTranslateService {
   }
 
   /**
-   * 加载字典翻译
+   * 載入字典翻譯
    */
   private async loadDictTranslations() {
     const dictTypes = ['info', 'type'];
@@ -156,9 +156,9 @@ export class BaseTranslateService {
   }
 
   /**
-   * 更新翻译映射
-   * @param type 类型 menu | msg
-   * @param language 语言
+   * 更新翻譯對映
+   * @param type 型別 menu | msg
+   * @param language 語言
    */
   async updateTranslationMap(type: 'menu' | 'msg', language: string) {
     const dirPath = path.join(this.basePath, type);
@@ -176,31 +176,31 @@ export class BaseTranslateService {
   }
 
   /**
-   * 翻译
-   * @param type 类型 menu | msg | dict
-   * @param language 语言
+   * 翻譯
+   * @param type 型別 menu | msg | dict
+   * @param language 語言
    * @param text 原文
-   * @returns 翻译后的文本
+   * @returns 翻譯後的文本
    */
   translate(
     type: 'menu' | 'msg' | 'dict:info' | 'dict:type' | 'comm',
     language: string,
     text: string
   ): string {
-    // 处理字典翻译
+    // 處理字典翻譯
     if (type === 'dict:info' || type === 'dict:type') {
       const key = `${language}:${type}:${text}`;
       return this.dictMap[key] || text.split(':').pop() || text;
     }
 
-    // 处理菜单和消息翻译
+    // 處理選單和訊息翻譯
     const map = type === 'menu' ? this.menuMap : this.msgMap;
     const key = `${language}:${text}`;
     return map[key] || text;
   }
 
   /**
-   * 检查翻译
+   * 檢查翻譯
    */
   async check() {
     if (this.config?.enable && this.app.getEnv() == 'local') {
@@ -229,7 +229,7 @@ export class BaseTranslateService {
         if (!commLockExists) {
           tasks.push(this.genCommMsg());
         }
-        // 启动旋转动画
+        // 啟動旋轉動畫
         const spinner = ['|', '/', '-', '\\'];
         let index = 0;
         const interval = setInterval(() => {
@@ -240,14 +240,14 @@ export class BaseTranslateService {
           await Promise.all(tasks);
         } finally {
           clearInterval(interval);
-          // 加载翻译文件到内存
+          // 載入翻譯檔案到記憶體
           await this.loadTranslations();
           await this.loadDictTranslations();
           process.stdout.write('\r✅ i18n translate success！！！\n');
         }
       } else {
         this.logger.debug('Translation lock files exist, skipping translation');
-        // 直接加载翻译文件到内存
+        // 直接載入翻譯檔案到記憶體
         await this.loadTranslations();
         await this.loadDictTranslations();
       }
@@ -255,7 +255,7 @@ export class BaseTranslateService {
   }
 
   /**
-   * 检查字典锁文件
+   * 檢查字典鎖檔案
    */
   private checkDictLockFile(): boolean {
     const lockFile = path.join(this.basePath, 'dict', '.lock');
@@ -263,7 +263,7 @@ export class BaseTranslateService {
   }
 
   /**
-   * 创建字典锁文件
+   * 建立字典鎖檔案
    */
   private createDictLockFile(): void {
     const lockFile = path.join(this.basePath, 'dict', '.lock');
@@ -271,11 +271,11 @@ export class BaseTranslateService {
   }
 
   /**
-   * 生成基础字典
+   * 生成基礎字典
    */
   async genBaseDict() {
     try {
-      // 检查是否存在锁文件
+      // 檢查是否存在鎖檔案
       if (this.checkDictLockFile()) {
         this.logger.debug('Dictionary lock file exists, skipping translation');
         return;
@@ -284,13 +284,13 @@ export class BaseTranslateService {
       const infos = await this.dictInfoEntity.find();
       const types = await this.dictTypeEntity.find();
 
-      // 确保目录存在
+      // 確保目錄存在
       const infoDir = path.join(this.basePath, 'dict', 'info');
       const typeDir = path.join(this.basePath, 'dict', 'type');
       fs.mkdirSync(infoDir, { recursive: true });
       fs.mkdirSync(typeDir, { recursive: true });
 
-      // 生成中文基础文件
+      // 生成中文基礎檔案
       const infoContent = {};
       const typeContent = {};
 
@@ -312,18 +312,18 @@ export class BaseTranslateService {
 
       this.logger.debug('Base dictionary files generated successfully');
 
-      // 翻译其他语言
+      // 翻譯其他語言
       if (this.config?.enable && this.config.languages) {
         const translatePromises = [];
 
         for (const language of this.config.languages) {
           if (language !== 'zh-cn') {
-            // 翻译 info 字典
+            // 翻譯 info 字典
             translatePromises.push(
               this.invokeTranslate(infoText, language, infoDir, 'dict')
             );
 
-            // 翻译 type 字典
+            // 翻譯 type 字典
             translatePromises.push(
               this.invokeTranslate(typeText, language, typeDir, 'dict')
             );
@@ -334,10 +334,10 @@ export class BaseTranslateService {
         this.logger.debug('Dictionary translations completed successfully');
       }
 
-      // 创建锁文件
+      // 建立鎖檔案
       this.createDictLockFile();
 
-      // 更新翻译映射
+      // 更新翻譯對映
       await this.loadDictTranslations();
     } catch (error) {
       this.logger.error('Failed to generate dictionary:', error);
@@ -346,8 +346,8 @@ export class BaseTranslateService {
   }
 
   /**
-   * 更新字典翻译映射
-   * @param language 语言
+   * 更新字典翻譯對映
+   * @param language 語言
    */
   async updateDictTranslationMap(language: string) {
     const infoFile = path.join(
@@ -381,7 +381,7 @@ export class BaseTranslateService {
   }
 
   /**
-   * 生成基础菜单
+   * 生成基礎選單
    */
   async genBaseMenu() {
     const menus = await this.baseSysMenuEntity.find();
@@ -390,7 +390,7 @@ export class BaseTranslateService {
     for (const menu of menus) {
       content[menu.name] = menu.name;
     }
-    // 确保目录存在
+    // 確保目錄存在
     const msgDir = path.dirname(file);
     if (!fs.existsSync(msgDir)) {
       fs.mkdirSync(msgDir, { recursive: true });
@@ -416,14 +416,14 @@ export class BaseTranslateService {
   }
 
   /**
-   * 生成基础消息
+   * 生成基礎訊息
    */
   async genBaseMsg() {
     const file = path.join(this.basePath, 'msg', 'zh-cn.json');
     const scanPath = path.join(this.app.getBaseDir(), '..', 'src', 'modules');
     const messages = {};
 
-    // 递归扫描目录
+    // 遞迴掃描目錄
     const scanDir = (dir: string) => {
       const files = fs.readdirSync(dir);
       for (const file of files) {
@@ -447,16 +447,16 @@ export class BaseTranslateService {
       }
     };
 
-    // 开始扫描
+    // 開始掃描
     scanDir(scanPath);
 
-    // 确保目录存在
+    // 確保目錄存在
     const msgDir = path.dirname(file);
     if (!fs.existsSync(msgDir)) {
       fs.mkdirSync(msgDir, { recursive: true });
     }
 
-    // 写入文件
+    // 寫入檔案
     const text = JSON.stringify(messages, null, 2);
     fs.writeFileSync(file, text);
     this.logger.debug('base msg generate success');
@@ -479,14 +479,14 @@ export class BaseTranslateService {
   }
 
   /**
-   * 生成通用消息
+   * 生成通用訊息
    */
   async genCommMsg() {
     const file = path.join(this.basePath, 'comm', 'zh-cn.json');
     const scanPath = path.join(this.app.getBaseDir(), '..', 'src', 'modules');
     const messages = {};
 
-    // 递归扫描目录
+    // 遞迴掃描目錄
     const scanDir = (dir: string) => {
       const files = fs.readdirSync(dir);
       for (const file of files) {
@@ -510,16 +510,16 @@ export class BaseTranslateService {
       }
     };
 
-    // 开始扫描
+    // 開始掃描
     scanDir(scanPath);
 
-    // 确保目录存在
+    // 確保目錄存在
     const msgDir = path.dirname(file);
     if (!fs.existsSync(msgDir)) {
       fs.mkdirSync(msgDir, { recursive: true });
     }
 
-    // 写入文件
+    // 寫入檔案
     const text = JSON.stringify(messages, null, 2);
     fs.writeFileSync(file, text);
     this.logger.debug('base comm generate success');
@@ -542,9 +542,9 @@ export class BaseTranslateService {
   }
 
   /**
-   * 通用消息翻译
+   * 通用訊息翻譯
    * @param text 文本
-   * @returns 翻译后的文本对象,包含各语言的翻译
+   * @returns 翻譯後的文本物件,包含各語言的翻譯
    */
   comm(text: string) {
     const translations = {};
@@ -559,11 +559,11 @@ export class BaseTranslateService {
   }
 
   /**
-   * 调用翻译
+   * 呼叫翻譯
    * @param text 文本
-   * @param language 语言
-   * @param dirPath 目录
-   * @param type 类型
+   * @param language 語言
+   * @param dirPath 目錄
+   * @param type 型別
    * @returns
    */
   async invokeTranslate(

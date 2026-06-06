@@ -25,7 +25,7 @@ export default defineComponent({
 			type: Array as PropType<ClTable.Column[]>
 		},
 		data: [Function, Array],
-		maxExportLimit: Number // 最大导出条数，不传或者小于等于0为不限制
+		maxExportLimit: Number // 最大匯出條數，不傳或者小於等於0為不限制
 	},
 
 	setup(props, { slots }) {
@@ -34,18 +34,18 @@ export default defineComponent({
 		// crud
 		const Crud = useCrud();
 
-		// 表单
+		// 表單
 		const Form = useForm();
 
-		// 加载状态
+		// 載入狀態
 		const loading = ref(false);
 
-		// 获取表头数据
+		// 獲取表頭資料
 		async function getHeader(columns: any[], fields: any[]) {
 			return columns.filter(e => !e.hidden && fields.includes(e.prop)).map(e => e.label);
 		}
 
-		// 获取表格数据
+		// 獲取表格資料
 		async function getData(): Promise<any[]> {
 			const params = {
 				...Crud.value?.paramsReplace(Crud.value.params),
@@ -96,7 +96,7 @@ export default defineComponent({
 			}
 		}
 
-		// 获取文件名
+		// 獲取檔名
 		async function getFileName() {
 			if (typeof props.filename === 'function') {
 				return await props?.filename();
@@ -105,32 +105,32 @@ export default defineComponent({
 			}
 		}
 
-		// 导出
+		// 匯出
 		async function toExport(columns: ClTable.Column[]) {
-			// 加载
+			// 載入
 			loading.value = true;
 
-			// 字段
+			// 欄位
 			const fields = columns.map(e => e.prop).filter(Boolean);
 
-			// 表头
+			// 表頭
 			const header = await getHeader(columns, fields);
 
-			// 数据
+			// 資料
 			let data = await getData();
 
 			if (!data) {
 				loading.value = false;
-				return ElMessage.error(t('导出数据异常'));
+				return ElMessage.error(t('匯出資料異常'));
 			}
 
-			// 文件名
+			// 檔名
 			const filename = await getFileName();
 
-			// 过滤
+			// 過濾
 			data = data.map(d => fields.map(f => d[f]));
 
-			// 导出 excel
+			// 匯出 excel
 			export_json_to_excel({
 				header,
 				data,
@@ -159,7 +159,7 @@ export default defineComponent({
 			);
 
 			Form.value?.open({
-				title: t('导出'),
+				title: t('匯出'),
 				width: '600px',
 				props: {
 					labelPosition: 'top'
@@ -169,7 +169,7 @@ export default defineComponent({
 				},
 				items: [
 					{
-						label: t('选择列'),
+						label: t('選擇列'),
 						prop: 'checked',
 						component: {
 							name: 'el-checkbox-group',
@@ -185,7 +185,7 @@ export default defineComponent({
 				on: {
 					submit(data, { close, done }) {
 						if (isEmpty(data.checked)) {
-							ElMessage.warning(t('请先选择要导出的列'));
+							ElMessage.warning(t('請先選擇要匯出的列'));
 							done();
 						} else {
 							toExport(columns.filter(e => data.checked.includes(e.prop)));
@@ -199,7 +199,7 @@ export default defineComponent({
 		return () => {
 			return (
 				<el-button loading={loading.value} onClick={open}>
-					{slots.default ? slots.default() : t('导出')}
+					{slots.default ? slots.default() : t('匯出')}
 
 					<cl-form ref={Form} />
 				</el-button>

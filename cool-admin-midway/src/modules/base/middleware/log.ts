@@ -5,7 +5,7 @@ import { IMiddleware } from '@midwayjs/core';
 import { BaseSysLogService } from '../service/sys/log';
 
 /**
- * 日志中间件
+ * 日誌中介軟體
  */
 @Middleware()
 export class BaseLogMiddleware implements IMiddleware<Context, NextFunction> {

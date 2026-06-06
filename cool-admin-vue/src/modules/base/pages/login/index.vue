@@ -6,36 +6,34 @@
 					<img src="/logo.png" alt="Logo" />
 				</div>
 
-				<span>{{ app.info.name }}</span>
+				<span class="notranslate" translate="no">CRM管理系統</span>
 			</div>
-
-			<p class="desc">{{ $t('快速开发后台权限管理系统') }}</p>
 
 			<div class="form">
 				<el-form label-position="top" class="form" :disabled="saving">
-					<el-form-item :label="$t('用户名')">
+					<el-form-item :label="$t('使用者名稱')">
 						<el-input
 							v-model="form.username"
-							:placeholder="$t('请输入用户名')"
+							:placeholder="$t('請輸入使用者名稱')"
 							maxlength="20"
 						/>
 					</el-form-item>
 
-					<el-form-item :label="$t('密码')">
+					<el-form-item :label="$t('密碼')">
 						<el-input
 							v-model="form.password"
 							type="password"
-							:placeholder="$t('请输入密码')"
+							:placeholder="$t('請輸入密碼')"
 							maxlength="20"
 							show-password
 							autocomplete="new-password"
 						/>
 					</el-form-item>
 
-					<el-form-item :label="$t('验证码')">
+					<el-form-item :label="$t('驗證碼')">
 						<el-input
 							v-model="form.verifyCode"
-							:placeholder="$t('验证码')"
+							:placeholder="$t('驗證碼')"
 							maxlength="4"
 							@keyup.enter="toLogin"
 						>
@@ -55,7 +53,7 @@
 
 					<div class="op">
 						<el-button type="primary" :loading="saving" @click="toLogin">
-							{{ $t('登录') }}
+							{{ $t('登入') }}
 						</el-button>
 					</div>
 				</el-form>
@@ -87,10 +85,10 @@ const { refs, setRefs, router, service } = useCool();
 const { user, app } = useBase();
 const { t } = useI18n();
 
-// 状态
+// 狀態
 const saving = ref(false);
 
-// 表单数据
+// 表單資料
 const form = reactive({
 	username: storage.get('username') || '',
 	password: '',
@@ -104,39 +102,39 @@ if (import.meta.env.MODE == 'demo') {
 	form.password = '123456';
 }
 
-// 登录
+// 登入
 async function toLogin() {
 	if (!form.username) {
-		return ElMessage.error(t('用户名不能为空'));
+		return ElMessage.error(t('使用者名稱不能為空'));
 	}
 
 	if (!form.password) {
-		return ElMessage.error(t('密码不能为空'));
+		return ElMessage.error(t('密碼不能為空'));
 	}
 
 	if (!form.verifyCode) {
-		return ElMessage.error(t('图片验证码不能为空'));
+		return ElMessage.error(t('圖片驗證碼不能為空'));
 	}
 
 	saving.value = true;
 
 	try {
-		// 登录
+		// 登入
 		await service.base.open.login(form).then(user.setToken);
 
 		// token 事件
 		await Promise.all(app.events.hasToken.map(e => e()));
 
-		// 设置缓存
+		// 設定快取
 		storage.set('username', form.username);
 
-		// 跳转首页
+		// 跳轉首頁
 		router.push('/');
 	} catch (err) {
-		// 刷新验证码
+		// 重新整理驗證碼
 		refs.picCaptcha.refresh();
 
-		// 提示错误
+		// 提示錯誤
 		ElMessageBox.alert((err as Error).message, {
 			title: t('提示'),
 			type: 'error'
@@ -200,7 +198,7 @@ $color: #2c3142;
 
 		.logo {
 			height: 50px;
-			margin-bottom: 20px;
+			margin-bottom: 50px;
 			display: flex;
 			align-items: center;
 			user-select: none;

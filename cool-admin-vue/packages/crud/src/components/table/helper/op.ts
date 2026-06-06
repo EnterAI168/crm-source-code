@@ -5,10 +5,10 @@ import { isArray, isBoolean } from "lodash-es";
 export function useOp({ config }: { config: ClTable.Config }) {
 	const { mitt } = useCore();
 
-	// 是否可见，用于解决一些显示隐藏的副作用
+	// 是否可見，用於解決一些顯示隱藏的副作用
 	const visible = ref(true);
 
-	// 重新构建
+	// 重新構建
 	async function reBuild(cb?: fn) {
 		visible.value = false;
 
@@ -25,11 +25,11 @@ export function useOp({ config }: { config: ClTable.Config }) {
 		mitt.emit("resize");
 	}
 
-	// 显示列
+	// 顯示列
 	function showColumn(prop: string | string[], status?: boolean) {
 		const keys = isArray(prop) ? prop : [prop];
 
-		// 多级表头
+		// 多級表頭
 		function deep(list: ClTable.Column[]) {
 			list.forEach((e) => {
 				if (e.prop && keys.includes(e.prop)) {
@@ -45,12 +45,12 @@ export function useOp({ config }: { config: ClTable.Config }) {
 		deep(config.columns);
 	}
 
-	// 隐藏列
+	// 隱藏列
 	function hideColumn(prop: string | string[]) {
 		showColumn(prop, false);
 	}
 
-	// 设置列
+	// 設定列
 	function setColumns(list: ClTable.Column[]) {
 		if (list) {
 			reBuild(() => {

@@ -12,7 +12,7 @@ export function useSort({
 }) {
 	const { crud } = useCore();
 
-	// 设置默认排序Ï
+	// 設定預設排序Ï
 	const defaultSort = (function () {
 		let { prop, order } = config.defaultSort || {};
 
@@ -40,7 +40,7 @@ export function useSort({
 		return {};
 	})();
 
-	// 排序监听
+	// 排序監聽
 	function onSortChange({ prop, order }: { prop: string | undefined; order: string }) {
 		if (config.sortRefresh) {
 			if (order === "descending") {
@@ -65,7 +65,7 @@ export function useSort({
 		emit("sort-change", { prop, order });
 	}
 
-	// 改变排序
+	// 改變排序
 	function changeSort(prop: string, order: string) {
 		if (order === "desc") {
 			order = "descending";

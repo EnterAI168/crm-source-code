@@ -5,14 +5,14 @@ import { BaseSysRoleEntity } from '../../../entity/sys/role';
 import { BaseSysRoleService } from '../../../service/sys/role';
 
 /**
- * 系统角色
+ * 系統角色
  */
 @Provide()
 @CoolController({
   api: ['add', 'delete', 'update', 'info', 'list', 'page'],
   entity: BaseSysRoleEntity,
   service: BaseSysRoleService,
-  // 新增的时候插入当前用户ID
+  // 新增的時候插入當前使用者ID
   insertParam: async (ctx: Context) => {
     return {
       userId: ctx.admin.userId,
@@ -23,7 +23,7 @@ import { BaseSysRoleService } from '../../../service/sys/role';
     where: async (ctx: Context) => {
       const { userId, roleIds, username } = ctx.admin;
       return [
-        // 超级管理员的角色不展示
+        // 超級管理員的角色不展示
         ['a.label != :label', { label: 'admin' }],
         // 如果不是超管，只能看到自己新建的或者自己有的角色
         [

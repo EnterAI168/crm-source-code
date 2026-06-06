@@ -9,7 +9,7 @@
 	</el-select>
 </template>
 
-<!-- 【很重要】必须要有name，避免注册后和其他冲突 -->
+<!-- 【很重要】必須要有name，避免註冊後和其他衝突 -->
 <script setup lang="ts">
 defineOptions({
 	name: 'select-work2'
@@ -21,22 +21,22 @@ const props = defineProps({
 	modelValue: String
 });
 
-//【很重要】绑定值，使用 useModel 的方式双向绑定
+//【很重要】繫結值，使用 useModel 的方式雙向繫結
 const active = useModel(props, 'modelValue');
 
-// 选项列表
+// 選項列表
 const list = ref<{ label: string; value: string }[]>([
 	{
 		label: '倒茶',
-		value: '倒茶' // 测试直接使用label，真实情况可能是1，2，3，4或者id
+		value: '倒茶' // 測試直接使用label，真實情況可能是1，2，3，4或者id
 	},
 	{
-		label: '设计',
-		value: '设计'
+		label: '設計',
+		value: '設計'
 	},
 	{
-		label: '开发',
-		value: '开发'
+		label: '開發',
+		value: '開發'
 	}
 ]);
 </script>

@@ -4,7 +4,7 @@ import * as moment from 'moment';
 import * as path from 'path';
 
 /**
- * 帮助类
+ * 幫助類
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)
@@ -13,7 +13,7 @@ export class Utils {
   baseDir;
 
   /**
-   * 获得dist路径
+   * 獲得dist路徑
    */
   getDistPath() {
     const runPath = __dirname;
@@ -28,7 +28,7 @@ export class Utils {
   }
 
   /**
-   * 获得请求IP
+   * 獲得請求IP
    */
   async getReqIP(ctx: Context) {
     const req = ctx.req;
@@ -40,7 +40,7 @@ export class Utils {
   }
 
   /**
-   * 去除对象的空值属性
+   * 去除物件的空值屬性
    * @param obj
    */
   async removeEmptyP(obj) {
@@ -52,7 +52,7 @@ export class Utils {
   }
 
   /**
-   * 线程阻塞毫秒数
+   * 執行緒阻塞毫秒數
    * @param ms
    */
   sleep(ms) {
@@ -60,7 +60,7 @@ export class Utils {
   }
 
   /**
-   * 获得最近几天的日期集合
+   * 獲得最近幾天的日期集合
    * @param recently
    */
   getRecentlyDates(recently, format = 'YYYY-MM-DD') {
@@ -72,7 +72,7 @@ export class Utils {
     return dates.reverse();
   }
   /**
-   * 获得最近几个月的月数
+   * 獲得最近幾個月的月數
    * @param recently
    */
   getRecentlyMonths(recently, format = 'YYYY-MM') {
@@ -86,7 +86,7 @@ export class Utils {
   }
 
   /**
-   * 根据开始和结束时间，获得时间段内的日期集合
+   * 根據開始和結束時間，獲得時間段內的日期集合
    * @param start
    * @param end
    */
@@ -103,7 +103,7 @@ export class Utils {
   }
 
   /**
-   * 根据开始和结束时间，获得时间段内的月份集合
+   * 根據開始和結束時間，獲得時間段內的月份集合
    * @param start
    * @param end
    */
@@ -120,7 +120,7 @@ export class Utils {
   }
 
   /**
-   * 根据开始和结束时间，获得时间段内的小时集合
+   * 根據開始和結束時間，獲得時間段內的小時集合
    * @param start
    * @param end
    */
@@ -137,7 +137,7 @@ export class Utils {
   }
 
   /**
-   * 字段转驼峰法
+   * 欄位轉駝峰法
    * @param obj
    * @returns
    */
@@ -159,21 +159,21 @@ export class Utils {
    * @returns
    */
   matchUrl(pattern, url) {
-    // 将 pattern 和 url 按 `/` 分割
+    // 將 pattern 和 url 按 `/` 分割
     const patternParts = pattern.split('/').filter(Boolean);
     const urlParts = url.split('/').filter(Boolean);
-    // 如果长度不匹配且 pattern 不包含 **，直接返回 false
+    // 如果長度不匹配且 pattern 不包含 **，直接返回 false
     if (patternParts.length !== urlParts.length && !pattern.includes('**')) {
       return false;
     }
     for (let i = 0; i < patternParts.length; i++) {
       const patternPart = patternParts[i];
       const urlPart = urlParts[i];
-      // 如果 patternPart 是 **，匹配剩余的所有部分
+      // 如果 patternPart 是 **，匹配剩餘的所有部分
       if (patternPart === '**') {
         return true;
       }
-      // 如果 patternPart 以 : 开头，说明是参数，直接匹配任意非空值
+      // 如果 patternPart 以 : 開頭，說明是參數，直接匹配任意非空值
       if (patternPart.startsWith(':')) {
         if (!urlPart) {
           return false;
@@ -189,14 +189,14 @@ export class Utils {
         return false;
       }
     }
-    // 如果 pattern 和 url 的部分数量一致，则匹配成功
+    // 如果 pattern 和 url 的部分數量一致，則匹配成功
     return patternParts.length === urlParts.length;
   }
 
   /**
-   * 从文本中提取 JSON 字符串并转换为对象
+   * 從文本中提取 JSON 字串並轉換為物件
    * @param {string} text - 可能包含 JSON 的文本
-   * @returns {Object|Array|null} - 解析出的 JSON 对象，如果没有找到有效 JSON 则返回 null
+   * @returns {Object|Array|null} - 解析出的 JSON 物件，如果沒有找到有效 JSON 則返回 null
    */
   extractJSONFromText(text) {
     if (!text || typeof text !== 'string') {
@@ -204,13 +204,13 @@ export class Utils {
     }
 
     try {
-      // 尝试直接解析整个文本
+      // 嘗試直接解析整個文本
       return JSON.parse(text);
     } catch (e) {
-      // 整个文本不是有效的 JSON，尝试提取 JSON 部分
+      // 整個文本不是有效的 JSON，嘗試提取 JSON 部分
     }
 
-    // 查找可能的 JSON 开始位置（{ 或 [）
+    // 查詢可能的 JSON 開始位置（{ 或 [）
     const possibleStarts = [];
     for (let i = 0; i < text.length; i++) {
       if (text[i] === '{' || text[i] === '[') {
@@ -218,7 +218,7 @@ export class Utils {
       }
     }
 
-    // 从每个可能的起始位置尝试提取 JSON
+    // 從每個可能的起始位置嘗試提取 JSON
     for (const startIndex of possibleStarts) {
       let openBraces = 0;
       let openBrackets = 0;
@@ -228,19 +228,19 @@ export class Utils {
       for (let i = startIndex; i < text.length; i++) {
         const char = text[i];
 
-        // 处理转义字符
+        // 處理跳脫字元
         if (inString && !escapeNext && char === '\\') {
           escapeNext = true;
           continue;
         }
 
-        // 处理字符串边界
+        // 處理字串邊界
         if (!escapeNext && char === '"') {
           inString = !inString;
         }
 
         if (!inString) {
-          // 只在不在字符串内部时才计算括号
+          // 只在不在字串內部時才計算括號
           if (char === '{') openBraces++;
           else if (char === '}') openBraces--;
           else if (char === '[') openBrackets++;
@@ -249,7 +249,7 @@ export class Utils {
 
         escapeNext = false;
 
-        // 检查是否找到了完整的 JSON 结构
+        // 檢查是否找到了完整的 JSON 結構
         if (
           (openBraces === 0 && text[startIndex] === '{' && char === '}') ||
           (openBrackets === 0 && text[startIndex] === '[' && char === ']')
@@ -259,13 +259,13 @@ export class Utils {
             const result = JSON.parse(jsonStr);
             return result;
           } catch (e) {
-            // 这个候选 JSON 无效，继续尝试下一个
+            // 這個候選 JSON 無效，繼續嘗試下一個
             break;
           }
         }
       }
     }
 
-    return null; // 没有找到有效的 JSON
+    return null; // 沒有找到有效的 JSON
   }
 }

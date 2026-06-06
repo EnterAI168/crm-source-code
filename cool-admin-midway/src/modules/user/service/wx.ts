@@ -28,7 +28,7 @@ export class UserWxService extends BaseService {
   pluginService: PluginService;
 
   /**
-   * 获得插件实例
+   * 獲得外掛例項
    * @returns
    */
   async getPlugin() {
@@ -37,13 +37,13 @@ export class UserWxService extends BaseService {
       return wxPlugin;
     } catch (error) {
       throw new CoolCommException(
-        '未配置微信插件，请到插件市场下载安装配置：https://cool-js.com/plugin/70'
+        '未配置微信外掛，請到外掛市場下載安裝配置：https://cool-js.com/plugin/70'
       );
     }
   }
 
   /**
-   * 获得小程序实例
+   * 獲得小程式例項
    * @returns
    */
   async getMiniApp() {
@@ -52,7 +52,7 @@ export class UserWxService extends BaseService {
   }
 
   /**
-   * 获得公众号实例
+   * 獲得公眾號例項
    * @returns
    */
   async getOfficialAccount() {
@@ -61,7 +61,7 @@ export class UserWxService extends BaseService {
   }
 
   /**
-   * 获得App实例
+   * 獲得App例項
    * @returns
    */
   async getOpenPlatform() {
@@ -70,9 +70,9 @@ export class UserWxService extends BaseService {
   }
 
   /**
-   * 获得用户的openId
+   * 獲得使用者的openId
    * @param userId
-   * @param type 0-小程序 1-公众号 2-App
+   * @param type 0-小程式 1-公眾號 2-App
    */
   async getOpenid(userId: number, type = 0) {
     const user = await this.userInfoEntity.findOneBy({
@@ -80,7 +80,7 @@ export class UserWxService extends BaseService {
       status: 1,
     });
     if (!user) {
-      throw new CoolCommException('用户不存在或已被禁用');
+      throw new CoolCommException('使用者不存在或已被停用');
     }
     const wx = await this.userWxEntity
       .createQueryBuilder('a')
@@ -94,10 +94,10 @@ export class UserWxService extends BaseService {
   }
 
   /**
-   * 获得微信配置
+   * 獲得微信配置
    * @param appId
    * @param appSecret
-   * @param url 当前网页的URL，不包含#及其后面部分(必须是调用JS接口页面的完整URL)
+   * @param url 當前網頁的URL，不包含#及其後面部分(必須是呼叫JS介面頁面的完整URL)
    */
   public async getWxMpConfig(url: string) {
     const token = await this.getWxToken();
@@ -113,7 +113,7 @@ export class UserWxService extends BaseService {
 
     const account = (await this.getOfficialAccount()).getAccount();
     const appid = account.getAppId();
-    // 返回结果集
+    // 返回結果集
     const result = {
       timestamp: parseInt(moment().valueOf() / 1000 + ''),
       nonceStr: uuid(),
@@ -125,7 +125,7 @@ export class UserWxService extends BaseService {
     signArr.push('noncestr=' + result.nonceStr);
     signArr.push('timestamp=' + result.timestamp);
     signArr.push('url=' + decodeURI(url));
-    // 敏感信息加密处理
+    // 敏感資訊加密處理
     result.signature = crypto
       .createHash('sha1')
       .update(signArr.join('&'))
@@ -135,7 +135,7 @@ export class UserWxService extends BaseService {
   }
 
   /**
-   * 获得公众号用户信息
+   * 獲得公眾號使用者資訊
    * @param code
    */
   async mpUserInfo(code) {
@@ -144,7 +144,7 @@ export class UserWxService extends BaseService {
   }
 
   /**
-   * 获得app用户信息
+   * 獲得app使用者資訊
    * @param code
    */
   async appUserInfo(code) {
@@ -153,7 +153,7 @@ export class UserWxService extends BaseService {
   }
 
   /**
-   * 获得微信token 不用code
+   * 獲得微信token 不用code
    * @param appid
    * @param secret
    */
@@ -168,7 +168,7 @@ export class UserWxService extends BaseService {
   }
 
   /**
-   * 获得用户信息
+   * 獲得使用者資訊
    * @param token
    */
   async openOrMpUserInfo(token) {
@@ -186,7 +186,7 @@ export class UserWxService extends BaseService {
   }
 
   /**
-   * 获得token嗯
+   * 獲得token嗯
    * @param code
    * @param type
    */
@@ -210,7 +210,7 @@ export class UserWxService extends BaseService {
   }
 
   /**
-   * 获得小程序session
+   * 獲得小程式session
    * @param code 微信code
    * @param conf 配置
    */
@@ -222,7 +222,7 @@ export class UserWxService extends BaseService {
   }
 
   /**
-   * 获得小程序用户信息
+   * 獲得小程式使用者資訊
    * @param code
    * @param encryptedData
    * @param iv
@@ -230,7 +230,7 @@ export class UserWxService extends BaseService {
   async miniUserInfo(code, encryptedData, iv) {
     const session = await this.miniSession(code);
     if (session.errcode) {
-      throw new CoolCommException('登录失败，请重试');
+      throw new CoolCommException('登入失敗，請重試');
     }
     const info: any = await this.miniDecryptData(
       encryptedData,
@@ -249,7 +249,7 @@ export class UserWxService extends BaseService {
   }
 
   /**
-   * 获得小程序手机
+   * 獲得小程式手機
    * @param code
    * @param encryptedData
    * @param iv
@@ -257,7 +257,7 @@ export class UserWxService extends BaseService {
   async miniPhone(code, encryptedData, iv) {
     const session = await this.miniSession(code);
     if (session.errcode) {
-      throw new CoolCommException('获取手机号失败，请刷新重试');
+      throw new CoolCommException('獲取手機號失敗，請重新整理重試');
     }
     const result = await this.miniDecryptData(
       encryptedData,
@@ -268,7 +268,7 @@ export class UserWxService extends BaseService {
   }
 
   /**
-   * 小程序信息解密
+   * 小程式資訊解密
    * @param encryptedData
    * @param iv
    * @param sessionKey

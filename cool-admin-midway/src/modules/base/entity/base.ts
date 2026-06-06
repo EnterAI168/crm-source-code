@@ -3,7 +3,7 @@ import * as moment from 'moment';
 import { CoolBaseEntity } from '@cool-midway/core';
 
 /**
- * 时间转换器
+ * 時間轉換器
  */
 export const transformerTime = {
   to(value) {
@@ -17,12 +17,12 @@ export const transformerTime = {
 };
 
 /**
- * Json转换器
+ * Json轉換器
  */
 export const transformerJson = {
   to: value => value,
   from: value => {
-    // 确保从数据库返回的是对象
+    // 確保從資料庫返回的是物件
     if (typeof value === 'string') {
       try {
         return JSON.parse(value);
@@ -34,10 +34,10 @@ export const transformerJson = {
   },
 };
 /**
- * 实体基类
+ * 實體基類
  */
 export abstract class BaseEntity extends CoolBaseEntity {
-  // 默认自增
+  // 預設自增
   @PrimaryGeneratedColumn('increment', {
     comment: 'ID',
   })
@@ -45,7 +45,7 @@ export abstract class BaseEntity extends CoolBaseEntity {
 
   @Index()
   @Column({
-    comment: '创建时间',
+    comment: '建立時間',
     type: 'varchar',
     transformer: transformerTime,
   })
@@ -53,13 +53,13 @@ export abstract class BaseEntity extends CoolBaseEntity {
 
   @Index()
   @Column({
-    comment: '更新时间',
+    comment: '更新時間',
     type: 'varchar',
     transformer: transformerTime,
   })
   updateTime: Date;
 
   @Index()
-  @Column({ comment: '租户ID', nullable: true })
+  @Column({ comment: '租戶ID', nullable: true })
   tenantId: number;
 }

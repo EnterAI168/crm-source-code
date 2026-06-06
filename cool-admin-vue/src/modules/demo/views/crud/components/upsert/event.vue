@@ -2,18 +2,18 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>event</el-tag>
-			<span>打开、关闭、提交等事件</span>
+			<span>開啟、關閉、提交等事件</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['upsert/event.vue']" />
 
-			<!-- 自定义表格组件 -->
+			<!-- 自定義表格元件 -->
 			<cl-dialog v-model="visible" title="事件" width="80%">
 				<cl-crud ref="Crud">
 					<cl-row>
-						<!-- 打开新增表单的按钮 -->
+						<!-- 開啟新增表單的按鈕 -->
 						<cl-add-btn />
 					</cl-row>
 
@@ -26,7 +26,7 @@
 						<cl-pagination />
 					</cl-row>
 
-					<!--【很重要】新增、编辑的表单组件 -->
+					<!--【很重要】新增、編輯的表單元件 -->
 					<cl-upsert ref="Upsert" />
 				</cl-crud>
 			</cl-dialog>
@@ -69,7 +69,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			minWidth: 140
 		},
@@ -80,14 +80,14 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '创建时间',
+			label: '建立時間',
 			prop: 'createTime',
 			minWidth: 170,
 			sortable: 'desc'
 		},
 		{
 			type: 'op',
-			// edit 打开编辑表单
+			// edit 開啟編輯表單
 			buttons: ['edit', 'delete']
 		}
 	]
@@ -104,7 +104,7 @@ const Upsert = useUpsert({
 			}
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			component: {
 				name: 'el-input'
@@ -124,19 +124,19 @@ const Upsert = useUpsert({
 		}
 	],
 
-	// 以下事件按顺序触发
+	// 以下事件按順序觸發
 
-	// 弹窗打开的事件，这个时候还未有表单数据
+	// 彈窗開啟的事件，這個時候還未有表單資料
 	onOpen() {
 		console.log('onOpen');
 	},
 
-	// 获取详情，编辑的时候会触发
+	// 獲取詳情，編輯的時候會觸發
 	async onInfo(data, { next, done }) {
-		// 不配置 onInfo 的时候默认执行 next(data)，调用 service 的 info 接口获取详情
+		// 不配置 onInfo 的時候預設執行 next(data)，呼叫 service 的 info 介面獲取詳情
 		// next(data);
 
-		// 自定义，需要对请求数据进行处理或者返回处理后的数据
+		// 自定義，需要對請求資料進行處理或者返回處理後的資料
 		const res = await next({
 			id: data.id
 		});
@@ -147,34 +147,34 @@ const Upsert = useUpsert({
 		});
 	},
 
-	// 弹窗打开后，已经得到了表单数据
+	// 彈窗開啟後，已經得到了表單資料
 	onOpened(data) {
-		// 判定是否编辑模式
+		// 判定是否編輯模式
 		if (Upsert.value?.mode == 'update') {
-			// 对数据处理
+			// 對資料處理
 			data.phone += '000';
 		}
 	},
 
-	// 提交事件的钩子
-	// data 表单提交数据
-	// next 继续往下执行
-	// done 关闭加载
-	// close 关闭弹窗
+	// 提交事件的鉤子
+	// data 表單提交資料
+	// next 繼續往下執行
+	// done 關閉載入
+	// close 關閉彈窗
 	async onSubmit(data, { next, done, close }) {
-		// 不配置 onSubmit 的时候默认执行 next(data)，提交后会去请求 service 的 update/add 接口
+		// 不配置 onSubmit 的時候預設執行 next(data)，提交後會去請求 service 的 update/add 介面
 		// next(data);
 
-		// 自定义如下
-		// 场景1：提交时对参数额外的处理
+		// 自定義如下
+		// 場景1：提交時對參數額外的處理
 		// next({
 		// 	...data,
 		// 	status: 1,
 		// 	createTime: dayjs().format("YYYY-MM-DD")
 		// });
 
-		// 场景2：提交前、后的操作
-		// 之前，模拟获取 userId
+		// 場景2：提交前、後的操作
+		// 之前，模擬獲取 userId
 		const userId = await service.base.sys.user.info({ id: 1 });
 
 		// 返回值
@@ -183,20 +183,20 @@ const Upsert = useUpsert({
 			data
 		});
 
-		// 之后
+		// 之後
 		// console.log(res);
 	},
 
-	// 关闭时触发
+	// 關閉時觸發
 	onClose(action, done) {
-		// action 关闭的类型
+		// action 關閉的型別
 		console.log('action，', action);
 
-		// 使用 done 关闭窗口
+		// 使用 done 關閉視窗
 		done();
 	},
 
-	// 关闭后触发
+	// 關閉後觸發
 	onClosed() {
 		console.log('onClosed');
 	}

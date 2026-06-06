@@ -1,22 +1,22 @@
-# 介绍
+# 介紹
 
-**cool-admin for vue**是基于[Vue.js](https://v3.cn.vuejs.org)开发。
+**cool-admin for vue**是基於[Vue.js](https://v3.cn.vuejs.org)開發。
 
-[cool-admin 官方文档](https://cool-js.com/)
+[cool-admin 官方檔案](https://cool-js.com/)
 
-尝试 `cool-admin` 最简单的方法就是查看文档及运行示例。
+嘗試 `cool-admin` 最簡單的方法就是檢視檔案及執行示例。
 
 <img src='https://vue.cool-admin.com/show/admin.png' />
 
-[Ai极速编码 🔥 在线体验](https://show.cool-admin.com/helper/ai-code)
+[Ai極速編碼 🔥 線上體驗](https://show.cool-admin.com/helper/ai-code)
 
 <img src='https://vue.cool-admin.com/show/code.png' />
 
-## 代码仓库
+## 程式碼倉庫
 
-**cool-admin for vue** 是开源免费的，遵循[MIT](https://baike.baidu.com/item/MIT/10772952)开源协议，意味着您无需支付任何费用，也无需授权，即可将它应用到您的产品中。
+**cool-admin for vue** 是開源免費的，遵循[MIT](https://baike.baidu.com/item/MIT/10772952)開源協議，意味著您無需支付任何費用，也無需授權，即可將它應用到您的產品中。
 
-开源免费，并不意味着您可以将 cool-admin 应用到非法的领域，比如涉及赌博，暴力等方面。如因此产生纠纷等法律问题，`cool-admin`不承担任何责任。
+開源免費，並不意味著您可以將 cool-admin 應用到非法的領域，比如涉及賭博，暴力等方面。如因此產生糾紛等法律問題，`cool-admin`不承擔任何責任。
 
 [https://github.com/cool-team-official/cool-admin-vue](https://github.com/cool-team-official/cool-admin-vue)
 
@@ -24,10 +24,10 @@
 git clone https://github.com/cool-team-official/cool-admin-vue.git
 ```
 
-## 技术选型
+## 技術選型
 
--   [Vue.js](https://v3.cn.vuejs.org)，基础框架；
+-   [Vue.js](https://v3.cn.vuejs.org)，基礎框架；
 -   [VueRouter](https://router.vuejs.org)，Vue.js 官方路由；
--   [Pinia](https://pinia.vuejs.org)，轻量级状态管理库；
--   [ElementPlus](https://element-plus.gitee.io/zh-CN)，桌面端组件库；
--   [Vite](https://vitejs.cn)，构建工具；
+-   [Pinia](https://pinia.vuejs.org)，輕量級狀態管理庫；
+-   [ElementPlus](https://element-plus.gitee.io/zh-CN)，桌面端元件庫；
+-   [Vite](https://vitejs.cn)，構建工具；

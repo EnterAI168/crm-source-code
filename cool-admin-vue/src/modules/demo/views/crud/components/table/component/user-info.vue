@@ -8,7 +8,7 @@
 	</div>
 </template>
 
-<!-- name 必须填写且唯一 -->
+<!-- name 必須填寫且唯一 -->
 <script setup lang="ts">
 defineOptions({
 	name: 'user-info'
@@ -16,7 +16,7 @@ defineOptions({
 
 const props = defineProps({
 	prop: String, // 列配置的 prop
-	scope: null // 列数据
+	scope: null // 列資料
 });
 </script>
 

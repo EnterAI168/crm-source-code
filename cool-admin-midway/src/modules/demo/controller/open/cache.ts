@@ -4,7 +4,7 @@ import { CoolController, BaseController } from '@cool-midway/core';
 import { CachingFactory, MidwayCache } from '@midwayjs/cache-manager';
 
 /**
- * 缓存
+ * 快取
  */
 @CoolController()
 export class OpenDemoCacheController extends BaseController {
@@ -15,22 +15,22 @@ export class OpenDemoCacheController extends BaseController {
   demoCacheService: DemoCacheService;
 
   /**
-   * 设置缓存
+   * 設定快取
    * @returns
    */
-  @Post('/set', { summary: '设置缓存' })
+  @Post('/set', { summary: '設定快取' })
   async set() {
     await this.midwayCache.set('a', 1);
-    // 缓存10秒
+    // 快取10秒
     await this.midwayCache.set('a', 1, 10 * 1000);
     return this.ok(await this.midwayCache.get('a'));
   }
 
   /**
-   * 获得缓存
+   * 獲得快取
    * @returns
    */
-  @Get('/get', { summary: '获得缓存' })
+  @Get('/get', { summary: '獲得快取' })
   async get() {
     return this.ok(await this.demoCacheService.get());
   }

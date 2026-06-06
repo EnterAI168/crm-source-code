@@ -6,26 +6,26 @@ import { Column, Index, Entity } from 'typeorm';
  */
 @Entity('base_sys_role')
 export class BaseSysRoleEntity extends BaseEntity {
-  @Column({ comment: '用户ID' })
+  @Column({ comment: '使用者ID' })
   userId: string;
 
   @Index({ unique: true })
-  @Column({ comment: '名称' })
+  @Column({ comment: '名稱' })
   name: string;
 
   @Index({ unique: true })
-  @Column({ comment: '角色标签', nullable: true, length: 50 })
+  @Column({ comment: '角色標籤', nullable: true, length: 50 })
   label: string;
 
-  @Column({ comment: '备注', nullable: true })
+  @Column({ comment: '備註', nullable: true })
   remark: string;
 
-  @Column({ comment: '数据权限是否关联上下级', default: false })
+  @Column({ comment: '資料權限是否關聯上下級', default: false })
   relevance: boolean;
 
-  @Column({ comment: '菜单权限', type: 'json', transformer: transformerJson })
+  @Column({ comment: '選單權限', type: 'json', transformer: transformerJson })
   menuIdList: number[];
 
-  @Column({ comment: '部门权限', type: 'json', transformer: transformerJson })
+  @Column({ comment: '部門權限', type: 'json', transformer: transformerJson })
   departmentIdList: number[];
 }

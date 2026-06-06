@@ -4,6 +4,6 @@ export default {
 	// 根地址
 	host,
 
-	// 请求地址
+	// 請求地址
 	baseUrl: `/${value}`
 };

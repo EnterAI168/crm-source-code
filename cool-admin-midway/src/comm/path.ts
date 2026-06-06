@@ -4,7 +4,7 @@ import * as md5 from 'md5';
 import * as fs from 'fs';
 
 /**
- * 获得配置文件中的 keys
+ * 獲得配置檔案中的 keys
  * @returns
  */
 const getKeys = () => {
@@ -15,7 +15,7 @@ const getKeys = () => {
 };
 
 /**
- * 项目数据目录
+ * 專案資料目錄
  * @returns
  */
 export const pDataPath = () => {
@@ -27,7 +27,7 @@ export const pDataPath = () => {
 };
 
 /**
- * 上传目录
+ * 上傳目錄
  * @returns
  */
 export const pUploadPath = () => {
@@ -39,7 +39,7 @@ export const pUploadPath = () => {
 };
 
 /**
- * 插件目录
+ * 外掛目錄
  * @returns
  */
 export const pPluginPath = () => {
@@ -51,14 +51,14 @@ export const pPluginPath = () => {
 };
 
 /**
- * sqlite 数据库文件
+ * sqlite 資料庫檔案
  */
 export const pSqlitePath = () => {
   return path.join(pDataPath(), 'cool.sqlite');
 };
 
 /**
- * 缓存目录
+ * 快取目錄
  * @returns
  */
 export const pCachePath = () => {

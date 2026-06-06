@@ -8,30 +8,30 @@ export default defineComponent({
 	name: "cl-upsert",
 
 	props: {
-		// 表单项
+		// 表單項
 		items: {
 			type: Array,
 			default: () => []
 		},
-		// <el-form /> 参数
+		// <el-form /> 參數
 		props: Object,
-		// 编辑时是否同步打开
+		// 編輯時是否同步開啟
 		sync: Boolean,
-		// 操作按钮参数
+		// 操作按鈕參數
 		op: Object,
-		// <cl-dialog /> 参数
+		// <cl-dialog /> 參數
 		dialog: Object,
-		// 打开表单钩子
+		// 開啟表單鉤子
 		onOpen: Function,
-		// 打开表单后钩子
+		// 開啟表單後鉤子
 		onOpened: Function,
-		// 关闭表单钩子
+		// 關閉表單鉤子
 		onClose: Function,
-		// 关闭表单后钩子
+		// 關閉表單後鉤子
 		onClosed: Function,
-		// 获取表单数据钩子
+		// 獲取表單資料鉤子
 		onInfo: Function,
-		// 表单提交钩子
+		// 表單提交鉤子
 		onSubmit: Function
 	},
 
@@ -50,12 +50,12 @@ export default defineComponent({
 		// 模式
 		const mode = ref<ClUpsert.Ref["mode"]>("info");
 
-		// 关闭表单
+		// 關閉表單
 		function close(action?: ClForm.CloseAction) {
 			Form.value?.close(action);
 		}
 
-		// 关闭后
+		// 關閉後
 		function onClosed() {
 			Form.value?.hideLoading();
 
@@ -64,7 +64,7 @@ export default defineComponent({
 			}
 		}
 
-		// 关闭前
+		// 關閉前
 		function beforeClose(action: ClForm.CloseAction, done: fn) {
 			function next() {
 				done();
@@ -88,7 +88,7 @@ export default defineComponent({
 
 			function next(data: obj) {
 				return new Promise((resolve, reject) => {
-					// 发送请求
+					// 發送請求
 					service[dict.api[mode.value]](data)
 						.then((res) => {
 							ElMessage.success(dict.label.saveSuccess);
@@ -105,7 +105,7 @@ export default defineComponent({
 				});
 			}
 
-			// 提交钩子
+			// 提交鉤子
 			if (config.onSubmit) {
 				config.onSubmit(data, {
 					done,
@@ -119,9 +119,9 @@ export default defineComponent({
 			}
 		}
 
-		// 打开表单
+		// 開啟表單
 		function open() {
-			// 是否禁用
+			// 是否停用
 			const isDisabled = mode.value == "info";
 
 			return new Promise((resolve) => {
@@ -163,7 +163,7 @@ export default defineComponent({
 			});
 		}
 
-		// 打开后事件
+		// 開啟後事件
 		function onOpened() {
 			const data = Form.value?.getForm();
 
@@ -176,10 +176,10 @@ export default defineComponent({
 		async function add() {
 			mode.value = "add";
 
-			// 打开中
+			// 開啟中
 			await open();
 
-			// 打开后
+			// 開啟後
 			onOpened();
 		}
 
@@ -187,51 +187,51 @@ export default defineComponent({
 		async function append(data: any) {
 			mode.value = "add";
 
-			// 打开中
+			// 開啟中
 			await open();
 
-			// 绑定值
+			// 繫結值
 			if (data) {
 				Form.value?.bindForm(data);
 			}
 
-			// 打开后
+			// 開啟後
 			onOpened();
 		}
 
-		// 编辑
+		// 編輯
 		function edit(data?: any) {
 			mode.value = "update";
 			getInfo(data);
 		}
 
-		// 详情
+		// 詳情
 		function info(data?: any) {
 			mode.value = "info";
 			getInfo(data);
 		}
 
-		// 信息
+		// 資訊
 		function getInfo(data: any) {
-			// 显示加载中
+			// 顯示載入中
 			Form.value?.showLoading();
 
-			// 是否同步打开
+			// 是否同步開啟
 			if (!config.sync) {
 				open();
 			}
 
 			// 完成
 			async function done(data?: any) {
-				// 加载完成
+				// 載入完成
 				Form.value?.hideLoading();
 
-				// 合并数据
+				// 合併資料
 				if (data) {
 					Form.value?.bindForm(data);
 				}
 
-				// 同步打开表单
+				// 同步開啟表單
 				if (config.sync) {
 					await open();
 				}
@@ -239,10 +239,10 @@ export default defineComponent({
 				onOpened();
 			}
 
-			// 获取详情
+			// 獲取詳情
 			function next(data: any): Promise<any> {
 				return new Promise(async (resolve, reject) => {
-					// 发送请求
+					// 發送請求
 					await crud.service[crud.dict.api.info]({
 						[crud.dict.primaryId]: data[crud.dict.primaryId]
 					})
@@ -255,12 +255,12 @@ export default defineComponent({
 							reject(err);
 						});
 
-					// 隐藏加载框
+					// 隱藏載入框
 					Form.value?.hideLoading();
 				});
 			}
 
-			// 详情钩子
+			// 詳情鉤子
 			if (config.onInfo) {
 				config.onInfo(data, {
 					close,

@@ -21,7 +21,7 @@ import { Utils } from '../../../comm/utils';
 import { CoolUrlTagData, TagTypes } from '@cool-midway/core';
 
 /**
- * 不操作租户
+ * 不操作租戶
  * @param ctx
  * @param func
  */
@@ -51,13 +51,13 @@ export class TenantSubscriber implements EntitySubscriberInterface<any> {
 
   @Config('cool.tenant')
   tenant: {
-    // 是否开启多租户
+    // 是否開啟多租戶
     enable: boolean;
-    // 需要过滤多租户的url
+    // 需要過濾多租戶的url
     urls: string[];
   };
 
-  // 系统接口不过滤
+  // 系統介面不過濾
   ignoreUrls = [
     '/admin/base/open/login',
     '/admin/base/comm/person',
@@ -65,14 +65,14 @@ export class TenantSubscriber implements EntitySubscriberInterface<any> {
     '/admin/dict/info/data',
   ];
 
-  // 不进行租户过滤的用户
+  // 不進行租戶過濾的使用者
   ignoreUsername = [];
 
   @Inject()
   utils: Utils;
 
   /**
-   * 获取所有忽略的url
+   * 獲取所有忽略的url
    */
   getAllIgnoreUrls() {
     const adminIgnoreUrls = this.coolUrlTagData.byKey(
@@ -94,7 +94,7 @@ export class TenantSubscriber implements EntitySubscriberInterface<any> {
   }
 
   /**
-   * 检查是否需要租户
+   * 檢查是否需要租戶
    */
   checkHandler() {
     const ctx = this.getCtx();
@@ -111,7 +111,7 @@ export class TenantSubscriber implements EntitySubscriberInterface<any> {
   }
 
   /**
-   * 获取ctx
+   * 獲取ctx
    */
   getCtx(): any {
     try {
@@ -125,7 +125,7 @@ export class TenantSubscriber implements EntitySubscriberInterface<any> {
   }
 
   /**
-   * 从登录的用户中获取租户ID
+   * 從登入的使用者中獲取租戶ID
    * @returns string | undefined
    */
   getTenantId(): number | undefined {
@@ -133,11 +133,11 @@ export class TenantSubscriber implements EntitySubscriberInterface<any> {
     ctx = this.getCtx();
     if (!ctx || !this.checkHandler()) return undefined;
     url = ctx?.url;
-    // 忽略用户
+    // 忽略使用者
     if (this.ignoreUsername.includes(ctx?.admin?.username)) {
       return undefined;
     }
-    // 忽略系统接口
+    // 忽略系統介面
     if (
       this.getAllIgnoreUrls().some(pattern => this.utils.matchUrl(pattern, url))
     ) {
@@ -155,7 +155,7 @@ export class TenantSubscriber implements EntitySubscriberInterface<any> {
   }
 
   /**
-   * 查询时添加租户ID条件
+   * 查詢時新增租戶ID條件
    * @param queryBuilder
    */
   afterSelectQueryBuilder(queryBuilder: SelectQueryBuilder<any>) {
@@ -171,7 +171,7 @@ export class TenantSubscriber implements EntitySubscriberInterface<any> {
   }
 
   /**
-   * 插入时添加租户ID
+   * 插入時新增租戶ID
    * @param queryBuilder
    */
   afterInsertQueryBuilder(queryBuilder: InsertQueryBuilder<any>) {
@@ -188,7 +188,7 @@ export class TenantSubscriber implements EntitySubscriberInterface<any> {
   }
 
   /**
-   * 更新时添加租户ID和条件
+   * 更新時新增租戶ID和條件
    * @param queryBuilder
    */
   afterUpdateQueryBuilder(queryBuilder: UpdateQueryBuilder<any>) {
@@ -200,7 +200,7 @@ export class TenantSubscriber implements EntitySubscriberInterface<any> {
   }
 
   /**
-   * 删除时添加租户ID和条件
+   * 刪除時新增租戶ID和條件
    * @param queryBuilder
    */
   afterDeleteQueryBuilder(queryBuilder: DeleteQueryBuilder<any>) {

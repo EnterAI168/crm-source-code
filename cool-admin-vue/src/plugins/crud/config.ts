@@ -6,7 +6,7 @@ import { Plugins } from './plugins';
 import { Crud, locale } from '@cool-vue/crud';
 import '@cool-vue/crud/dist/index.css';
 
-// 调试、自定义crud
+// 除錯、自定義crud
 // import { Crud, locale } from '/~/crud/src';
 // import '/~/crud/src/static/index.scss';
 
@@ -14,51 +14,51 @@ export default (): Merge<ModuleConfig, CrudOptions> => {
 	return {
 		order: 99,
 
-		// 组件全注册
+		// 元件全註冊
 		components: Object.values(import.meta.glob('./components/**/*.{vue,tsx}')),
 
-		// 配置参数，具体配置点 CrudOptions 查看
+		// 配置參數，具體配置點 CrudOptions 檢視
 		options: {
 			style: {
 				table: {
-					// 插件列表
+					// 外掛列表
 					plugins: []
 
-					// 右键菜单，为空则关闭
+					// 右鍵選單，為空則關閉
 					// contextMenu: []
 				},
 				form: {
 					labelPosition: 'top',
-					// 插件列表
+					// 外掛列表
 					plugins: [
-						// 自动聚焦插件
+						// 自動聚焦外掛
 						Plugins.Form.setFocus()
 					]
 				},
 				search: {
-					// 插件列表
+					// 外掛列表
 					plugins: [
-						// 自动添加搜索组件
+						// 自動新增搜尋元件
 						Plugins.Search.setAuto()
 					]
 				}
 			},
 			dict: {
-				// 排序字段
+				// 排序欄位
 				sort: {
 					prop: 'order',
 					order: 'sort'
 				},
-				// 按钮及提示文案
+				// 按鈕及提示文案
 				label: locale[config.i18n.locale]
 			}
 		},
 
-		// 安装
+		// 安裝
 		install: Crud.install,
 
 		label: 'CRUD',
-		description: '快速增删改查及一系列辅助组件',
+		description: '快速增刪改查及一系列輔助元件',
 		author: 'COOL',
 		version: '1.1.2',
 		updateTime: '2024-12-31',

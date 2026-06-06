@@ -27,7 +27,7 @@ const props = defineProps({
 
 const { route, router } = useCool();
 
-// 标题
+// 標題
 const title = computed(() => props.title || route.query.title);
 </script>
 

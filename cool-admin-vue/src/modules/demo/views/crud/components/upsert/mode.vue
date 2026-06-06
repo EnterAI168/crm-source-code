@@ -2,18 +2,18 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>mode</el-tag>
-			<span>新增、编辑、详情模式</span>
+			<span>新增、編輯、詳情模式</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['upsert/mode.vue']" />
 
-			<!-- 自定义表格组件 -->
+			<!-- 自定義表格元件 -->
 			<cl-dialog v-model="visible" title="不同模式" width="80%">
 				<cl-crud ref="Crud">
 					<cl-row>
-						<!-- 打开新增表单的按钮 -->
+						<!-- 開啟新增表單的按鈕 -->
 						<cl-add-btn />
 					</cl-row>
 
@@ -26,7 +26,7 @@
 						<cl-pagination />
 					</cl-row>
 
-					<!--【很重要】新增、编辑的表单组件 -->
+					<!--【很重要】新增、編輯的表單元件 -->
 					<cl-upsert ref="Upsert" />
 				</cl-crud>
 			</cl-dialog>
@@ -68,7 +68,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			minWidth: 140
 		},
@@ -79,7 +79,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '创建时间',
+			label: '建立時間',
 			prop: 'createTime',
 			minWidth: 170,
 			sortable: 'desc'
@@ -102,19 +102,19 @@ const Upsert = useUpsert({
 				name: 'el-input'
 			}
 		},
-		//【很重要】只有返回方法的时候才能使用 Upsert
+		//【很重要】只有返回方法的時候才能使用 Upsert
 		() => {
 			return {
-				label: '手机号',
+				label: '手機號',
 				prop: 'phone',
 
-				// 新增的时候隐藏
+				// 新增的時候隱藏
 				// hidden: Upsert.value?.mode == "add",
 
 				component: {
 					name: 'el-input',
 					props: {
-						// 编辑的时候禁用
+						// 編輯的時候停用
 						disabled: Upsert.value?.mode == 'update'
 					}
 				}
@@ -134,7 +134,7 @@ const Upsert = useUpsert({
 		}
 	],
 	onOpen() {
-		ElMessage.info(`当前模式：` + Upsert.value?.mode);
+		ElMessage.info(`當前模式：` + Upsert.value?.mode);
 	}
 });
 

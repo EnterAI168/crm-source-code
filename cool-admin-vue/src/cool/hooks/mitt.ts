@@ -3,7 +3,7 @@ import { hmr } from './hmr';
 
 export const mitt: Emitter<any> = hmr.getData('mitt', Mitt());
 
-// 返回 mitt 实例，用于在应用中进行事件的发布和订阅
+// 返回 mitt 例項，用於在應用中進行事件的釋出和訂閱
 export function useMitt() {
 	return mitt;
 }

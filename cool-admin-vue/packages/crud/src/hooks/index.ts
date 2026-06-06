@@ -36,7 +36,7 @@ export function useProxy(ctx: any) {
 	const { type }: any = getCurrentInstance();
 	const { mitt, crud } = useCore();
 
-	// 挂载
+	// 掛載
 	crud[type.name] = ctx;
 
 	// 事件

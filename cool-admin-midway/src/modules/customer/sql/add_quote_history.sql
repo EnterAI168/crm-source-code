@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS `crm_quote_order_history` (
+  `id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `createTime` varchar(255) NOT NULL COMMENT '建立時間',
+  `updateTime` varchar(255) NOT NULL COMMENT '更新時間',
+  `tenantId` int DEFAULT NULL COMMENT '租戶ID',
+  `quoteOrderId` int NOT NULL COMMENT '報價單ID',
+  `quoteNo` varchar(50) DEFAULT NULL COMMENT '報價單編號',
+  `quoteName` varchar(100) DEFAULT NULL COMMENT '報價單專案',
+  `stageNo` int NOT NULL DEFAULT 1 COMMENT '付款階段',
+  `stageName` varchar(100) DEFAULT NULL COMMENT '階段名稱',
+  `amount` decimal(12,2) NOT NULL DEFAULT 0.00 COMMENT '金額',
+  `remark` varchar(255) DEFAULT NULL COMMENT '備註',
+  `snapshot` json DEFAULT NULL COMMENT '快照資料',
+  `isDeleted` tinyint NOT NULL DEFAULT 0 COMMENT '邏輯刪除 0-否 1-是',
+  PRIMARY KEY (`id`),
+  KEY `IDX_crm_quote_order_history_createTime` (`createTime`),
+  KEY `IDX_crm_quote_order_history_updateTime` (`updateTime`),
+  KEY `IDX_crm_quote_order_history_tenantId` (`tenantId`),
+  KEY `IDX_crm_quote_order_history_quoteOrderId` (`quoteOrderId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='報價單歷史記錄';

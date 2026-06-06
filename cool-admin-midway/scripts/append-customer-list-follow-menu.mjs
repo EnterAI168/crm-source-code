@@ -1,11 +1,11 @@
 /**
- * 在「客户列表」菜单下补充「跟进记录」按钮权限（crm:customerList:follow）。
- * 适用于菜单已存在但库中缺少该子权限的情况（initMenu 不会自动补全子节点）。
+ * 在「客戶列表」選單下補充「跟進記錄」按鈕許可權（crm:customerList:follow）。
+ * 適用於選單已存在但庫中缺少該子許可權的情況（initMenu 不會自動補全子節點）。
  *
- * 用法（在 cool-admin-midway 目录）：
+ * 用法（在 cool-admin-midway 目錄）：
  *   node scripts/append-customer-list-follow-menu.mjs
  *
- * 环境变量：MYSQL_HOST MYSQL_PORT MYSQL_USER MYSQL_PASSWORD MYSQL_DATABASE
+ * 環境變數：MYSQL_HOST MYSQL_PORT MYSQL_USER MYSQL_PASSWORD MYSQL_DATABASE
  */
 
 import mysql from 'mysql2/promise';
@@ -34,7 +34,7 @@ async function main() {
       ['/crm/customer/list']
     );
     if (!listMenu) {
-      console.error('未找到「客户列表」菜单 (router=/crm/customer/list, type=1)。');
+      console.error('未找到「客戶列表」選單 (router=/crm/customer/list, type=1)。');
       process.exitCode = 1;
       return;
     }
@@ -45,7 +45,7 @@ async function main() {
       [listId, PERMS]
     );
     if (exists) {
-      console.log('「跟进记录」权限已存在 (id=%s)，跳过。', exists.id);
+      console.log('「跟進記錄」許可權已存在 (id=%s)，跳過。', exists.id);
       return;
     }
 
@@ -54,10 +54,10 @@ async function main() {
       `INSERT INTO base_sys_menu
         (createTime, updateTime, tenantId, parentId, name, router, perms, type, icon, orderNum, viewPath, keepAlive, isShow)
        VALUES (?, ?, NULL, ?, ?, NULL, ?, 2, NULL, 3, NULL, 0, 0)`,
-      [t, t, listId, '跟进记录', PERMS]
+      [t, t, listId, '跟進記錄', PERMS]
     );
     console.log(
-      '已写入「跟进记录」权限 (parentId=%s, perms=%s)。请在角色权限中勾选后刷新页面。',
+      '已寫入「跟進記錄」許可權 (parentId=%s, perms=%s)。請在角色許可權中勾選後重新整理頁面。',
       listId,
       PERMS
     );

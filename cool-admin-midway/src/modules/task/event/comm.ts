@@ -4,7 +4,7 @@ import { TaskInfoService } from '../service/info';
 import { TaskLocalService } from '../service/local';
 
 /**
- * 应用事件
+ * 應用事件
  */
 @CoolEvent()
 export class TaskCommEvent {

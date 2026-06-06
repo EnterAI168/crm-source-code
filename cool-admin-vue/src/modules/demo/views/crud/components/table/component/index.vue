@@ -2,15 +2,15 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>component</el-tag>
-			<span>组件渲染</span>
+			<span>元件渲染</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['table/component/index.vue']" />
 
-			<!-- 自定义表格组件 -->
-			<cl-dialog v-model="visible" title="组件渲染" width="80%">
+			<!-- 自定義表格元件 -->
+			<cl-dialog v-model="visible" title="元件渲染" width="80%">
 				<cl-crud ref="Crud">
 					<cl-row>
 						<cl-table ref="Table"></cl-table>
@@ -62,22 +62,22 @@ const Table = useTable({
 			prop: 'name',
 			minWidth: 140,
 
-			//【很重要】组件实例方式渲染
+			//【很重要】元件例項方式渲染
 			component: {
 				vm: UserInfo
 			}
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			minWidth: 140,
 
-			//【很重要】组件名方式渲染
+			//【很重要】元件名方式渲染
 			component: {
-				// 组件名，组件必须全局注册了
+				// 元件名，元件必須全域性註冊了
 				name: 'el-input',
 
-				// 传入参数
+				// 傳入參數
 				props: {
 					onChange(val) {
 						ElMessage.info(val);
@@ -92,7 +92,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '创建时间',
+			label: '建立時間',
 			prop: 'createTime',
 			minWidth: 170,
 			sortable: 'desc'

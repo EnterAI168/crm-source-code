@@ -7,25 +7,16 @@
 		<cl-row>
 			<cl-add-btn />
 			<cl-multi-delete-btn />
-			<el-button v-if="canImport" type="primary" @click="openImport">导入</el-button>
-			<el-button link type="primary" @click="downloadTpl">下载导入模板</el-button>
-			<input
-				ref="fileRef"
-				type="file"
-				accept=".xlsx,.xls"
-				style="display: none"
-				@change="onFile"
-			/>
+			<el-button v-if="canImport" type="primary" @click="openImport">匯入</el-button>
 			<cl-flex1 />
-			<cl-search-key placeholder="关键字" />
 		</cl-row>
 
 		<cl-row>
 			<cl-table ref="Table">
 				<template #column-companyInfo="{ scope }">
-					<div class="crm-pool-block">
+					<!-- <div class="crm-pool-card"> -->
 						<div class="crm-pool-line">
-							<span class="crm-pool-k">公司名称：</span>
+							<span class="crm-pool-k">公司名稱：</span>
 							<span class="crm-pool-v">{{ scope.row.companyName || '—' }}</span>
 						</div>
 						<div class="crm-pool-line">
@@ -33,30 +24,53 @@
 							<span class="crm-pool-v">{{ scope.row.address || '—' }}</span>
 						</div>
 						<div class="crm-pool-line">
-							<span class="crm-pool-k">统一编号：</span>
+							<span class="crm-pool-k">統一編號：</span>
 							<span class="crm-pool-v">{{ scope.row.taxNumber || '—' }}</span>
 						</div>
 						<div class="crm-pool-line">
-							<span class="crm-pool-k">汇款本公司：</span>
+							<span class="crm-pool-k">匯款本公司：</span>
 							<span class="crm-pool-v">{{ scope.row.remittanceLast5 || '—' }}</span>
 						</div>
-					</div>
-				</template>
-				<template #column-contactInfo="{ scope }">
-					<div class="crm-pool-block">
 						<div class="crm-pool-line">
-							<span class="crm-pool-k">联系人：</span>
+							<span class="crm-pool-k">廣告投放：</span>
+							<span class="crm-pool-v">{{ getAdCustomerLabel(scope.row) }}</span>
+						</div>
+					<!-- </div> -->
+				</template>
+
+				<template #column-contactInfo="{ scope }">
+					<!-- <div class="crm-pool-card crm-pool-card--light"> -->
+						<div class="crm-pool-line">
+							<span class="crm-pool-k">聯絡人：</span>
 							<span class="crm-pool-v">{{ scope.row.contactName || '—' }}</span>
 						</div>
 						<div class="crm-pool-line">
-							<span class="crm-pool-k">手机号：</span>
+							<span class="crm-pool-k">手機號：</span>
 							<span class="crm-pool-v">{{ scope.row.mobile || '—' }}</span>
 						</div>
 						<div class="crm-pool-line">
-							<span class="crm-pool-k">邮箱：</span>
+							<span class="crm-pool-k">郵箱：</span>
 							<span class="crm-pool-v">{{ scope.row.email || '—' }}</span>
 						</div>
-					</div>
+					<!-- </div> -->
+				</template>
+
+				<template #column-level="{ scope }">
+					<el-tag :type="scope.row.isVip ? 'warning' : 'info'" effect="light" round>
+						{{ getLevelLabel(scope.row) }}
+					</el-tag>
+				</template>
+
+				<template #column-dealCount="{ scope }">
+					<span class="crm-pool-stat">{{ toNumber(scope.row.dealCount) }}</span>
+				</template>
+
+				<template #column-dealAmount="{ scope }">
+					<span class="crm-pool-stat">{{ toMoney(scope.row.dealAmount) }}</span>
+				</template>
+
+				<template #column-createTime="{ scope }">
+					<span class="crm-pool-time">{{ scope.row.createTime || '—' }}</span>
 				</template>
 			</cl-table>
 		</cl-row>
@@ -69,27 +83,43 @@
 		<cl-upsert ref="Upsert" />
 	</cl-crud>
 
-	<el-dialog v-model="assignVisible" title="分配业务员" width="420px" destroy-on-close>
+	<el-dialog v-model="importDialogVisible" title="匯入客戶公池" width="520px">
+		<div class="crm-import-dialog">
+			<div class="crm-import-dialog__tip">
+				請先下載匯入模板，按模板填寫客戶資料後選擇 Excel 檔案匯入。
+			</div>
+			<div class="crm-import-dialog__actions">
+				<el-button type="primary" plain @click="downloadTpl">下載匯入模板</el-button>
+				<el-button type="primary" :loading="importing" @click="selectImportFile">
+					選擇檔案匯入
+				</el-button>
+			</div>
+			<input
+				ref="fileRef"
+				type="file"
+				accept=".xlsx,.xls"
+				style="display: none"
+				@change="onFile"
+			/>
+		</div>
+	</el-dialog>
+
+	<el-dialog v-model="assignVisible" title="分配業務員" width="420px" destroy-on-close>
 		<el-form label-width="100px">
-			<el-form-item label="业务员" required>
-				<el-select
-					v-model="assignForm.salesmanId"
-					filterable
-					placeholder="请选择业务员"
-					style="width: 100%"
-				>
+			<el-form-item label="業務員" required>
+				<el-select v-model="assignForm.salesmanId" filterable placeholder="請選擇業務員" style="width: 100%">
 					<el-option
-						v-for="u in userOptions"
-						:key="u.id"
-						:label="`${u.name || u.nickName || ''} (${u.username})`"
-						:value="u.id"
+						v-for="user in userOptions"
+						:key="user.id"
+						:label="`${user.name || ''} (${user.username})`"
+						:value="user.id"
 					/>
 				</el-select>
 			</el-form-item>
 		</el-form>
 		<template #footer>
 			<el-button @click="assignVisible = false">取消</el-button>
-			<el-button type="primary" @click="submitAssign">确定</el-button>
+			<el-button type="primary" @click="submitAssign">確定</el-button>
 		</template>
 	</el-dialog>
 </template>
@@ -103,47 +133,78 @@ import { ElMessage } from 'element-plus';
 import * as XLSX from 'xlsx';
 import { checkPerm } from '/$/base';
 import { useCrmIndustryDict } from '../utils/industryDict';
+import { useCrmCustomerStatusDict } from '../utils/statusDict';
 import CustomerPoolService from '../service/pool';
 import {
 	customerEmailRules,
-	customerMobileRules,
-	validateCustomerImportContact
+	EMAIL_PATTERN,
+	validateCustomerImportContact,
+	validateCustomerImportRequired
 } from '../utils/validate';
 
 const customerPool = new CustomerPoolService();
-
-const { options: industryOptions, tableDict: industryTableDict } = useCrmIndustryDict();
+const { options: industryOptions } = useCrmIndustryDict();
+const { options: customerStatusOptions } = useCrmCustomerStatusDict();
 
 const Crud = useCrud({ service: customerPool }, app => app.refresh());
 
-const poolSearchItems = computed(() => {
-	const items: any[] = [
-		{ label: '公司名称', prop: 'companyName', component: { name: 'el-input' } },
-		{ label: '客户名称', prop: 'contactName', component: { name: 'el-input' } },
-		{ label: '手机号', prop: 'mobile', component: { name: 'el-input' } },
-		{
-			label: '邮箱',
-			prop: 'email',
-			component: { name: 'el-input', props: { clearable: true, placeholder: '请输入' } }
-		},
-		{
-			label: '行业',
-			prop: 'industry',
-			component: {
-				name: 'cl-select',
-				props: {
-					clearable: true,
-					placeholder: '请选择',
-					options: industryOptions
-				}
+const poolSearchItems = computed(() => [
+	{
+		label: '客戶名稱',
+		prop: 'contactName',
+		component: {
+			name: 'el-input',
+			props: { clearable: true, placeholder: '請輸入客戶名稱' }
+		}
+	},
+	{
+		label: '狀態',
+		prop: 'status',
+		component: {
+			name: 'cl-select',
+			props: {
+				clearable: true,
+				placeholder: '請選擇狀態',
+				options: customerStatusOptions
 			}
 		}
-	];
-	return items;
-});
+	},
+	{
+		label: '手機號',
+		prop: 'mobile',
+		component: {
+			name: 'el-input',
+			props: { clearable: true, placeholder: '請輸入手機號' }
+		}
+	},
+	{
+		label: '郵箱',
+		prop: 'email',
+		component: {
+			name: 'el-input',
+			props: { clearable: true, placeholder: '請輸入郵箱' }
+		}
+	},
+	{
+		label: '是否廣告投放客戶',
+		prop: 'isAdCustomer',
+		component: {
+			name: 'cl-select',
+			props: {
+				clearable: true,
+				placeholder: '請選擇',
+				options: [
+					{ label: '是', value: 1 },
+					{ label: '否', value: 0 }
+				]
+			}
+		}
+	}
+]);
 
 const canAssign = computed(() => checkPerm('crm:customerPool:assignSalesman'));
 const canImport = computed(() => checkPerm('crm:customerPool:import'));
+const canSendMail = computed(() => checkPerm('crm:customerPool:sendMail'));
 
 const assignVisible = ref(false);
 const assignForm = ref<{ id: number | null; salesmanId: number | undefined }>({
@@ -152,49 +213,80 @@ const assignForm = ref<{ id: number | null; salesmanId: number | undefined }>({
 });
 const userOptions = ref<any[]>([]);
 const fileRef = ref<HTMLInputElement | null>(null);
-const currentRow = ref<any>(null);
+const importDialogVisible = ref(false);
+const importing = ref(false);
+const sendingMail = ref(false);
 
 useTable({
 	columns: [
 		{ type: 'selection' },
 		{
-			label: '公司信息',
+			label: '公司資訊',
 			prop: 'companyInfo',
-			minWidth: 300,
+			minWidth: 320,
 			align: 'left'
 		},
 		{
-			label: '联系人信息',
+			label: '聯絡人資訊',
 			prop: 'contactInfo',
 			minWidth: 260,
 			align: 'left'
 		},
 		{
-			label: '行业',
-			prop: 'industry',
-			minWidth: 100,
-			dict: industryTableDict
+			label: '等級',
+			prop: 'level',
+			width: 100,
+			align: 'center'
 		},
-		{ label: '备注', prop: 'remark', minWidth: 140, showOverflowTooltip: true },
-		{ label: '创建时间', prop: 'createTime', minWidth: 160 },
+		{
+			label: '累計成交次數',
+			prop: 'dealCount',
+			width: 110,
+			align: 'center'
+		},
+		{
+			label: '累計成交金額',
+			prop: 'dealAmount',
+			width: 110,
+			align: 'center'
+		},
+		{
+			label: '備註',
+			prop: 'remark',
+			minWidth: 150,
+			showOverflowTooltip: true
+		},
+		{
+			label: '建立時間',
+			prop: 'createTime',
+			minWidth: 180,
+			showOverflowTooltip: true
+		},
 		{
 			type: 'op',
-			width: 360,	
-			buttons: () => {
-				const btns: any[] = ['edit', 'delete'];
-				if (canAssign.value) {
-					btns.push({
-						label: '分配业务员',
-						type: 'primary',
-						onClick({ scope }: { scope: any }) {
-							currentRow.value = scope.row;
-							assignForm.value = { id: scope.row.id, salesmanId: undefined };
-							assignVisible.value = true;
-						}
-					});
+			width: 320,
+			fixed: 'right',
+			buttons: ({ scope }) => [
+				{
+					label: '分配',
+					type: 'primary',
+					hidden: !canAssign.value,
+					onClick() {
+						assignForm.value = { id: scope.row.id, salesmanId: undefined };
+						assignVisible.value = true;
+					}
+				},
+				'edit',
+				'delete',
+				{
+					label: '發送郵件',
+					type: 'success',
+					hidden: !canSendMail.value,
+					onClick() {
+						sendMail(scope.row);
+					}
 				}
-				return btns;
-			}
+			]
 		}
 	]
 });
@@ -203,64 +295,73 @@ useUpsert({
 	dialog: { width: '720px' },
 	props: { labelWidth: '110px' },
 	items: [
-		sectionDivider('公司信息', '_secCo'),
+		sectionDivider('公司資訊', '_secCo'),
 		{
-			label: '公司名称',
+			label: '公司名稱',
 			prop: 'companyName',
 			required: true,
-			component: { name: 'el-input', props: { clearable: true, placeholder: '请输入公司名称' } }
+			component: { name: 'el-input', props: { clearable: true, placeholder: '請輸入公司名稱' } }
 		},
 		{
 			label: '地址',
 			prop: 'address',
 			required: true,
-			component: { name: 'el-input', props: { clearable: true, placeholder: '请输入地址' } }
+			component: { name: 'el-input', props: { clearable: true, placeholder: '請輸入地址' } }
 		},
 		{
-			label: '统一编号',
+			label: '統一編號',
 			prop: 'taxNumber',
 			required: true,
-			component: { name: 'el-input', props: { clearable: true, placeholder: '请输入统一编号' } }
+			component: { name: 'el-input', props: { clearable: true, placeholder: '請輸入統一編號' } }
 		},
 		{
-			label: '汇款本公司',
+			label: '匯款本公司',
 			prop: 'remittanceLast5',
 			required: true,
-			component: { name: 'el-input', props: { clearable: true, placeholder: '请输入汇款本公司' } }
+			component: { name: 'el-input', props: { clearable: true, placeholder: '請輸入匯款本公司' } }
 		},
-		sectionDivider('联系人信息', '_secCt'),
 		{
-			label: '客户名称',
+			label: '是否廣告投放客戶',
+			prop: 'isAdCustomer',
+			value: 0,
+			component: {
+				name: 'el-switch',
+				props: { activeValue: 1, inactiveValue: 0 }
+			}
+		},
+		sectionDivider('聯絡人資訊', '_secCt'),
+		{
+			label: '聯絡人',
 			prop: 'contactName',
 			required: true,
-			component: { name: 'el-input', props: { clearable: true, placeholder: '请输入客户名称' } }
+			component: { name: 'el-input', props: { clearable: true, placeholder: '請輸入聯絡人' } }
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'mobile',
-			rules: customerMobileRules,
-			component: { name: 'el-input', props: { clearable: true, placeholder: '请输入11位手机号' } }
+			required: true,
+			component: { name: 'el-input', props: { clearable: true, placeholder: '請輸入手機號' } }
 		},
 		{
-			label: '邮箱',
+			label: '郵箱',
 			prop: 'email',
 			rules: customerEmailRules,
-			component: { name: 'el-input', props: { clearable: true, placeholder: '请输入邮箱' } }
+			component: { name: 'el-input', props: { clearable: true, placeholder: '請輸入郵箱' } }
 		},
 		{
-			label: '备注',
+			label: '備註',
 			prop: 'remark',
-			component: { name: 'el-input', props: { type: 'textarea', rows: 4, placeholder: '请输入备注' } }
+			component: { name: 'el-input', props: { type: 'textarea', rows: 4, placeholder: '請輸入備註' } }
 		},
 		{
-			label: '行业',
+			label: '行業',
 			prop: 'industry',
 			component: {
 				name: 'cl-select',
 				props: {
 					clearable: true,
 					filterable: true,
-					placeholder: '请选择行业',
+					placeholder: '請選擇行業',
 					options: industryOptions
 				}
 			}
@@ -268,9 +369,9 @@ useUpsert({
 	],
 	onSubmit(data, { next }) {
 		const payload: Record<string, any> = { ...data };
-		Object.keys(payload).forEach(k => {
-			if (k.startsWith('_')) {
-				delete payload[k];
+		Object.keys(payload).forEach(key => {
+			if (key.startsWith('_')) {
+				delete payload[key];
 			}
 		});
 		delete payload.salesmanId;
@@ -294,96 +395,155 @@ function sectionDivider(title: string, prop: string) {
 	};
 }
 
+function getLevelLabel(row: any) {
+	return Number(row?.isVip || 0) === 1 ? 'VIP' : '普通';
+}
+
+function getAdCustomerLabel(row: any) {
+	return Number(row?.isAdCustomer || 0) === 1 ? '是' : '否';
+}
+
+function toNumber(value: any) {
+	const amount = Number(value ?? 0);
+	return Number.isNaN(amount) ? 0 : amount;
+}
+
+function toMoney(value: any) {
+	return `${toNumber(value).toLocaleString('zh-TW', {
+		minimumFractionDigits: 0,
+		maximumFractionDigits: 2
+	})}`;
+}
+
 async function loadUsers() {
 	userOptions.value = (await customerPool.salesmenOptions()) || [];
 }
 
 function openImport() {
+	importDialogVisible.value = true;
+}
+
+function selectImportFile() {
 	fileRef.value?.click();
 }
 
 function downloadTpl() {
-	const header = [
-		'公司名称',
-		'地址',
-		'统一编号',
-		'汇款本公司',
-		'客户名称',
-		'手机号',
-		'邮箱',
-		'备注',
-		'行业'
-	];
+	const header = ['公司名稱', '地址', '統一編號', '匯款本公司', '是否廣告投放客戶', '聯絡人', '手機號', '郵箱', '備註'];
 	const ws = XLSX.utils.aoa_to_sheet([header]);
 	const wb = XLSX.utils.book_new();
-	XLSX.utils.book_append_sheet(wb, ws, '客户导入');
-	XLSX.writeFile(wb, '客户公池导入模板.xlsx');
+	XLSX.utils.book_append_sheet(wb, ws, '客戶匯入');
+	XLSX.writeFile(wb, '客戶公池匯入模板.xlsx');
 }
 
 function normalizeRow(raw: Record<string, any>) {
 	const pick = (keys: string[]) => {
-		for (const k of keys) {
-			if (raw[k] !== undefined && raw[k] !== null && String(raw[k]).trim() !== '') {
-				return String(raw[k]).trim();
+		for (const key of keys) {
+			if (raw[key] !== undefined && raw[key] !== null && String(raw[key]).trim() !== '') {
+				return String(raw[key]).trim();
 			}
 		}
 		return '';
 	};
+
+	const adCustomerText = pick(['是否廣告投放客戶', '廣告投放客戶', 'isAdCustomer']);
+
 	return {
-		companyName: pick(['公司名称', 'companyName']),
+		companyName: pick(['公司名稱', 'companyName']),
 		address: pick(['地址', 'address']),
-		taxNumber: pick(['统一编号', '统一编码', 'taxNumber']),
-		remittanceLast5: pick(['汇款本公司', '汇款本卡号', '汇款末五码', 'remittanceLast5']),
-		contactName: pick(['客户名称', 'contactName', '联系人']),
-		mobile: pick(['手机号', 'mobile', '电话']),
-		email: pick(['邮箱', 'email']),
-		remark: pick(['备注', 'remark']),
-		isVip: pick(['是否VIP', 'isVip']) === '1' || pick(['是否VIP', 'isVip']) === '是' ? 1 : 0,
-		industry: pick(['行业', 'industry'])
+		taxNumber: pick(['統一編號', '統一編碼', 'taxNumber']),
+		remittanceLast5: pick(['匯款本公司', '匯款本卡號', '匯款末五碼', 'remittanceLast5']),
+		isAdCustomer: adCustomerText === '1' || adCustomerText === '是' ? 1 : 0,
+		contactName: pick(['聯絡人', '客戶名稱', 'contactName']),
+		mobile: pick(['手機號', 'mobile', '電話']),
+		email: pick(['郵箱', 'email']),
+		remark: pick(['備註', 'remark']),
+		isVip: pick(['是否VIP', 'isVip']) === '1' || pick(['是否VIP', 'isVip']) === '是' ? 1 : 0
 	};
 }
 
-async function onFile(ev: Event) {
-	const input = ev.target as HTMLInputElement;
+async function onFile(event: Event) {
+	const input = event.target as HTMLInputElement;
 	const file = input.files?.[0];
 	input.value = '';
+
 	if (!file) return;
+
+	importing.value = true;
 	try {
-		const buf = await file.arrayBuffer();
-		const wb = XLSX.read(buf, { type: 'array' });
-		const sheet = wb.Sheets[wb.SheetNames[0]];
+		const buffer = await file.arrayBuffer();
+		const workbook = XLSX.read(buffer, { type: 'array' });
+		const sheet = workbook.Sheets[workbook.SheetNames[0]];
 		const rows = XLSX.utils.sheet_to_json<Record<string, any>>(sheet, { defval: '' });
 		const list: ReturnType<typeof normalizeRow>[] = [];
-		for (let i = 0; i < rows.length; i++) {
-			const r = normalizeRow(rows[i]);
-			if (!r.companyName && !r.contactName && !r.mobile) {
-				continue;
-			}
-			const excelRow = i + 2;
-			const err = validateCustomerImportContact(r.mobile, r.email, excelRow);
-			if (err) {
-				ElMessage.error(err);
+
+		for (let index = 0; index < rows.length; index++) {
+			const row = normalizeRow(rows[index]);
+			if (!row.companyName && !row.contactName && !row.mobile) continue;
+
+			const excelRow = index + 2;
+			const requiredError = validateCustomerImportRequired(row, excelRow);
+			if (requiredError) {
+				ElMessage.error(requiredError);
 				return;
 			}
-			list.push(r);
+			const error = validateCustomerImportContact(row.mobile, row.email, excelRow);
+			if (error) {
+				ElMessage.error(error);
+				return;
+			}
+
+			list.push(row);
 		}
+
 		if (!list.length) {
-			ElMessage.warning('未解析到有效数据');
+			ElMessage.warning('未解析到有效資料');
 			return;
 		}
+
 		await customerPool.importData({ list });
-		ElMessage.success(`成功导入 ${list.length} 条`);
+		ElMessage.success(`成功匯入 ${list.length} 條`);
+		importDialogVisible.value = false;
 		Crud.value?.refresh();
-	} catch (e: any) {
-		ElMessage.error(e?.message || '导入失败');
+	} catch (error: any) {
+		ElMessage.error(error?.message || '匯入失敗');
+	} finally {
+		importing.value = false;
+	}
+}
+
+async function sendMail(row: any) {
+	const email = String(row?.email || '').trim();
+	if (!email) {
+		ElMessage.warning('該客戶暫無郵箱');
+		return;
+	}
+	if (!EMAIL_PATTERN.test(email)) {
+		ElMessage.warning('客戶郵箱格式不正確，請先修改後再發送');
+		return;
+	}
+	const id = Number(row?.id || 0);
+	if (!id || sendingMail.value) {
+		return;
+	}
+	sendingMail.value = true;
+	try {
+		await customerPool.sendMail({
+			id
+		});
+		ElMessage.success('郵件發送成功');
+	} catch (error: any) {
+		ElMessage.error(error?.message || '郵件發送失敗');
+	} finally {
+		sendingMail.value = false;
 	}
 }
 
 async function submitAssign() {
 	if (assignForm.value.salesmanId == null || !assignForm.value.id) {
-		ElMessage.warning('请选择业务员');
+		ElMessage.warning('請選擇業務員');
 		return;
 	}
+
 	await customerPool.assignSalesman({
 		id: assignForm.value.id,
 		salesmanId: assignForm.value.salesmanId
@@ -401,17 +561,28 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.crm-pool-block {
-	line-height: 1.65;
-	font-size: 13px;
-	color: var(--el-text-color-primary);
+.crm-pool-card {
+	padding: 10px 12px;
+	border-radius: 12px;
+	background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+	border: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.crm-pool-card--light {
+	background: #fcfdff;
+}
+
+.crm-pool-card__title {
+	margin-bottom: 8px;
+	font-size: 14px;
+	font-weight: 700;
+	color: #0f172a;
 }
 
 .crm-pool-line {
 	display: flex;
-	flex-wrap: wrap;
 	align-items: flex-start;
-	gap: 0 4px;
+	gap: 4px;
 	margin-bottom: 4px;
 
 	&:last-child {
@@ -421,18 +592,53 @@ onMounted(() => {
 
 .crm-pool-k {
 	flex: 0 0 auto;
-	color: var(--el-text-color-secondary);
+	color: #64748b;
 	white-space: nowrap;
 }
 
 .crm-pool-v {
 	flex: 1;
 	min-width: 0;
+	color: #1e293b;
 	word-break: break-all;
 }
 
-/* 表单内分组分割线间距（新增/编辑弹窗） */
+.crm-pool-stat {
+	font-weight: 700;
+	color: #0f172a;
+}
+
+.crm-pool-time {
+	display: inline-block;
+	white-space: nowrap;
+}
+
+.crm-pool-money {
+	font-weight: 700;
+	color: #2563eb;
+}
+
+.crm-import-dialog {
+	padding: 4px 0 8px;
+}
+
+.crm-import-dialog__tip {
+	margin-bottom: 18px;
+	color: var(--el-text-color-regular);
+	line-height: 1.7;
+}
+
+.crm-import-dialog__actions {
+	display: flex;
+	justify-content: center;
+	gap: 12px;
+}
+
 :deep(.cl-form__items .el-divider--horizontal) {
 	margin: 4px 0 14px;
+}
+
+:deep(.el-table .cell) {
+	line-height: 1.45;
 }
 </style>

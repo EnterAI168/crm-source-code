@@ -8,31 +8,31 @@ interface Item {
 	code: string;
 }
 
-// 创建文件
+// 建立檔案
 export async function createFile(data: Item | Item[]) {
 	const list = isArray(data) ? data : [data];
 
 	for (const item of list) {
 		const { path, code } = item;
 
-		// 格式化内容
+		// 格式化內容
 		const content = await formatContent(code, {
 			parser: "vue",
 		});
 
-		// 目录路径
+		// 目錄路徑
 		const dir = (path || "").split("/");
 
-		// 文件名
+		// 檔名
 		const fname = dir.pop();
 
-		// 源码路径
+		// 原始碼路徑
 		const srcPath = `./src/${dir.join("/")}`;
 
-		// 创建目录
+		// 建立目錄
 		createDir(srcPath, true);
 
-		// 创建文件
+		// 建立檔案
 		createWriteStream(join(srcPath, fname!), {
 			flags: "w",
 		}).write(content);

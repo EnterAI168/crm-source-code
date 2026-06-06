@@ -10,7 +10,7 @@ import { Body, Fields, Files, Inject, Post } from '@midwayjs/core';
 import { PluginService } from '../../service/info';
 
 /**
- * 插件信息
+ * 外掛資訊
  */
 @CoolUrlTag({
   key: TagTypes.IGNORE_TOKEN,
@@ -47,7 +47,7 @@ export class AdminPluginInfoController extends BaseController {
   pluginService: PluginService;
 
   @CoolTag(TagTypes.IGNORE_TOKEN)
-  @Post('/install', { summary: '安装插件' })
+  @Post('/install', { summary: '安裝外掛' })
   async install(@Files() files, @Fields() fields) {
     return this.ok(
       await this.pluginService.install(files[0].data, fields.force)

@@ -11,10 +11,10 @@ export default defineComponent({
 	emits: ['checked'],
 
 	setup(props, { emit, expose, slots }) {
-		// 列表数据
+		// 列表資料
 		const list = ref<Item[]>([
 			{
-				name: '鸡腿堡',
+				name: '雞腿堡',
 				value: 1
 			},
 			{
@@ -23,31 +23,31 @@ export default defineComponent({
 			}
 		]);
 
-		// 选择值
+		// 選擇值
 		const active = ref();
 
-		// 是否可见
+		// 是否可見
 		const visible = ref(false);
 
-		// 打开
+		// 開啟
 		function open() {
 			visible.value = true;
 		}
 
-		// 选择
+		// 選擇
 		function toCheck(item: Item) {
 			active.value = item.value;
 
-			// 自定义事件
+			// 自定義事件
 			emit('checked', item);
 		}
 
-		// 暴露方法和变量，使上级可以使用 ref 的方式来调用
+		// 暴露方法和變數，使上級可以使用 ref 的方式來呼叫
 		expose({
 			toCheck
 		});
 
-		// 必须返回一个方法
+		// 必須返回一個方法
 		return () => {
 			return (
 				<div class="scope">
@@ -59,20 +59,20 @@ export default defineComponent({
 					</div>
 
 					<div class="c">
-						<el-button onClick={open}>预览</el-button>
+						<el-button onClick={open}>預覽</el-button>
 						<demo-code files={['other/tsx/index.tsx']} />
 
-						{/* ref 的绑定值必须 .value */}
+						{/* ref 的繫結值必須 .value */}
 						<cl-dialog v-model={visible.value} title="tsx示例">
 							<div class="tsx-list">
-								{/* 循环的使用 */}
+								{/* 迴圈的使用 */}
 								{list.value.map(item => {
 									// 插槽的使用
 									return slots.default ? (
 										slots.default(item)
 									) : (
 										<div
-											// 动态样式的使用
+											// 動態樣式的使用
 											class={[
 												'item',
 												{
@@ -102,7 +102,7 @@ export default defineComponent({
 		};
 	}
 
-	// 不推荐用该方法，在 setup 中返回模板信息
+	// 不推薦用該方法，在 setup 中返回模板資訊
 	// render() {
 	// 	return <div></div>;
 	// }

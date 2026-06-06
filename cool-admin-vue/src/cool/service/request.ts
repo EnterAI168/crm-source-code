@@ -8,30 +8,30 @@ import { useBase } from '/$/base';
 import { router } from '../router';
 import { config, isDev } from '/@/config';
 
-// 创建 axios 实例
+// 建立 axios 例項
 const request = axios.create({
-	timeout: import.meta.env.VITE_TIMEOUT, // 设置请求超时时间
-	withCredentials: false // 不携带凭证
+	timeout: import.meta.env.VITE_TIMEOUT, // 設定請求超時時間
+	withCredentials: false // 不攜帶憑證
 });
 
 // 配置 NProgress
 NProgress.configure({
-	showSpinner: true // 显示加载指示器
+	showSpinner: true // 顯示載入指示器
 });
 
-// 请求队列，用于存储待处理的请求
+// 請求佇列，用於儲存待處理的請求
 let queue: Array<(token: string) => void> = [];
 
-// 标识是否正在刷新 token
+// 標識是否正在重新整理 token
 let isRefreshing = false;
 
-// 请求拦截器
+// 請求攔截器
 request.interceptors.request.use(
 	(req: any) => {
-		const { user } = useBase(); // 获取用户信息
+		const { user } = useBase(); // 獲取使用者資訊
 
 		if (req.url) {
-			// 控制请求进度条的显示
+			// 控制請求進度條的顯示
 			if (
 				!config.ignore.NProgress.some(e => req.url.match(new RegExp(`${e}.*`))) &&
 				(req.NProgress ?? true)
@@ -40,7 +40,7 @@ request.interceptors.request.use(
 			}
 		}
 
-		// 在开发环境中打印请求信息
+		// 在開發環境中列印請求資訊
 		if (isDev) {
 			console.group(req.url);
 			console.log('method:', req.method);
@@ -52,37 +52,37 @@ request.interceptors.request.use(
 			req.headers = {};
 		}
 
-		// 设置请求头中的语言
+		// 設定請求頭中的語言
 		if (req.headers['language'] !== null) {
 			req.headers['language'] = config.i18n.locale;
 		}
 
-		// 验证 token
+		// 驗證 token
 		if (user.token) {
-			// 设置请求头中的 Authorization
+			// 設定請求頭中的 Authorization
 			if (req.headers['Authorization'] !== null) {
 				req.headers['Authorization'] = user.token;
 			}
 
-			// 忽略特定请求
+			// 忽略特定請求
 			if (['eps', 'refreshToken'].some(e => endsWith(req.url, e))) {
 				return req;
 			}
 
-			// 判断 token 是否过期
+			// 判斷 token 是否過期
 			if (storage.isExpired('token')) {
-				// 判断 refreshToken 是否过期
+				// 判斷 refreshToken 是否過期
 				if (storage.isExpired('refreshToken')) {
-					ElMessage.error('登录状态已失效，请重新登录');
+					ElMessage.error('登入狀態已失效，請重新登入');
 					user.logout();
 				} else {
-					// 如果不在刷新中，则刷新 token
+					// 如果不在重新整理中，則重新整理 token
 					if (!isRefreshing) {
 						isRefreshing = true;
 
 						user.refreshToken()
 							.then(token => {
-								queue.forEach(cb => cb(token)); // 处理队列中的请求
+								queue.forEach(cb => cb(token)); // 處理佇列中的請求
 								queue = [];
 								isRefreshing = false;
 							})
@@ -91,11 +91,11 @@ request.interceptors.request.use(
 							});
 					}
 
-					// 返回一个新的 Promise，等待 token 刷新完成
+					// 返回一個新的 Promise，等待 token 重新整理完成
 					return new Promise(resolve => {
 						queue.push(token => {
 							if (req.headers) {
-								req.headers['Authorization'] = token; // 重新设置 token
+								req.headers['Authorization'] = token; // 重新設定 token
 							}
 							resolve(req);
 						});
@@ -107,14 +107,14 @@ request.interceptors.request.use(
 		return req;
 	},
 	error => {
-		return Promise.reject(error); // 请求错误处理
+		return Promise.reject(error); // 請求錯誤處理
 	}
 );
 
-// 响应拦截器
+// 響應攔截器
 request.interceptors.response.use(
 	res => {
-		NProgress.done(); // 结束进度条
+		NProgress.done(); // 結束進度條
 
 		if (!res?.data) {
 			return res;
@@ -123,45 +123,45 @@ request.interceptors.response.use(
 		const { code, data, message } = res.data;
 
 		if (!code) {
-			return res.data; // 返回数据
+			return res.data; // 返回資料
 		}
 
 		switch (code) {
 			case 1000:
-				return data; // 成功返回数据
+				return data; // 成功返回資料
 			default:
-				return Promise.reject({ code, message }); // 处理错误
+				return Promise.reject({ code, message }); // 處理錯誤
 		}
 	},
 	async error => {
-		NProgress.done(); // 结束进度条
+		NProgress.done(); // 結束進度條
 
 		if (error.response) {
 			const { status } = error.response;
 			const { user } = useBase();
 
 			if (status == 401) {
-				user.logout(); // 未授权，登出用户
+				user.logout(); // 未授權，登出使用者
 			} else {
 				if (!isDev) {
 					switch (status) {
 						case 403:
-							router.push('/403'); // 禁止访问
+							router.push('/403'); // 禁止訪問
 							break;
 
 						case 500:
-							router.push('/500'); // 服务器错误
+							router.push('/500'); // 伺服器錯誤
 							break;
 
 						case 502:
-							router.push('/502'); // 网关错误
+							router.push('/502'); // 閘道器錯誤
 							break;
 					}
 				}
 			}
 		}
 
-		return Promise.reject({ message: error.response?.data?.message || error.message }); // 返回错误信息
+		return Promise.reject({ message: error.response?.data?.message || error.message }); // 返回錯誤資訊
 	}
 );
 

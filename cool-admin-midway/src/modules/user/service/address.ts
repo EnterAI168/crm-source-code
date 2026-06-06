@@ -22,7 +22,7 @@ export class UserAddressService extends BaseService {
   }
 
   /**
-   * 列表信息
+   * 列表資訊
    */
   async list() {
     return this.userAddressEntity
@@ -33,7 +33,7 @@ export class UserAddressService extends BaseService {
   }
 
   /**
-   * 修改之后
+   * 修改之後
    * @param data
    * @param type
    */
@@ -52,7 +52,7 @@ export class UserAddressService extends BaseService {
   }
 
   /**
-   * 默认地址
+   * 預設地址
    */
   async default(userId) {
     return await this.userAddressEntity.findOneBy({

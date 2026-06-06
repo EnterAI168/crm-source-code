@@ -5,7 +5,7 @@ import { eps } from 'virtual:eps';
 import { hmr } from '../hooks';
 
 export function createEps() {
-	// 设置 request 方法
+	// 設定 request 方法
 	function set(d: any) {
 		if (d.namespace) {
 			const a = new BaseService(d.namespace);
@@ -36,13 +36,13 @@ export function createEps() {
 		}
 	}
 
-	// 遍历每一个方法
+	// 遍歷每一個方法
 	set(eps.service);
 
-	// 合并 eps
+	// 合併 eps
 	merge(service, eps.service);
 
-	// 热更新处理
+	// 熱更新處理
 	hmr.setData('service', service);
 
 	// 提示
@@ -51,7 +51,7 @@ export function createEps() {
 	}
 }
 
-// 监听 vite 触发事件
+// 監聽 vite 觸發事件
 if (import.meta.hot) {
 	import.meta.hot.on('eps-update', ({ service }) => {
 		if (service) {

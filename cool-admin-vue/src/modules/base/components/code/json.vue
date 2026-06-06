@@ -63,12 +63,12 @@ const text = computed(() => {
 	}
 });
 
-// 视图
+// 檢視
 const viewer = defineComponent({
 	setup(_, { slots }) {
 		function toCopy() {
 			copy(text.value);
-			ElMessage.success('复制成功');
+			ElMessage.success('複製成功');
 		}
 
 		return () => {
@@ -77,7 +77,7 @@ const viewer = defineComponent({
 					<div class="cl-code-json__op">
 						{text.value != '{}' && (
 							<el-button type="success" size="small" onClick={toCopy}>
-								{t('复制')}
+								{t('複製')}
 							</el-button>
 						)}
 

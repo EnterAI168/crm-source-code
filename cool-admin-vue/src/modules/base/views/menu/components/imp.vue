@@ -8,14 +8,14 @@
 	>
 		<el-button type="success" :loading="loading">
 			<cl-svg name="import" class="mr-[5px]" />
-			{{ $t('导入') }}
+			{{ $t('匯入') }}
 		</el-button>
 	</cl-upload>
 
 	<cl-form ref="Form">
 		<template #slot-tips>
 			<el-alert type="warning">
-				{{ $t('如遇到问题无法导入菜单，请检查文件并尝试重新导入。') }}
+				{{ $t('如遇到問題無法匯入選單，請檢查檔案並嘗試重新匯入。') }}
 			</el-alert>
 		</template>
 	</cl-form>
@@ -41,29 +41,29 @@ const Crud = useCrud();
 const loading = ref(false);
 
 function onUpload(_: any, file: File) {
-	// 加载状态
+	// 載入狀態
 	loading.value = true;
 
 	const reader = new FileReader();
 
-	// 加载完成
+	// 載入完成
 	reader.onload = (e: ProgressEvent<FileReader>) => {
 		loading.value = false;
 
 		try {
-			// 解析数据
+			// 解析資料
 			const data = JSON.parse(e.target?.result as string);
 
-			// 打开表单
+			// 開啟表單
 			Form.value?.open({
-				title: t('菜单导入'),
+				title: t('選單匯入'),
 				height: '400px',
 				width: '600px',
 				props: {
 					labelWidth: '0px'
 				},
 				op: {
-					saveButtonText: t('添加')
+					saveButtonText: t('新增')
 				},
 				items: [
 					{
@@ -100,7 +100,7 @@ function onUpload(_: any, file: File) {
 								menus: data
 							})
 							.then(() => {
-								ElMessage.success(t('导入成功'));
+								ElMessage.success(t('匯入成功'));
 								Crud.value?.refresh();
 								close();
 							})
@@ -112,11 +112,11 @@ function onUpload(_: any, file: File) {
 				}
 			});
 		} catch (error) {
-			ElMessage.error(t('{file}文件格式错误：{error}', { file: file.name, error }));
+			ElMessage.error(t('{file}檔案格式錯誤：{error}', { file: file.name, error }));
 		}
 	};
 
-	// 读取文件
+	// 讀取檔案
 	reader.readAsText(file);
 }
 </script>

@@ -21,12 +21,12 @@
 			</el-icon>
 		</template>
 
-		<span v-else class="placeholder">{{ placeholder || $t('请选择') }}</span>
+		<span v-else class="placeholder">{{ placeholder || $t('請選擇') }}</span>
 	</div>
 
 	<cl-dialog
 		v-model="visible"
-		:title="title || $t('选择成员')"
+		:title="title || $t('選擇成員')"
 		:controls="['close']"
 		width="600px"
 	>
@@ -38,7 +38,7 @@
 				:name="item.value"
 			>
 				<el-input
-					:placeholder="$t('搜索名称')"
+					:placeholder="$t('搜尋名稱')"
 					v-model="keyWord"
 					@input="onKeyWordChange"
 				/>
@@ -86,7 +86,7 @@
 
 		<template #footer>
 			<el-button @click="close">{{ $t('取消') }}</el-button>
-			<el-button type="success" @click="confirm()">{{ $t('确定') }}</el-button>
+			<el-button type="success" @click="confirm()">{{ $t('確定') }}</el-button>
 		</template>
 	</cl-dialog>
 </template>
@@ -135,54 +135,54 @@ const { service, refs, setRefs } = useCool();
 const { t } = useI18n();
 const Form = useForm();
 
-// 绑定值
+// 繫結值
 const value = ref<any[]>([]);
 
-// 是否可见
+// 是否可見
 const visible = ref(false);
 
-// 搜索关键字
+// 搜尋關鍵字
 const keyWord = ref('');
 
-// 选项
+// 選項
 const tab = reactive({
 	active: 'dept',
 
 	list: [
 		{
-			label: t('按部门分组'),
+			label: t('按部門分組'),
 			value: 'dept'
 		},
 		{
-			label: t('按角色分组'),
+			label: t('按角色分組'),
 			value: 'role'
 		}
 	]
 });
 
-// 数据
+// 資料
 const data = reactive<{ [key: string]: Item[] }>({});
 
-// 用户
+// 使用者
 const users = ref<Eps.BaseSysUserEntity[]>([]);
 
-// 已选择
+// 已選擇
 const selection = computed(() => {
 	return users.value.filter(e => value.value.includes(e.id));
 });
 
-// 过滤节点
+// 過濾節點
 function filterNode(value: string, data: any) {
 	if (!value) return true;
 	return data.name.includes(value);
 }
 
-// 关键字改变
+// 關鍵字改變
 function onKeyWordChange() {
 	refs[`tree-${tab.active}`].filter(keyWord.value);
 }
 
-// 获取用户
+// 獲取使用者
 async function getUser() {
 	return service.base.sys.user.page({ size: 10000 }).then(res => {
 		users.value = res.list.map(e => {
@@ -192,7 +192,7 @@ async function getUser() {
 	});
 }
 
-// 获取部门
+// 獲取部門
 async function getDept() {
 	return service.base.sys.department.list().then(res => {
 		res = deepTree(res);
@@ -219,7 +219,7 @@ async function getDept() {
 	});
 }
 
-// 获取角色
+// 獲取角色
 async function getRole() {
 	return service.base.sys.role.list().then(res => {
 		res.forEach(e => {
@@ -230,7 +230,7 @@ async function getRole() {
 	});
 }
 
-// 打开
+// 開啟
 async function open() {
 	visible.value = true;
 	keyWord.value = '';
@@ -241,7 +241,7 @@ async function open() {
 	});
 }
 
-// 关闭
+// 關閉
 function close() {
 	visible.value = false;
 }
@@ -253,7 +253,7 @@ function remove() {
 	emit('change', undefined);
 }
 
-// 选择
+// 選擇
 function select(item: Item, node: any) {
 	if (item.isUser) {
 		if (props.multiple) {
@@ -265,7 +265,7 @@ function select(item: Item, node: any) {
 	}
 }
 
-// 确认
+// 確認
 function confirm() {
 	let v = value.value || [];
 
@@ -276,7 +276,7 @@ function confirm() {
 	}
 
 	if (isEmpty(v)) {
-		return ElMessage.warning(t('请选择成员'));
+		return ElMessage.warning(t('請選擇成員'));
 	}
 
 	value.value = v;
@@ -285,7 +285,7 @@ function confirm() {
 	emit('change', selection.value);
 	close();
 
-	// 验证表单字段
+	// 驗證表單欄位
 	Form.value?.validateField(props.prop);
 }
 

@@ -4,7 +4,7 @@ import { BaseSysUserEntity } from '../../../entity/sys/user';
 import { BaseSysUserService } from '../../../service/sys/user';
 
 /**
- * 系统用户
+ * 系統使用者
  */
 @Provide()
 @CoolController({
@@ -22,9 +22,9 @@ export class BaseSysUserController extends BaseController {
   baseSysUserService: BaseSysUserService;
 
   /**
-   * 移动部门
+   * 移動部門
    */
-  @Post('/move', { summary: '移动部门' })
+  @Post('/move', { summary: '移動部門' })
   async move(
     @Body('departmentId') departmentId: number,
     @Body('userIds') userIds: []

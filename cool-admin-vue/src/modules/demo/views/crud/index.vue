@@ -9,7 +9,7 @@
 						class="mb-[10px]"
 						v-if="['cl-upsert', 'cl-search', 'cl-adv-search'].includes(a.title)"
 					>
-						基于 cl-form 组件封装，以下是扩展的一些用法
+						基於 cl-form 元件封裝，以下是擴充套件的一些用法
 					</el-alert>
 
 					<div v-for="(b, bi) in a.children" :key="bi" class="group">
@@ -111,11 +111,11 @@ const list = [
 		title: 'cl-crud',
 		children: [
 			{
-				label: '基础',
+				label: '基礎',
 				children: [CrudBase, CrudService, CrudDict, CrudEvent]
 			},
 			{
-				label: '高级',
+				label: '高階',
 				children: [CrudAll, CrudUserSelect, CrudSelectTable]
 			}
 		]
@@ -124,7 +124,7 @@ const list = [
 		title: 'cl-table',
 		children: [
 			{
-				label: '基础',
+				label: '基礎',
 				children: [
 					TableBase,
 					TableFormatter,
@@ -141,11 +141,11 @@ const list = [
 				]
 			},
 			{
-				label: '高级',
+				label: '高階',
 				children: [TableColumnCustom, TableComponent]
 			},
 			{
-				label: '插件',
+				label: '外掛',
 				children: [TablePluginBase, TablePluginRowEdit, TablePluginToTree]
 			}
 		]
@@ -154,7 +154,7 @@ const list = [
 		title: 'cl-form',
 		children: [
 			{
-				label: '基础',
+				label: '基礎',
 				children: [
 					FormOpen,
 					FormConfig,
@@ -170,11 +170,11 @@ const list = [
 				]
 			},
 			{
-				label: '高级',
+				label: '高階',
 				children: [FormRules, FormComponent]
 			},
 			{
-				label: '插件',
+				label: '外掛',
 				children: [FormPlugin, FormSetFocus]
 			}
 		]
@@ -183,11 +183,11 @@ const list = [
 		title: 'cl-upsert',
 		children: [
 			{
-				label: '基础',
+				label: '基礎',
 				children: [UpsertBase, UpsertEvent, UpsertMode]
 			},
 			{
-				label: '高级',
+				label: '高階',
 				children: [UpsertHook]
 			}
 		]
@@ -196,11 +196,11 @@ const list = [
 		title: 'cl-search',
 		children: [
 			{
-				label: '基础',
+				label: '基礎',
 				children: [SearchBase, SearchCustom, SearchCollapse, SearchLayout]
 			},
 			{
-				label: '插件',
+				label: '外掛',
 				children: [SearchPlugin]
 			}
 		]
@@ -209,7 +209,7 @@ const list = [
 		title: 'cl-adv-search',
 		children: [
 			{
-				label: '基础',
+				label: '基礎',
 				children: [AdvSearchBase, AdvSearchCustom]
 			}
 		]
@@ -218,7 +218,7 @@ const list = [
 		title: 'other',
 		children: [
 			{
-				label: '高级',
+				label: '高階',
 				children: [OtherTsx, OtherTips, OtherContextMenu]
 			}
 		]

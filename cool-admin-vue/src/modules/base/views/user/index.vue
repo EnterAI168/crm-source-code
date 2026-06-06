@@ -1,60 +1,136 @@
 <template>
-	<cl-view-group ref="ViewGroup">
-		<template #left>
-			<!-- 部门列表 -->
-			<dept-list @refresh="refresh" @user-add="onUserAdd" />
-		</template>
+	<cl-crud ref="Crud">
+		<cl-row>
+			<el-form class="user-search-form" :model="searchForm" inline>
+				<el-form-item label="使用者姓名">
+					<el-input
+						v-model="searchForm.name"
+						class="user-search-form__field"
+						clearable
+						placeholder="請輸入使用者姓名"
+						@keyup.enter="onSearch"
+					/>
+				</el-form-item>
 
-		<template #right>
-			<cl-crud ref="Crud">
-				<cl-row>
-					<!-- 刷新按钮 -->
-					<cl-refresh-btn />
-					<!-- 新增按钮 -->
-					<cl-add-btn />
-					<!-- 批量删除按钮 -->
-					<cl-multi-delete-btn />
-					<!-- 用户转移 -->
-					<el-button
-						v-permission="service.base.sys.user.permission.move"
-						type="success"
-						:disabled="Table?.selection.length == 0"
-						@click="toMove()"
-					>
-						{{ $t('转移') }}
-					</el-button>
-					<cl-flex1 />
-					<cl-search-key :placeholder="$t('搜索用户名、姓名')" />
-				</cl-row>
+				<el-form-item label="部門">
+					<el-tree-select
+						v-model="searchForm.departmentId"
+						class="user-search-form__field"
+						node-key="id"
+						clearable
+						filterable
+						check-strictly
+						default-expand-all
+						:data="departmentTree"
+						:props="{
+							label: 'name',
+							value: 'id',
+							children: 'children'
+						}"
+					/>
+				</el-form-item>
 
-				<cl-row>
-					<cl-table ref="Table">
-						<!-- 单个转移 -->
-						<template #slot-btn="{ scope }">
-							<el-button
-								v-permission="service.base.sys.user.permission.move"
-								text
-								@click="toMove(scope.row)"
-							>
-								{{ $t('转移') }}
-							</el-button>
-						</template>
-					</cl-table>
-				</cl-row>
+				<el-form-item label="手機號">
+					<el-input
+						v-model="searchForm.phone"
+						class="user-search-form__field"
+						clearable
+						placeholder="請輸入手機號"
+						@keyup.enter="onSearch"
+					/>
+				</el-form-item>
 
-				<cl-row>
-					<cl-flex1 />
-					<cl-pagination />
-				</cl-row>
+				<el-form-item label="郵箱">
+					<el-input
+						v-model="searchForm.email"
+						class="user-search-form__field"
+						clearable
+						placeholder="請輸入郵箱"
+						@keyup.enter="onSearch"
+					/>
+				</el-form-item>
 
-				<!-- 新增、编辑 -->
-				<cl-upsert ref="Upsert" />
+				<el-form-item class="user-search-form__actions">
+					<el-button type="primary" @click="onSearch">搜尋</el-button>
+					<el-button @click="onResetSearch">重置</el-button>
+				</el-form-item>
+			</el-form>
+		</cl-row>
 
-				<!-- 移动 -->
-				<user-move :ref="setRefs('userMove')" />
-			</cl-crud>
-		</template>
-	</cl-view-group>
+		<cl-row>
+			<cl-refresh-btn />
+			<cl-add-btn />
+			<cl-multi-delete-btn />
+		</cl-row>
+
+		<cl-row>
+			<cl-table ref="Table" />
+		</cl-row>
+
+		<cl-row>
+			<cl-flex1 />
+			<cl-pagination />
+		</cl-row>
+
+		<cl-upsert ref="Upsert">
+			<template #slot-login-phone>
+				<div class="user-login-phone-field">
+					<el-input
+						:model-value="loginPhoneDisplayValue"
+						clearable
+						:disabled="isUpsertReadonly"
+						placeholder="請輸入手機號"
+						@input="onLoginPhoneInput"
+					/>
+					<div class="user-login-phone-tip">預設手機號為員工登入賬號</div>
+				</div>
+			</template>
+
+			<template #slot-department>
+				<cl-dept-select
+					:model-value="currentDepartmentId"
+					:check-strictly="true"
+					@update:model-value="onDepartmentSelect"
+					@change="onDepartmentSelect"
+				/>
+			</template>
+
+			<template #slot-role>
+				<el-select
+					:model-value="currentRoleId"
+					clearable
+					filterable
+					:disabled="isUpsertReadonly || roleSelectDisabled"
+					placeholder="請選擇"
+					@change="onRoleSelect"
+				>
+					<el-option
+						v-for="item in roleOptions"
+						:key="item.value"
+						:label="item.label"
+						:value="item.value"
+					/>
+				</el-select>
+			</template>
+
+			<template #slot-level>
+				<el-select
+					:model-value="currentLevelValue"
+					clearable
+					:disabled="isUpsertReadonly || levelSelectDisabled"
+					placeholder="請選擇"
+					@change="onLevelSelect"
+				>
+					<el-option
+						v-for="item in levelOptions"
+						:key="item.value"
+						:label="item.label"
+						:value="item.value"
+					/>
+				</el-select>
+			</template>
+		</cl-upsert>
+	</cl-crud>
 </template>
 
 <script lang="ts" setup>
@@ -64,367 +140,458 @@ defineOptions({
 
 import { useTable, useUpsert, useCrud } from '@cool-vue/crud';
 import { useCool } from '/@/cool';
-import DeptList from './components/dept-list.vue';
-import UserMove from './components/user-move.vue';
-import { useViewGroup } from '/@/plugins/view';
-import { useI18n } from 'vue-i18n';
 import { Plugins } from '/#/crud';
-import { ref } from 'vue';
+import { ElMessage } from 'element-plus';
+import { computed, h, onMounted, ref } from 'vue';
+import { deepTree } from '/@/cool/utils';
 
-const { service, refs, setRefs } = useCool();
-const { t } = useI18n();
+const { service } = useCool();
+
 const roles = ref<Eps.BaseSysRoleEntity[]>([]);
+const departments = ref<Eps.BaseSysDepartmentEntity[]>([]);
+const departmentTree = ref<any[]>([]);
+const searchForm = ref(createSearchForm());
+const loginPhoneValue = ref('');
+const roleOptions = ref<{ label: string; value: number }[]>([]);
+const roleSelectDisabled = ref(false);
+const levelOptions = ref<{ label: string; value: string }[]>([]);
+const levelSelectDisabled = ref(false);
+const showLevel = ref(false);
+
 let roleLoading: Promise<void> | null = null;
+let departmentLoading: Promise<void> | null = null;
 
 const INTERNAL_ROLE_LABEL = 'office_clerk';
 const INTERNAL_MANAGER_ROLE_LABEL = 'office_clerk_manager';
+const SALESMAN_ROLE_LABEL = 'salesperson';
+const FINANCE_ROLE_LABEL = 'finance';
+
+const CRM_ROOT_NAME = 'CRM';
+const OFFICE_DEPARTMENT_NAME = '內勤部門';
+const SALES_DEPARTMENT_NAME = '業務部門';
+const FINANCE_DEPARTMENT_NAME = '財務部門';
+
 const LEVEL_MANAGER = '主管';
-const LEVEL_SENIOR = '资深同仁';
+const LEVEL_SENIOR = '資深同仁';
 const LEVEL_NORMAL = '一般同仁';
 
-const { ViewGroup } = useViewGroup({
-	title: t('用户列表')
-});
+function createSearchForm() {
+	return {
+		name: '',
+		departmentId: undefined as number | undefined,
+		phone: '',
+		email: ''
+	};
+}
 
-// cl-crud
+const isUpsertReadonly = computed(() => Upsert.value?.mode === 'info');
+const currentDepartmentId = computed(() => Upsert.value?.getForm('departmentId'));
+const currentRoleId = computed(() => normalizeSingleRoleId(Upsert.value?.getForm('roleIdList')));
+const currentLevelValue = computed(() => Upsert.value?.getForm('level'));
+const loginPhoneDisplayValue = computed(
+	() => loginPhoneValue.value || Upsert.value?.getForm('phone') || Upsert.value?.getForm('username') || ''
+);
+
 const Crud = useCrud({
 	service: service.base.sys.user
 });
 
-// cl-table
 const Table = useTable({
 	columns: [
+		{ type: 'selection', width: 60 },
 		{
-			type: 'selection',
-			width: 60
-		},
-		{
-			prop: 'headImg',
-			label: t('头像'),
-			component: {
-				name: 'cl-avatar',
-				props: {
-					size: 32
-				}
-			}
-		},
-		{
-			prop: 'username',
-			label: t('用户名'),
-			minWidth: 150
-		},
-		{
+			label: '使用者資訊',
 			prop: 'name',
-			label: t('姓名'),
-			minWidth: 120
+			minWidth: 260,
+			render: (row: any) =>
+				h('div', { class: 'user-info-cell' }, [
+					h('div', { class: 'user-info-cell__name' }, row?.name || '-'),
+					h('div', { class: 'user-info-cell__meta' }, `郵箱：${row?.email || '-'}`),
+					h(
+						'div',
+						{ class: 'user-info-cell__meta' },
+						`手機號：${row?.phone || row?.username || '-'}`
+					)
+				])
 		},
-		{
-			prop: 'nickName',
-			label: t('昵称'),
-			minWidth: 120
-		},
-		{
-			prop: 'departmentName',
-			label: t('部门名称'),
-			minWidth: 120
-		},
-		{
-			prop: 'roleName',
-			label: t('角色'),
-			headerAlign: 'center',
-			minWidth: 160,
-			dict: [],
-			formatter(row) {
-				return row.roleName?.split(',');
-			}
-		},
-		{
-			prop: 'salary',
-			label: t('工资'),
-			minWidth: 120
-		},
+		{ prop: 'departmentName', label: '所屬部門', minWidth: 160, showOverflowTooltip: true },
+		{ prop: 'status', label: '狀態', width: 110, component: { name: 'cl-switch' } },
 		{
 			prop: 'level',
-			label: t('级别'),
-			minWidth: 120
+			label: '級別',
+			minWidth: 140,
+			showOverflowTooltip: true,
+			formatter: (row: any) => row?.level || '--'
 		},
-		{
-			prop: 'status',
-			label: t('状态'),
-			minWidth: 100,
-			component: {
-				name: 'cl-switch'
-			}
-		},
-		{
-			prop: 'phone',
-			label: t('手机号码'),
-			minWidth: 120
-		},
-		{
-			prop: 'remark',
-			label: t('备注'),
-			minWidth: 200,
-			showOverflowTooltip: true
-		},
-		{
-			prop: 'createTime',
-			label: t('创建时间'),
-			sortable: 'desc',
-			minWidth: 170
-		},
-		{
-			type: 'op',
-			buttons: ['slot-btn', 'edit', 'delete'],
-			width: 270
-		}
+		{ prop: 'salary', label: '月工資', width: 140 },
+		{ type: 'op', width: 220, buttons: ['info', 'edit', 'delete'] }
 	]
 });
 
-// cl-upsert
 const Upsert = useUpsert({
-	dialog: {
-		width: '800px'
-	},
-
+	dialog: { width: '800px' },
 	items: [
 		{
 			prop: 'headImg',
-			label: t('头像'),
+			label: '頭像',
 			component: {
 				name: 'cl-upload',
-				props: {
-					text: t('选择头像')
-				}
+				props: { text: '選擇頭像' }
 			}
 		},
 		{
 			prop: 'name',
-			label: t('姓名'),
+			label: '員工名稱',
 			span: 12,
 			required: true,
-			component: {
-				name: 'el-input'
-			}
-		},
-		{
-			prop: 'nickName',
-			label: t('昵称'),
-			required: true,
-			span: 12,
-			component: {
-				name: 'el-input'
-			}
+			component: { name: 'el-input' }
 		},
 		{
 			prop: 'username',
-			label: t('用户名'),
-			required: true,
+			label: '手機號',
 			span: 12,
-			component: {
-				name: 'el-input'
-			}
+			rules: [{ required: true, message: '請輸入手機號', trigger: 'blur' }],
+			component: { name: 'slot-login-phone' }
 		},
-		() => {
-			return {
-				prop: 'password',
-				label: t('密码'),
-				span: 12,
-				required: Upsert.value?.mode == 'add',
-				component: {
-					name: 'el-input',
-					props: {
-						type: 'password',
-						showPassword: true,
-						autocomplete: 'new-password'
-					}
-				},
-				rules: [
-					{
-						min: 6,
-						max: 16,
-						message: t('密码长度在 6 到 16 个字符')
-					}
-				]
-			};
+		() => ({
+			prop: 'password',
+			label: '密碼',
+			span: 12,
+			required: Upsert.value?.mode === 'add',
+			hidden: Upsert.value?.mode !== 'add',
+			component: {
+				name: 'el-input',
+				props: {
+					type: 'password',
+					showPassword: true,
+					autocomplete: 'new-password'
+				}
+			},
+			rules: [
+				{
+					min: 6,
+					max: 16,
+					message: '密碼長度在 6 到 16 個字元'
+				}
+			]
+		}),
+		{
+			prop: 'departmentId',
+			label: '部門',
+			span: 12,
+			required: true,
+			component: { name: 'slot-department' }
 		},
 		{
 			prop: 'roleIdList',
-			label: t('角色'),
-			value: undefined,
+			label: '角色',
+			span: 12,
 			required: true,
-			component: {
-				name: 'el-select',
-				options: [],
-				props: {
-					clearable: true,
-					onChange: onRoleChange
-				}
-			}
+			component: { name: 'slot-role' }
 		},
 		{
 			prop: 'salary',
-			label: t('工资'),
+			label: '工資',
 			span: 12,
 			component: {
-				name: 'el-input-number',
+				name: 'el-input',
 				props: {
-					precision: 2,
+					type: 'number',
 					min: 0,
+					step: '0.01',
 					style: { width: '100%' }
 				}
 			}
 		},
 		{
 			prop: 'level',
-			label: t('级别'),
+			label: '員工等級',
 			span: 12,
-			component: {
-				name: 'el-select',
-				options: []
-			}
-		},
-		{
-			prop: 'phone',
-			label: t('手机号码'),
-			span: 12,
-			component: {
-				name: 'el-input'
-			}
+			hidden: () => !showLevel.value,
+			component: { name: 'slot-level' }
 		},
 		{
 			prop: 'email',
-			label: t('邮箱'),
+			label: '郵箱',
 			span: 12,
-			component: {
-				name: 'el-input'
-			}
+			component: { name: 'el-input' }
 		},
 		{
 			prop: 'remark',
-			label: t('备注'),
+			label: '備註',
 			component: {
 				name: 'el-input',
-				props: {
-					type: 'textarea',
-					rows: 4
-				}
+				props: { type: 'textarea', rows: 4 }
 			}
 		},
 		{
 			prop: 'status',
-			label: t('状态'),
+			label: '狀態',
 			value: 1,
 			component: {
 				name: 'el-radio-group',
 				options: [
-					{
-						label: t('启用'),
-						value: 1
-					},
-					{
-						label: t('禁用'),
-						value: 0
-					}
+					{ label: '啟用', value: 1 },
+					{ label: '停用', value: 0 }
 				]
 			}
 		}
 	],
-
 	onSubmit(data, { next }) {
-		const roleId = Array.isArray(data.roleIdList) ? data.roleIdList[0] : data.roleIdList;
-		next({
-			departmentId: ViewGroup.value?.selected?.id,
-			...data,
-			roleIdList: roleId ? [roleId] : []
-		});
-	},
+		const phone = String(loginPhoneValue.value || data.username || '').trim();
+		const departmentId = Number(data.departmentId || 0);
+		const roleId = currentRoleId.value;
+		const selectedRole = getRoleById(roleId);
 
-	async onOpen() {
-		ensureRolesLoaded();
-		Upsert.value?.hideItem('level');
-	},
-
-	async onOpened(data) {
-		await ensureRolesLoaded();
-		let roleId = Array.isArray(data.roleIdList) ? data.roleIdList[0] : data.roleIdList;
-		let level = data.level;
-
-		// 兜底：部分场景（如权限变化后）编辑态可能拿不到完整 roleIdList
-		// 这里再拉一次详情，确保角色和级别可以正确回显
-		if (!roleId && data?.id) {
-			const detail = await service.base.sys.user.info({ id: data.id });
-			roleId = Array.isArray(detail?.roleIdList) ? detail.roleIdList[0] : detail?.roleIdList;
-			level = detail?.level;
+		if (!phone) return ElMessage.warning('請輸入手機號');
+		if (!departmentId) return ElMessage.warning('請選擇部門');
+		if (!roleId || !selectedRole) return ElMessage.warning('請選擇角色');
+		if (isOfficeRole(selectedRole) && ![LEVEL_SENIOR, LEVEL_NORMAL].includes(String(data.level || '').trim())) {
+			return ElMessage.warning('請選擇員工等級');
 		}
 
-		Upsert.value?.setForm('roleIdList', roleId);
-		Upsert.value?.setForm('level', level);
-		updateLevelField(roleId);
+		next({
+			...data,
+			name: String(data.name || '').trim(),
+			nickName: String(data.name || '').trim(),
+			username: phone,
+			phone,
+			level: isOfficeManagerRole(selectedRole)
+				? LEVEL_MANAGER
+				: isOfficeRole(selectedRole)
+					? data.level
+					: undefined,
+			roleIdList: [roleId]
+		});
 	},
+	async onOpen() {
+		await Promise.all([ensureRolesLoaded(), ensureDepartmentsLoaded()]);
+		loginPhoneValue.value = '';
+		Upsert.value?.setForm('username', '');
+		Upsert.value?.setForm('phone', '');
+		Upsert.value?.setForm('departmentId', undefined);
+		resetRoleState();
+	},
+	async onOpened(data) {
+		await Promise.all([ensureRolesLoaded(), ensureDepartmentsLoaded()]);
+		let detail = data;
+		if (data?.id) {
+			detail = await service.base.sys.user.info({ id: data.id });
+		}
 
+		const roleId = normalizeSingleRoleId(detail?.roleIdList);
+		const departmentId = Number(detail?.departmentId || 0) || undefined;
+		const loginPhone = String(detail?.phone || detail?.username || '');
+
+		loginPhoneValue.value = loginPhone;
+		Upsert.value?.setForm('username', loginPhone);
+		Upsert.value?.setForm('phone', loginPhone);
+		Upsert.value?.setForm('departmentId', departmentId);
+		applyDepartmentRoleRule(departmentId, roleId, detail?.level);
+	},
 	plugins: [Plugins.Form.setFocus('name')]
 });
 
-function getRoleById(roleId?: number) {
+function normalizeSingleRoleId(value: any) {
+	const roleId = Array.isArray(value) ? value[0] : value;
 	const id = Number(roleId);
-	return roles.value.find(e => Number(e.id) === id);
+	return Number.isNaN(id) ? undefined : id;
 }
 
-function updateLevelField(roleId?: number) {
-	const role = getRoleById(roleId);
-	const roleLabel = role?.label;
+function toRoleOptions(list: any[]) {
+	return list.map(e => ({ label: e.name || '', value: Number(e.id) }));
+}
 
-	if (roleLabel === INTERNAL_MANAGER_ROLE_LABEL) {
-		Upsert.value?.showItem('level');
-		Upsert.value?.setOptions('level', [{ label: t(LEVEL_MANAGER), value: LEVEL_MANAGER }]);
+function getRoleById(roleId?: number) {
+	return roles.value.find(e => Number(e.id) === Number(roleId));
+}
+
+function isOfficeRole(role?: any) {
+	return role?.label === INTERNAL_ROLE_LABEL;
+}
+
+function isOfficeManagerRole(role?: any) {
+	return role?.label === INTERNAL_MANAGER_ROLE_LABEL;
+}
+
+function isSalesRole(role?: any) {
+	return role?.label === SALESMAN_ROLE_LABEL || String(role?.name || '').includes('業務');
+}
+
+function isFinanceRole(role?: any) {
+	return (
+		role?.label === FINANCE_ROLE_LABEL ||
+		String(role?.label || '').toLowerCase().includes('finance') ||
+		String(role?.name || '').includes('財務')
+	);
+}
+
+function getOfficeRole() {
+	return roles.value.find(isOfficeRole);
+}
+
+function getOfficeManagerRole() {
+	return roles.value.find(isOfficeManagerRole);
+}
+
+function getSalesRole() {
+	return roles.value.find(isSalesRole);
+}
+
+function getFinanceRole() {
+	return roles.value.find(isFinanceRole);
+}
+
+function findDepartmentPath(id?: number, list: any[] = departmentTree.value, path: any[] = []): any[] {
+	if (!id) return [];
+
+	for (const item of list) {
+		const nextPath = [...path, item];
+		if (Number(item?.id) === Number(id)) {
+			return nextPath;
+		}
+
+		const children = Array.isArray(item?.children) ? item.children : [];
+		if (children.length > 0) {
+			const childPath = findDepartmentPath(id, children, nextPath);
+			if (childPath.length > 0) return childPath;
+		}
+	}
+
+	return [];
+}
+
+function getDepartmentRule(departmentId?: number) {
+	const path = findDepartmentPath(departmentId);
+	const names = path.map(e => String(e?.name || ''));
+
+	if (path.length === 1 && names[0] === CRM_ROOT_NAME) return 'crm-root';
+	if (names.includes(OFFICE_DEPARTMENT_NAME)) return 'office';
+	if (names.includes(SALES_DEPARTMENT_NAME)) return 'sales';
+	if (names.includes(FINANCE_DEPARTMENT_NAME)) return 'finance';
+
+	return 'other';
+}
+
+function getAllowedRolesByRule(rule: string) {
+	switch (rule) {
+		case 'office':
+			return roles.value.filter(role => isOfficeRole(role) || isOfficeManagerRole(role));
+		case 'sales': {
+			const role = getSalesRole();
+			return role ? [role] : [];
+		}
+		case 'finance': {
+			const role = getFinanceRole();
+			return role ? [role] : [];
+		}
+		default:
+			return roles.value.slice();
+	}
+}
+
+function updateLevelField(roleId?: number, currentLevel?: string) {
+	const role = getRoleById(roleId);
+	const normalizedCurrentLevel = String(currentLevel || '').trim();
+
+	if (isOfficeManagerRole(role)) {
+		showLevel.value = true;
+		levelSelectDisabled.value = true;
+		levelOptions.value = [{ label: LEVEL_MANAGER, value: LEVEL_MANAGER }];
 		Upsert.value?.setForm('level', LEVEL_MANAGER);
 		return;
 	}
 
-	if (roleLabel === INTERNAL_ROLE_LABEL) {
-		Upsert.value?.showItem('level');
-		Upsert.value?.setOptions('level', [
-			{ label: t(LEVEL_SENIOR), value: LEVEL_SENIOR },
-			{ label: t(LEVEL_NORMAL), value: LEVEL_NORMAL }
-		]);
-		const currentLevel = Upsert.value?.getForm('level');
-		if (![LEVEL_SENIOR, LEVEL_NORMAL].includes(currentLevel)) {
+	if (isOfficeRole(role)) {
+		showLevel.value = true;
+		levelSelectDisabled.value = false;
+		levelOptions.value = [
+			{ label: LEVEL_SENIOR, value: LEVEL_SENIOR },
+			{ label: LEVEL_NORMAL, value: LEVEL_NORMAL }
+		];
+		if ([LEVEL_SENIOR, LEVEL_NORMAL].includes(normalizedCurrentLevel)) {
+			Upsert.value?.setForm('level', normalizedCurrentLevel);
+		} else {
 			Upsert.value?.setForm('level', undefined);
 		}
 		return;
 	}
 
-	Upsert.value?.hideItem('level');
+	showLevel.value = false;
+	levelSelectDisabled.value = false;
+	levelOptions.value = [];
 	Upsert.value?.setForm('level', undefined);
 }
 
-function onRoleChange(roleId?: number) {
-	updateLevelField(roleId);
+function applyDepartmentRoleRule(departmentId?: number, currentRoleId?: number, currentLevel?: string) {
+	const rule = getDepartmentRule(departmentId);
+	const allowedRoles = getAllowedRolesByRule(rule);
+	let nextRoleId = currentRoleId;
+
+	roleOptions.value = toRoleOptions(allowedRoles);
+	roleSelectDisabled.value = rule === 'sales' || rule === 'finance';
+
+	if (rule === 'office' && !allowedRoles.some(e => Number(e.id) === Number(currentRoleId))) {
+		nextRoleId = getOfficeRole()?.id || getOfficeManagerRole()?.id;
+	}
+
+	if (rule === 'sales') {
+		nextRoleId = getSalesRole()?.id;
+	}
+
+	if (rule === 'finance') {
+		nextRoleId = getFinanceRole()?.id;
+	}
+
+	if ((rule === 'crm-root' || rule === 'other') && currentRoleId && !allowedRoles.some(e => Number(e.id) === Number(currentRoleId))) {
+		nextRoleId = undefined;
+	}
+
+	Upsert.value?.setForm('roleIdList', nextRoleId);
+	updateLevelField(nextRoleId, currentLevel);
+}
+
+function resetRoleState() {
+	roleOptions.value = toRoleOptions(roles.value);
+	roleSelectDisabled.value = false;
+	showLevel.value = false;
+	levelSelectDisabled.value = false;
+	levelOptions.value = [];
+	Upsert.value?.setForm('roleIdList', undefined);
+	Upsert.value?.setForm('level', undefined);
+}
+
+function onDepartmentSelect(value: any) {
+	const departmentId = Number(Array.isArray(value) ? value[0] : value || 0) || undefined;
+	Upsert.value?.setForm('departmentId', departmentId);
+	applyDepartmentRoleRule(departmentId, currentRoleId.value, currentLevelValue.value);
+}
+
+function onRoleSelect(value: any) {
+	const roleId = normalizeSingleRoleId(value);
+	Upsert.value?.setForm('roleIdList', roleId);
+	updateLevelField(roleId, currentLevelValue.value);
+}
+
+function onLevelSelect(value: string) {
+	Upsert.value?.setForm('level', value);
+}
+
+function onLoginPhoneInput(value: string) {
+	loginPhoneValue.value = value;
+	Upsert.value?.setForm('username', value);
+	Upsert.value?.setForm('phone', value);
 }
 
 function ensureRolesLoaded() {
-	if (roles.value.length > 0) {
-		return Promise.resolve();
-	}
-
-	if (roleLoading) {
-		return roleLoading;
-	}
+	if (roles.value.length > 0) return Promise.resolve();
+	if (roleLoading) return roleLoading;
 
 	roleLoading = service.base.sys.role
 		.list()
 		.then(res => {
-			roles.value = res;
-			Upsert.value?.setOptions(
-				'roleIdList',
-				res.map(e => {
-					return {
-						label: e.name || '',
-						value: e.id
-					};
-				})
-			);
+			roles.value = res || [];
+			roleOptions.value = toRoleOptions(roles.value);
 		})
 		.finally(() => {
 			roleLoading = null;
@@ -433,28 +600,153 @@ function ensureRolesLoaded() {
 	return roleLoading;
 }
 
-// 刷新列表
+function ensureDepartmentsLoaded() {
+	if (departments.value.length > 0) return Promise.resolve();
+	if (departmentLoading) return departmentLoading;
+
+	departmentLoading = service.base.sys.department
+		.list()
+		.then(res => {
+			departments.value = res || [];
+			departmentTree.value = deepTree(departments.value);
+		})
+		.finally(() => {
+			departmentLoading = null;
+		});
+
+	return departmentLoading;
+}
+
+function findDepartmentNode(id?: number, list: any[] = departmentTree.value): any {
+	if (!id) return null;
+
+	for (const item of list) {
+		if (Number(item?.id) === Number(id)) return item;
+
+		const children = Array.isArray(item?.children) ? item.children : [];
+		if (children.length > 0) {
+			const child = findDepartmentNode(id, children);
+			if (child) return child;
+		}
+	}
+
+	return null;
+}
+
+function collectDepartmentIds(list: any[] = []) {
+	const ids: number[] = [];
+
+	for (const item of list) {
+		if (item?.id) ids.push(Number(item.id));
+		const children = Array.isArray(item?.children) ? item.children : [];
+		if (children.length > 0) ids.push(...collectDepartmentIds(children));
+	}
+
+	return ids;
+}
+
+function buildSearchParams() {
+	const params: Record<string, any> = {
+		name: undefined,
+		phone: undefined,
+		email: undefined,
+		departmentIds: []
+	};
+	const name = searchForm.value.name?.trim();
+	const phone = searchForm.value.phone?.trim();
+	const email = searchForm.value.email?.trim();
+	const departmentId = Number(searchForm.value.departmentId || 0);
+
+	if (name) params.name = name;
+	if (phone) params.phone = phone;
+	if (email) params.email = email;
+
+	if (departmentId > 0) {
+		const node = findDepartmentNode(departmentId);
+		params.departmentIds = node ? collectDepartmentIds([node]) : [departmentId];
+	}
+
+	return params;
+}
+
 function refresh(params?: any) {
 	Crud.value?.refresh(params);
 }
 
-// 新增成员
-function onUserAdd({ id }: Eps.BaseSysDepartmentEntity) {
-	Crud.value?.rowAppend({
-		departmentId: id
+function onSearch() {
+	refresh({ page: 1, ...buildSearchParams() });
+}
+
+function onResetSearch() {
+	searchForm.value = createSearchForm();
+	refresh({
+		page: 1,
+		name: undefined,
+		phone: undefined,
+		email: undefined,
+		departmentIds: []
 	});
 }
 
-// 移动成员
-async function toMove(item?: Eps.BaseSysDepartmentEntity) {
-	let ids: number[] = [];
+onMounted(() => {
+	setTimeout(() => {
+		refresh({
+			page: 1,
+			...buildSearchParams()
+		});
+	}, 0);
+});
 
-	if (item) {
-		ids = [item.id!];
-	} else {
-		ids = Table.value?.selection.map(e => e.id) || [];
-	}
-
-	refs.userMove.open(ids);
-}
+ensureDepartmentsLoaded();
 </script>
+
+<style scoped>
+.user-search-form {
+	display: flex;
+	flex-wrap: wrap;
+	width: 100%;
+	padding: 4px 0 8px;
+}
+
+.user-search-form :deep(.el-form-item) {
+	margin-right: 12px;
+	margin-bottom: 12px;
+}
+
+.user-search-form__field {
+	width: 220px;
+}
+
+.user-search-form__actions {
+	margin-right: 0;
+}
+
+.user-login-phone-field {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.user-login-phone-tip {
+	font-size: 12px;
+	line-height: 1.2;
+	color: #909399;
+}
+
+:deep(.user-info-cell) {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	line-height: 1.4;
+}
+
+:deep(.user-info-cell__name) {
+	font-weight: 600;
+	color: #111827;
+}
+
+:deep(.user-info-cell__meta) {
+	color: #6b7280;
+	font-size: 12px;
+}
+</style>

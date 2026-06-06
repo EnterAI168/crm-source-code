@@ -18,13 +18,13 @@ export function renderHeader(item: ClTable.Column, { scope, slots }: any) {
 		return item.label;
 	}
 
-	// 显示输入框
+	// 顯示輸入框
 	function show(e: MouseEvent) {
 		item.search.isInput = true;
 		e.stopPropagation();
 	}
 
-	// 隐藏输入框
+	// 隱藏輸入框
 	function hide() {
 		if (item.search.value !== undefined) {
 			item.search.value = undefined;
@@ -34,7 +34,7 @@ export function renderHeader(item: ClTable.Column, { scope, slots }: any) {
 		item.search.isInput = false;
 	}
 
-	// 刷新
+	// 重新整理
 	function refresh(params?: any) {
 		const { value } = item.search;
 
@@ -54,12 +54,12 @@ export function renderHeader(item: ClTable.Column, { scope, slots }: any) {
 		</div>
 	);
 
-	// 输入框
+	// 輸入框
 	const input = h(renderNode(item.search.component, { prop: item.prop }), {
 		clearable: true,
 		modelValue: item.search.value,
 		onVnodeMounted(vn) {
-			// 默认聚焦
+			// 預設聚焦
 			vn.component?.exposed?.focus?.();
 		},
 		onInput(val: any) {
@@ -68,7 +68,7 @@ export function renderHeader(item: ClTable.Column, { scope, slots }: any) {
 		onChange(val: any) {
 			item.search.value = val;
 
-			// 更改时刷新列表
+			// 更改時重新整理列表
 			if (item.search.refreshOnChange) {
 				refresh();
 			}

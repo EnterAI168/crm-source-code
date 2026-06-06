@@ -9,23 +9,23 @@ export default defineComponent({
 		const { style } = useConfig();
 		const browser = useBrowser();
 
-		// 总数
+		// 總數
 		const total = ref(0);
 
-		// 当前页数
+		// 當前頁數
 		const currentPage = ref(1);
 
-		// 每页大小
+		// 每頁大小
 		const pageSize = ref(20);
 
-		// 页数发生变化
+		// 頁數發生變化
 		function onCurrentChange(index: number) {
 			crud.refresh({
 				page: index
 			});
 		}
 
-		// 条目发生变化
+		// 條目發生變化
 		function onSizeChange(size: number) {
 			crud.refresh({
 				page: 1,
@@ -33,7 +33,7 @@ export default defineComponent({
 			});
 		}
 
-		// 设置分页信息
+		// 設定分頁資訊
 		function setPagination(res: obj) {
 			if (res) {
 				currentPage.value = res.currentPage || res.page || 1;
@@ -43,17 +43,17 @@ export default defineComponent({
 			}
 		}
 
-		// 数据刷新
+		// 資料重新整理
 		function onRefresh(res: ClCrud.Response["page"]) {
 			setPagination(res.pagination);
 		}
 
-		// 监听刷新事件
+		// 監聽重新整理事件
 		onMounted(() => {
 			mitt.on("crud.refresh", onRefresh);
 		});
 
-		// 移除监听事件
+		// 移除監聽事件
 		onUnmounted(() => {
 			mitt.off("crud.refresh", onRefresh);
 		});

@@ -77,13 +77,13 @@ export declare namespace Ctx {
 
 export declare namespace Config {
 	interface Eps {
-		// 是否开启Eps
+		// 是否開啟Eps
 		enable: boolean;
-		// 请求地址
+		// 請求地址
 		api: "app" | "admin" | (string & {});
-		// 输出目录
+		// 輸出目錄
 		dist: string;
-		// 映射
+		// 對映
 		mapping: {
 			type?: string;
 			test?: string[];
@@ -91,39 +91,39 @@ export declare namespace Config {
 		}[];
 	}
 	interface Options {
-		// 应用类型
+		// 應用型別
 		type: Type;
 		// 代理配置
 		proxy?: any;
 		// Eps
 		eps?: Partial<Config.Eps>;
-		// 是否开启演示模式
+		// 是否開啟演示模式
 		demo?: boolean;
-		// 是否开启名称标签
+		// 是否開啟名稱標籤
 		nameTag?: boolean;
 		// svg
 		svg?: {
-			// 跳过拼接模块名
+			// 跳過拼接模組名
 			skipNames?: string[];
 		};
 		// tailwind
 		tailwind?: {
-			// 是否开启tailwind
+			// 是否開啟tailwind
 			enable?: boolean;
-			// 根元素字体大小
+			// 根元素字型大小
 			remUnit?: number;
-			// 小数位数
+			// 小數位數
 			remPrecision?: number;
-			// 转换比例
+			// 轉換比例
 			rpxRatio?: number;
-			// 暗黑模式文本类名
+			// 暗黑模式文本類名
 			darkTextClass?: string;
 		};
 		// uniapp X
 		uniapp?: {
 			isPlugin?: boolean;
 		};
-		// 是否纯净版
+		// 是否純淨版
 		clean?: boolean;
 	}
 }

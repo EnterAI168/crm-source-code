@@ -3,18 +3,18 @@ import { DemoGoodsEntity } from '../../entity/goods';
 import { DemoTenantService } from '../../service/tenant';
 
 /**
- * 多租户
+ * 多租戶
  */
 @CoolController({
   serviceApis: [
     'use',
     {
       method: 'noUse',
-      summary: '不使用多租户',
+      summary: '不使用多租戶',
     },
     {
       method: 'noTenant',
-      summary: '局部不使用多租户',
+      summary: '區域性不使用多租戶',
     },
   ],
   entity: DemoGoodsEntity,

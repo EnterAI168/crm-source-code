@@ -2,22 +2,22 @@ import { BaseEntity, transformerJson } from '../../base/entity/base';
 import { Column, Entity, Index } from 'typeorm';
 
 /**
- * 产品信息
+ * 產品資訊
  */
 @Entity('product_info')
 export class ProductInfoEntity extends BaseEntity {
   @Index()
-  @Column({ comment: '产品名称', length: 100 })
+  @Column({ comment: '產品名稱', length: 100 })
   name: string;
 
-  @Column({ comment: '产品分类ID', nullable: true })
+  @Column({ comment: '產品分類ID', nullable: true })
   categoryId: number;
 
-  @Column({ comment: '内勤部门ID', nullable: true })
+  @Column({ comment: '內勤部門ID', nullable: true })
   departmentId: number;
 
   @Column({
-    comment: '预设报价(未税)',
+    comment: '預設報價(未稅)',
     type: 'decimal',
     precision: 10,
     scale: 2,
@@ -52,29 +52,29 @@ export class ProductInfoEntity extends BaseEntity {
   })
   grossProfitRate: number;
 
-  @Column({ comment: '商品说明', type: 'text', nullable: true })
+  @Column({ comment: '商品說明', type: 'text', nullable: true })
   description: string;
 
-  @Column({ comment: 'Logo图', nullable: true })
+  @Column({ comment: 'Logo圖', nullable: true })
   logo: string;
 
   @Column({
-    comment: '商品图片(多图)',
+    comment: '商品圖片(多圖)',
     nullable: true,
     type: 'json',
     transformer: transformerJson,
   })
   images: string[];
 
-  @Column({ comment: '一次性付款产品 0-否 1-是', default: 0 })
+  @Column({ comment: '一次性付款產品 0-否 1-是', default: 0 })
   isOneTimePayment: number;
 
-  @Column({ comment: '状态', dict: ['禁用', '启用'], default: 1 })
+  @Column({ comment: '狀態', dict: ['停用', '啟用'], default: 1 })
   status: number;
 
-  @Column({ comment: '逻辑删除 0-否 1-是', default: 0 })
+  @Column({ comment: '邏輯刪除 0-否 1-是', default: 0 })
   isDeleted: number;
 
-  @Column({ comment: '备注', nullable: true })
+  @Column({ comment: '備註', nullable: true })
   remark: string;
 }

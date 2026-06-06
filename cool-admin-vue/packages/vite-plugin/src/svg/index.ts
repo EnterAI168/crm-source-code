@@ -12,7 +12,7 @@ function findSvg(dir: string) {
 		withFileTypes: true,
 	});
 
-	// 获取当前目录的模块名
+	// 獲取當前目錄的模組名
 	const moduleName = dir.match(/[/\\](?:src[/\\](?:plugins|modules)[/\\])([^/\\]+)/)?.[1] || "";
 
 	for (const d of dirs) {
@@ -22,10 +22,10 @@ function findSvg(dir: string) {
 			if (extname(d.name) == ".svg") {
 				const baseName = basename(d.name, ".svg");
 
-				// 判断是否需要跳过拼接模块名
+				// 判斷是否需要跳過拼接模組名
 				let shouldSkip = config.svg.skipNames?.includes(moduleName);
 
-				// 跳过包含icon-
+				// 跳過包含icon-
 				if (baseName.includes("icon-")) {
 					shouldSkip = true;
 				}

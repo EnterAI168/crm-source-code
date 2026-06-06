@@ -9,7 +9,7 @@ import { ILogger } from '@midwayjs/logger';
 import { RecycleDataService } from '../service/data';
 
 /**
- * 数据定时清除定时任务
+ * 資料定時清除定時任務
  */
 @Provide()
 export class BaseRecycleSchedule implements CommonSchedule {
@@ -19,14 +19,14 @@ export class BaseRecycleSchedule implements CommonSchedule {
   @Inject()
   logger: ILogger;
 
-  // 定时执行的具体任务
+  // 定時執行的具體任務
   @TaskLocal(FORMAT.CRONTAB.EVERY_DAY)
   async exec() {
-    this.logger.info('清除回收站数据定时任务开始执行');
+    this.logger.info('清除回收站資料定時任務開始執行');
     const startTime = Date.now();
     await this.recycleDataService.clear();
     this.logger.info(
-      `清除回收站数据定时任务结束，耗时:${Date.now() - startTime}ms`
+      `清除回收站資料定時任務結束，耗時:${Date.now() - startTime}ms`
     );
   }
 }

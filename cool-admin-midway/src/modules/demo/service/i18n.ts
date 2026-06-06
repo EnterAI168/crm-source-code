@@ -2,7 +2,7 @@ import { Inject, Provide } from '@midwayjs/core';
 import { BaseTranslateService } from '../../base/service/translate';
 
 /**
- * 国际化服务
+ * 國際化服務
  */
 @Provide()
 export class DemoI18nService {
@@ -10,19 +10,19 @@ export class DemoI18nService {
   translate: BaseTranslateService;
 
   /**
-   * 翻译成英文
+   * 翻譯成英文
    */
   async en() {
-    const value = this.translate.comm('一个很Cool的框架')['en'];
+    const value = this.translate.comm('一個很Cool的框架')['en'];
     console.log(value);
     return value;
   }
 
   /**
-   * 翻译成繁体
+   * 翻譯成繁體
    */
   async tw() {
-    const value = this.translate.comm('一个很Cool的框架')['zh-tw'];
+    const value = this.translate.comm('一個很Cool的框架')['zh-tw'];
     console.log(value);
     return value;
   }

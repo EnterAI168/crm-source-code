@@ -2,6 +2,7 @@ import { defineComponent, h, watch } from 'vue';
 import { useBase } from '/$/base';
 import { useCool } from '/@/cool';
 import { debounce } from 'lodash-es';
+import { localeText } from '/@/utils/localeText';
 
 export default defineComponent({
 	name: 'b-menu',
@@ -14,19 +15,19 @@ export default defineComponent({
 		const { router, route, browser, refs, setRefs } = useCool();
 		const { menu, app } = useBase();
 
-		// 页面跳转
+		// 頁面跳轉
 		function onSelect(url: string) {
 			if (url != route.path) {
 				router.push(url);
 			}
 
-			// 小屏下点击收起左侧菜单
+			// 小屏下點選收起左側選單
 			if (browser.isMini) {
 				app.fold(true);
 			}
 		}
 
-		// 渲染子菜单
+		// 渲染子選單
 		function renderMenu() {
 			function deep(list: Menu.Item[], show?: boolean) {
 				const keyWord = props.keyWord?.toLowerCase() || '';
@@ -38,7 +39,7 @@ export default defineComponent({
 						return true;
 					}
 
-					if (item.meta?.label?.toLowerCase().includes(keyWord)) return true;
+					if (localeText(item.meta?.label).toLowerCase().includes(keyWord)) return true;
 
 					if (item.children) {
 						return item.children.some(filterMenu);
@@ -48,7 +49,7 @@ export default defineComponent({
 				}
 
 				return list.filter(filterMenu).map(e => {
-					if (e.meta?.label?.toLowerCase().includes(keyWord)) {
+					if (localeText(e.meta?.label).toLowerCase().includes(keyWord)) {
 						show = true;
 					}
 
@@ -56,7 +57,7 @@ export default defineComponent({
 						const arr = [
 							<cl-svg name={e.icon} size={18} />,
 							<span class="ml-4 tracking-wider text-[14px] mr-auto text-ellipsis overflow-hidden whitespace-nowrap">
-								{e.meta?.label}
+								{localeText(e.meta?.label)}
 							</span>
 						];
 
@@ -107,7 +108,7 @@ export default defineComponent({
 			return deep(menu.list);
 		}
 
-		// 展开所有
+		// 展開所有
 		const expand = debounce(() => {
 			if (!props.keyWord) {
 				return;

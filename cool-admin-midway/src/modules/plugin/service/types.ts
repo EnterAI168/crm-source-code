@@ -10,7 +10,7 @@ import { PluginInfoEntity } from '../entity/info';
 import { PluginService } from './info';
 
 /**
- * 插件类型服务
+ * 外掛型別服務
  */
 @Provide()
 export class PluginTypesService extends BaseService {
@@ -27,7 +27,7 @@ export class PluginTypesService extends BaseService {
   utils: Utils;
 
   /**
-   * 生成d.ts文件
+   * 生成d.ts檔案
    * @param tsContent
    * @returns
    */
@@ -96,30 +96,30 @@ export class PluginTypesService extends BaseService {
   }
 
   /**
-   * 生成d.ts文件
+   * 生成d.ts檔案
    * @param key
    * @param tsContent
    * @returns
    */
   async generateDtsFile(key: string, tsContent: string) {
     const env = this.app.getEnv();
-    // 不是本地开发环境不生成d.ts文件
+    // 不是本地開發環境不生成d.ts檔案
     if (env != 'local' || !tsContent) {
       return;
     }
-    // 基础路径
+    // 基礎路徑
     const basePath = path.join(this.app.getBaseDir(), '..', 'typings');
-    // pluginDts文件路径
+    // pluginDts檔案路徑
     const pluginDtsPath = path.join(basePath, 'plugin.d.ts');
-    // plugin文件夹路径
+    // plugin資料夾路徑
     const pluginPath = path.join(basePath, `${key}.d.ts`);
-    // 生成d.ts文件
+    // 生成d.ts檔案
     const dtsContent = await this.dtsContent(tsContent);
 
-    // 读取plugin.d.ts文件内容
+    // 讀取plugin.d.ts檔案內容
     let pluginDtsContent = fs.readFileSync(pluginDtsPath, 'utf-8');
 
-    // 根据key判断是否在PluginMap中存在
+    // 根據key判斷是否在PluginMap中存在
     const keyWithHyphen = key.includes('-');
     const importStatement = keyWithHyphen
       ? `import * as ${key.replace(/-/g, '_')} from './${key}';`
@@ -128,20 +128,20 @@ export class PluginTypesService extends BaseService {
       ? `'${key}': ${key.replace(/-/g, '_')}.CoolPlugin;`
       : `${key}: ${key}.CoolPlugin;`;
 
-    // 检查import语句是否已经存在，若不存在则添加
+    // 檢查import語句是否已經存在，若不存在則新增
     if (!pluginDtsContent.includes(importStatement)) {
       pluginDtsContent = `${importStatement}\n${pluginDtsContent}`;
     }
 
-    // 检查PluginMap中的键是否存在，若不存在则添加
+    // 檢查PluginMap中的鍵是否存在，若不存在則新增
     if (pluginDtsContent.includes(pluginMapEntry)) {
-      // 键存在则覆盖
+      // 鍵存在則覆蓋
       const regex = new RegExp(
         `(\\s*${keyWithHyphen ? `'${key}'` : key}:\\s*[^;]+;)`
       );
       pluginDtsContent = pluginDtsContent.replace(regex, pluginMapEntry);
     } else {
-      // 键不存在则追加
+      // 鍵不存在則追加
       const pluginMapRegex = /interface\s+PluginMap\s*{([^}]*)}/;
       pluginDtsContent = pluginDtsContent.replace(
         pluginMapRegex,
@@ -151,40 +151,40 @@ export class PluginTypesService extends BaseService {
       );
     }
 
-    // 格式化内容
+    // 格式化內容
     pluginDtsContent = await this.formatContent(pluginDtsContent);
 
-    // 延迟2秒写入文件
+    // 延遲2秒寫入檔案
     setTimeout(async () => {
-      // 写入d.ts文件，如果存在则覆盖
+      // 寫入d.ts檔案，如果存在則覆蓋
       fs.writeFile(pluginPath, await this.formatContent(dtsContent), () => {});
 
-      // 写入plugin.d.ts文件
+      // 寫入plugin.d.ts檔案
       fs.writeFile(pluginDtsPath, pluginDtsContent, () => {});
     }, 2000);
   }
 
   /**
-   * 删除d.ts文件中的指定key
+   * 刪除d.ts檔案中的指定key
    * @param key
    */
   async deleteDtsFile(key: string) {
     const env = this.app.getEnv();
-    // 不是本地开发环境不删除d.ts文件
+    // 不是本地開發環境不刪除d.ts檔案
     if (env != 'local') {
       return;
     }
-    // 基础路径
+    // 基礎路徑
     const basePath = path.join(this.app.getBaseDir(), '..', 'typings');
-    // pluginDts文件路径
+    // pluginDts檔案路徑
     const pluginDtsPath = path.join(basePath, 'plugin.d.ts');
-    // plugin文件夹路径
+    // plugin資料夾路徑
     const pluginPath = path.join(basePath, `${key}.d.ts`);
 
-    // 读取plugin.d.ts文件内容
+    // 讀取plugin.d.ts檔案內容
     let pluginDtsContent = fs.readFileSync(pluginDtsPath, 'utf-8');
 
-    // 根据key判断是否在PluginMap中存在
+    // 根據key判斷是否在PluginMap中存在
     const keyWithHyphen = key.includes('-');
     const importStatement = keyWithHyphen
       ? `import \\* as ${key.replace(/-/g, '_')} from '\\./${key}';`
@@ -193,34 +193,34 @@ export class PluginTypesService extends BaseService {
       ? `'${key}': ${key.replace(/-/g, '_')}.CoolPlugin;`
       : `${key}: ${key}.CoolPlugin;`;
 
-    // 删除import语句
+    // 刪除import語句
     const importRegex = new RegExp(`${importStatement}\\n`, 'g');
     pluginDtsContent = pluginDtsContent.replace(importRegex, '');
 
-    // 删除PluginMap中的键
+    // 刪除PluginMap中的鍵
     const pluginMapRegex = new RegExp(`\\s*${pluginMapEntry}`, 'g');
     pluginDtsContent = pluginDtsContent.replace(pluginMapRegex, '');
 
-    // 格式化内容
+    // 格式化內容
     pluginDtsContent = await this.formatContent(pluginDtsContent);
 
-    // 延迟2秒写入文件
+    // 延遲2秒寫入檔案
     setTimeout(async () => {
-      // 删除插件d.ts文件
+      // 刪除外掛d.ts檔案
       if (fs.existsSync(pluginPath)) {
         fs.unlink(pluginPath, () => {});
       }
-      // 写入plugin.d.ts文件
+      // 寫入plugin.d.ts檔案
       fs.writeFile(pluginDtsPath, pluginDtsContent, () => {});
     }, 2000);
   }
 
   /**
-   * 格式化内容
+   * 格式化內容
    * @param content
    */
   async formatContent(content: string) {
-    // 使用prettier格式化内容
+    // 使用prettier格式化內容
     const prettier = require('prettier');
     return prettier.format(content, {
       parser: 'typescript',
@@ -233,7 +233,7 @@ export class PluginTypesService extends BaseService {
   }
 
   /**
-   * 重新生成d.ts文件
+   * 重新生成d.ts檔案
    */
   async reGenerate() {
     const pluginInfos = await this.pluginInfoEntity

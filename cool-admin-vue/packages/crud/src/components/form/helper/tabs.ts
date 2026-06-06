@@ -1,7 +1,7 @@
 import { computed, ref } from "vue";
 
 export function useTabs({ config, Form }: { config: ClForm.Config; Form: Vue.Ref<any> }) {
-	// 选中
+	// 選中
 	const active = ref<string | undefined>();
 
 	// 列表
@@ -9,32 +9,32 @@ export function useTabs({ config, Form }: { config: ClForm.Config; Form: Vue.Ref
 		return get()?.props?.labels || [];
 	});
 
-	// 获取选项
+	// 獲取選項
 	function getItem(value: any) {
 		return list.value.find((e) => e.value == value);
 	}
 
-	// 是否已加载
+	// 是否已載入
 	function isLoaded(value: any) {
 		const d = getItem(value);
 		return d?.lazy ? d.loaded : true;
 	}
 
-	// 加载后
+	// 載入後
 	function onLoad(value: any) {
 		const d = getItem(value);
 		d!.loaded = true;
 	}
 
-	// 查找分组
+	// 查詢分組
 	function toGroup(opts: { config: ClForm.Config; prop: string; refs: any }) {
 		if (active.value) {
 			let name;
 
-			// 查找标签上绑定的数据
+			// 查詢標籤上繫結的資料
 			const el = opts.refs.form.querySelector(`[data-prop="${opts.prop}"]`);
 
-			// 各自判断
+			// 各自判斷
 			if (el) {
 				name = el?.getAttribute("data-group");
 			} else {
@@ -57,22 +57,22 @@ export function useTabs({ config, Form }: { config: ClForm.Config; Form: Vue.Ref
 		}
 	}
 
-	// 获取参数
+	// 獲取參數
 	function get() {
 		return config.items.find((e) => e.type === "tabs");
 	}
 
-	// 设置参数
+	// 設定參數
 	function set(data: any) {
 		active.value = data;
 	}
 
 	// 清空
 	function clear() {
-		// 清空选中
+		// 清空選中
 		active.value = undefined;
 
-		// 清空加载状态
+		// 清空載入狀態
 		list.value.forEach((e) => {
 			if (e.lazy && e.loaded) {
 				e.loaded = undefined;
@@ -80,7 +80,7 @@ export function useTabs({ config, Form }: { config: ClForm.Config; Form: Vue.Ref
 		});
 	}
 
-	// 切换
+	// 切換
 	function change(value: any, isValid = true) {
 		return new Promise((resolve: Function, reject: Function) => {
 			function next() {
@@ -95,7 +95,7 @@ export function useTabs({ config, Form }: { config: ClForm.Config; Form: Vue.Ref
 					.filter((e) => e.group == active.value && !e._hidden && e.prop)
 					.map((e) => {
 						return new Promise((r: Function) => {
-							// 验证表单
+							// 驗證表單
 							Form.value.validateField(e.prop, (valid: string) => {
 								if (valid) {
 									isError = true;
@@ -119,7 +119,7 @@ export function useTabs({ config, Form }: { config: ClForm.Config; Form: Vue.Ref
 		});
 	}
 
-	// 合并
+	// 合併
 	function mergeProp(item: ClForm.Item) {
 		const d = get();
 

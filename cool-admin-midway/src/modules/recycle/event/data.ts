@@ -3,7 +3,7 @@ import { Inject } from '@midwayjs/core';
 import { RecycleDataService } from '../service/data';
 
 /**
- * 接受数据事件
+ * 接受資料事件
  */
 @CoolEvent()
 export class RecycleDataEvent {
@@ -11,7 +11,7 @@ export class RecycleDataEvent {
   recycleDataService: RecycleDataService;
 
   /**
-   * 数据被删除
+   * 資料被刪除
    * @param params
    */
   @Event(EVENT.SOFT_DELETE)

@@ -4,7 +4,7 @@ import { CoolController, BaseController } from '@cool-midway/core';
 import { DictTypeService } from '../../service/type';
 
 /**
- * 字典类型
+ * 字典型別
  */
 @Provide()
 @CoolController({

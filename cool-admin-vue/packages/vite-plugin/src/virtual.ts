@@ -18,9 +18,9 @@ export async function virtual(): Promise<Plugin> {
 		enforce: "pre",
 		configureServer(server) {
 			server.middlewares.use(async (req, res, next) => {
-				// 页面刷新时触发
+				// 頁面重新整理時觸發
 				if (req.url == "/@vite/client") {
-					// 重新加载虚拟模块
+					// 重新載入虛擬模組
 					virtualModuleIds.forEach((vm) => {
 						const mod = server.moduleGraph.getModuleById(`\0${vm}`);
 
@@ -34,7 +34,7 @@ export async function virtual(): Promise<Plugin> {
 			});
 		},
 		handleHotUpdate({ file, server }) {
-			// 文件修改时触发
+			// 檔案修改時觸發
 			if (
 				!["pages.json", "dist", "build/cool", "eps.json", "eps.d.ts"].some((e) =>
 					file.includes(e),
@@ -43,7 +43,7 @@ export async function virtual(): Promise<Plugin> {
 				createCtx();
 				createEps().then((data) => {
 					if (data.isUpdate) {
-						// 通知客户端刷新
+						// 通知客戶端重新整理
 						(server.hot || server.ws).send({
 							type: "custom",
 							event: "eps-update",

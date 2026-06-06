@@ -12,7 +12,7 @@
 
 		<el-radio-group v-if="quickBtn && isRange" v-model="quickType" @change="onQuickTypeChange">
 			<el-radio-button value="day">{{ $t('今日') }}</el-radio-button>
-			<el-radio-button value="week">{{ $t('本周') }}</el-radio-button>
+			<el-radio-button value="week">{{ $t('本週') }}</el-radio-button>
 			<el-radio-button value="month">{{ $t('本月') }}</el-radio-button>
 			<el-radio-button value="year">{{ $t('今年') }}</el-radio-button>
 		</el-radio-group>
@@ -30,7 +30,7 @@ import { type PropType, computed, ref, useModel } from 'vue';
 
 const props = defineProps({
 	modelValue: null,
-	// 日期类型
+	// 日期型別
 	type: {
 		type: String as PropType<
 			| 'year'
@@ -50,18 +50,18 @@ const props = defineProps({
 		type: null,
 		default: 'YYYY-MM-DD HH:mm:ss'
 	},
-	// 搜索请求的字段
+	// 搜尋請求的欄位
 	prop: String,
-	// 宽度
+	// 寬度
 	width: String,
-	// 是否显示快速按钮
+	// 是否顯示快速按鈕
 	quickBtn: Boolean,
-	// 默认按钮类型
+	// 預設按鈕型別
 	defaultQuickType: {
 		type: String as PropType<'day' | 'week' | 'month' | 'year' | ''>,
 		default: 'day'
 	},
-	// 筛选后是否刷新
+	// 篩選後是否重新整理
 	enableRefresh: {
 		type: Boolean,
 		default: true
@@ -72,10 +72,10 @@ const emit = defineEmits(['update:modelValue', 'change']);
 
 const Crud = useCrud();
 
-// 是否是范围
+// 是否是範圍
 const isRange = computed(() => props.type.includes('range'));
 
-// 默认时间
+// 預設時間
 const defaultTime = ref<any>(
 	isRange.value ? [new Date('2000-01-01 00:00:00'), new Date('2000-01-01 23:59:59')] : undefined
 );
@@ -83,15 +83,15 @@ const defaultTime = ref<any>(
 // 日期
 const date = useModel(props, 'modelValue');
 
-// 按钮类型
+// 按鈕型別
 const quickType = ref(props.defaultQuickType);
 
-// 日期改变
+// 日期改變
 function onChange(value: any) {
-	// 重置按钮类型
+	// 重置按鈕型別
 	quickType.value = '';
 
-	// 参数
+	// 參數
 	let params = {};
 
 	if (value === null) {
@@ -117,7 +117,7 @@ function onChange(value: any) {
 		};
 	}
 
-	// 筛选列表
+	// 篩選列表
 	if (props.enableRefresh) {
 		Crud.value?.refresh({
 			...params,
@@ -129,7 +129,7 @@ function onChange(value: any) {
 	emit('change', value);
 }
 
-// 按钮类型改变
+// 按鈕型別改變
 function onQuickTypeChange() {
 	date.value = isRange.value ? [] : undefined;
 

@@ -3,19 +3,19 @@ import { Body, Get, Inject, Post } from '@midwayjs/core';
 import { BaseCodingService } from '../../service/coding';
 
 /**
- * Ai编码
+ * Ai編碼
  */
 @CoolController()
 export class AdminCodingController extends BaseController {
   @Inject()
   baseCodingService: BaseCodingService;
 
-  @Get('/getModuleTree', { summary: '获取模块目录结构' })
+  @Get('/getModuleTree', { summary: '獲取模組目錄結構' })
   async getModuleTree() {
     return this.ok(await this.baseCodingService.getModuleTree());
   }
 
-  @Post('/createCode', { summary: '创建代码' })
+  @Post('/createCode', { summary: '建立程式碼' })
   async createCode(
     @Body('codes')
     codes: {

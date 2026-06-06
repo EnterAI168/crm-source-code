@@ -5,18 +5,18 @@ export default (): ModuleConfig => {
 		enable: true,
 		components: [() => import('./components/group.vue'), () => import('./components/head.vue')],
 
-		label: '视图组件',
-		description: '左右侧布局、顶部详情等',
+		label: '檢視元件',
+		description: '左右側佈局、頂部詳情等',
 		author: 'COOL',
 		version: '1.0.4',
 		updateTime: '2024-03-25',
 		demo: [
 			{
-				name: '左右侧布局',
+				name: '左右側佈局',
 				component: () => import('./demo/group.vue')
 			},
 			{
-				name: '顶部详情',
+				name: '頂部詳情',
 				component: () => import('./demo/head.vue')
 			}
 		]

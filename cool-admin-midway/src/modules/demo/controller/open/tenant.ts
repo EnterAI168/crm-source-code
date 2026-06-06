@@ -3,7 +3,7 @@ import { DemoGoodsEntity } from '../../entity/goods';
 import { DemoTenantService } from '../../service/tenant';
 
 /**
- * 多租户
+ * 多租戶
  */
 @CoolController({
   api: [],

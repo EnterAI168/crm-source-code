@@ -2,14 +2,14 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>event</el-tag>
-			<span>组件事件</span>
+			<span>元件事件</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['form/event.vue']" />
 
-			<!-- 自定义表单组件 -->
+			<!-- 自定義表單元件 -->
 			<cl-form ref="Form"></cl-form>
 		</div>
 
@@ -27,46 +27,46 @@ const Form = useForm();
 
 function open() {
 	Form.value?.open({
-		title: '组件事件',
+		title: '元件事件',
 		items: [
 			{
-				label: '账号',
+				label: '賬號',
 				prop: 'account',
 				component: {
 					name: 'el-input',
 					props: {
-						// 组件内 emit 的用 on[name] 接收，如 onChange、onInput、onBlur 等
-						// 前提是组件内有触发事件
+						// 元件內 emit 的用 on[name] 接收，如 onChange、onInput、onBlur 等
+						// 前提是元件內有觸發事件
 						onBlur() {
-							ElMessage.info('账号检查中');
+							ElMessage.info('賬號檢查中');
 						}
 					}
 				}
 			},
 			{
-				label: '是否实名',
+				label: '是否實名',
 				prop: 'status',
 				value: 1,
 				component: {
 					name: 'el-radio-group',
 					options: [
 						{
-							label: '关闭',
+							label: '關閉',
 							value: 0
 						},
 						{
-							label: '开启',
+							label: '開啟',
 							value: 1
 						}
 					],
 					props: {
-						// 值改变事件
+						// 值改變事件
 						onChange(val: number) {
 							if (val == 1) {
-								// 显示表单项
+								// 顯示錶單項
 								Form.value?.showItem('idcard');
 							} else {
-								// 隐藏表单项
+								// 隱藏表單項
 								Form.value?.hideItem('idcard');
 								// 清空值
 								Form.value?.setForm('idcard', undefined);
@@ -76,7 +76,7 @@ function open() {
 				}
 			},
 			{
-				label: '身份证',
+				label: '身份證',
 				prop: 'idcard',
 				component: {
 					name: 'el-input'

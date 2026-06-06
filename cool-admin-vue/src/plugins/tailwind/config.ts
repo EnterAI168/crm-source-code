@@ -5,7 +5,7 @@ export default (): ModuleConfig => {
 	return {
 		order: 100,
 		label: 'Tailwind',
-		description: 'Tailwind 样式，提供现代化的响应式设计工具',
+		description: 'Tailwind 樣式，提供現代化的響應式設計工具',
 		author: 'CRM',
 		version: '1.0.0',
 		updateTime: '2025-01-11',

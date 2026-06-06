@@ -6,7 +6,7 @@ import { TaskInfoQueue } from '../queue/task';
 import { TaskInfoService } from '../service/info';
 
 /**
- * 任务中间件
+ * 任務中介軟體
  */
 @Middleware()
 export class TaskMiddleware implements IMiddleware<Context, NextFunction> {
@@ -28,7 +28,7 @@ export class TaskMiddleware implements IMiddleware<Context, NextFunction> {
       ) {
         if (!this.taskInfoQueue.metaQueue) {
           throw new CoolCommException(
-            'task插件未启用或redis配置错误或redis版本过低(>=6.x)'
+            'task外掛未啟用或redis配置錯誤或redis版本過低(>=6.x)'
           );
         }
       }

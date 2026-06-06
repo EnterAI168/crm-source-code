@@ -6,24 +6,24 @@
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['crud/all.vue']" />
 
 			<cl-dialog v-model="visible" title="完整示例" width="80%">
 				<cl-crud ref="Crud">
 					<cl-row>
-						<!-- 刷新按钮 -->
+						<!-- 重新整理按鈕 -->
 						<cl-refresh-btn />
 
-						<!-- 新增按钮 -->
+						<!-- 新增按鈕 -->
 						<cl-add-btn />
 
-						<!-- 批量删除按钮 -->
+						<!-- 批次刪除按鈕 -->
 						<cl-multi-delete-btn />
 
-						<!-- 筛选 -->
-						<cl-filter label="状态筛选">
-							<!-- 配置prop，选择后会自动过滤列表 -->
+						<!-- 篩選 -->
+						<cl-filter label="狀態篩選">
+							<!-- 配置prop，選擇後會自動過濾列表 -->
 							<cl-select :options="options.status" prop="status" :width="120" />
 						</cl-filter>
 
@@ -40,22 +40,22 @@
 
 						<cl-flex1 />
 
-						<!-- 导入 -->
-						<cl-import-btn template="/用户导入模版.xlsx" />
+						<!-- 匯入 -->
+						<cl-import-btn template="/使用者匯入模版.xlsx" />
 
-						<!-- 导出 -->
+						<!-- 匯出 -->
 						<cl-export-btn :columns="Table?.columns" />
 
-						<!-- 自定义列 -->
+						<!-- 自定義列 -->
 						<cl-column-custom
 							:ref="setRefs('columnCustom')"
 							:columns="Table?.columns"
 						/>
 
-						<!-- 关键字搜索 -->
-						<cl-search-key placeholder="搜索姓名、手机号" :width="250" />
+						<!-- 關鍵字搜尋 -->
+						<cl-search-key placeholder="搜尋姓名、手機號" :width="250" />
 
-						<!-- 高级搜索按钮 -->
+						<!-- 高階搜尋按鈕 -->
 						<cl-adv-btn />
 					</cl-row>
 
@@ -67,7 +67,7 @@
 							:summary-method="onSummaryMethod"
 							:auto-height="false"
 						>
-							<!-- 展开信息 -->
+							<!-- 展開資訊 -->
 							<template #column-detail="{ scope }">
 								<div style="padding: 0 10px">
 									<el-descriptions border :column="3">
@@ -90,7 +90,7 @@
 								</div>
 							</template>
 
-							<!-- 自定义列 -->
+							<!-- 自定義列 -->
 							<template #column-wages="{ scope }">
 								<span>{{ scope.row.wages }}🤑</span>
 							</template>
@@ -100,14 +100,14 @@
 					<cl-row>
 						<cl-flex1 />
 
-						<!-- 分页 -->
+						<!-- 分頁 -->
 						<cl-pagination />
 					</cl-row>
 
-					<!-- 新增、编辑 -->
+					<!-- 新增、編輯 -->
 					<cl-upsert ref="Upsert" />
 
-					<!-- 高级搜索 -->
+					<!-- 高階搜尋 -->
 					<cl-adv-search ref="AdvSearch" />
 				</cl-crud>
 			</cl-dialog>
@@ -130,28 +130,28 @@ import { reactive, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { useCool } from '/@/cool';
 
-// 基础
+// 基礎
 const { service, refs, setRefs } = useCool();
 
 // 字典
 const { dict } = useDict();
 
-// 选项，统一命名options，存放所有的下拉等其他选项列表数据
+// 選項，統一命名options，存放所有的下拉等其他選項列表資料
 const options = reactive({
 	status: [
 		{
-			label: '启用',
+			label: '啟用',
 			value: 1
 		},
 		{
-			label: '禁用',
+			label: '停用',
 			type: 'danger',
 			value: 0
 		}
 	]
 });
 
-// 合计数据
+// 合計資料
 const subData = reactive({
 	wages: 0
 });
@@ -159,41 +159,41 @@ const subData = reactive({
 // crud
 const Crud = useCrud(
 	{
-		// 绑定的服务，如：service.demo.goods、service.base.sys.user
+		// 繫結的服務，如：service.demo.goods、service.base.sys.user
 		service: 'test',
 
-		// 刷新事件
+		// 重新整理事件
 		async onRefresh(params, { next }) {
 			const res = await next(params);
 			Object.assign(subData, res.subData);
 		}
 	},
 	app => {
-		// Crud 加载完，默认刷新一次
+		// Crud 載入完，預設重新整理一次
 		app.refresh({
 			size: 10
-			// status: 1 // 带额外参数的请求
+			// status: 1 // 帶額外參數的請求
 		});
 	}
 );
 
-// 刷新列表，统一调用这个方法去刷新
+// 重新整理列表，統一呼叫這個方法去重新整理
 function refresh(params?: any) {
 	Crud.value?.refresh(params);
 }
 
-// 新增、编辑
-// 插入类型 <Eps.UserInfoEntity>，prop 和 data 会有提示
+// 新增、編輯
+// 插入型別 <Eps.UserInfoEntity>，prop 和 data 會有提示
 const Upsert = useUpsert<Eps.UserInfoEntity>({
 	items: [
-		// 分组
+		// 分組
 		{
 			type: 'tabs',
 			props: {
 				type: 'card',
 				labels: [
 					{
-						label: '基础信息',
+						label: '基礎資訊',
 						value: 'base'
 					},
 					{
@@ -204,7 +204,7 @@ const Upsert = useUpsert<Eps.UserInfoEntity>({
 			}
 		},
 		{
-			label: '头像',
+			label: '頭像',
 			prop: 'avatarUrl',
 			group: 'base',
 			component: {
@@ -212,21 +212,21 @@ const Upsert = useUpsert<Eps.UserInfoEntity>({
 			}
 		},
 		{
-			label: '账号',
+			label: '賬號',
 			group: 'base',
 			prop: 'account',
 			component: {
 				name: 'el-input'
 			}
 		},
-		// 动态配置，新增显示、编辑隐藏
+		// 動態配置，新增顯示、編輯隱藏
 		() => {
 			return () => {
 				return {
-					label: '密码',
+					label: '密碼',
 					group: 'base',
 					prop: 'password',
-					hidden: Upsert.value?.mode == 'update', // 通过 mode 参数判断
+					hidden: Upsert.value?.mode == 'update', // 通過 mode 參數判斷
 					component: {
 						name: 'el-input',
 						props: {
@@ -242,7 +242,7 @@ const Upsert = useUpsert<Eps.UserInfoEntity>({
 			component: {
 				name: 'cl-form-card',
 				props: {
-					label: '用户信息（多层级展示）'
+					label: '使用者資訊（多層級展示）'
 				}
 			},
 			children: [
@@ -269,20 +269,20 @@ const Upsert = useUpsert<Eps.UserInfoEntity>({
 			component: {
 				name: 'cl-form-card',
 				props: {
-					label: '联系信息',
+					label: '聯絡資訊',
 					expand: false
 				}
 			},
 			children: [
 				{
-					label: '手机号',
+					label: '手機號',
 					prop: 'phone',
 					component: {
 						name: 'el-input'
 					}
 				},
 				{
-					label: '省市区',
+					label: '省市區',
 					prop: 'pca',
 					group: 'base',
 					component: {
@@ -305,7 +305,7 @@ const Upsert = useUpsert<Eps.UserInfoEntity>({
 		},
 		{
 			group: 'other',
-			label: '身份证照片',
+			label: '身份證照片',
 			prop: 'idCardPic',
 			component: {
 				name: 'cl-upload',
@@ -317,61 +317,61 @@ const Upsert = useUpsert<Eps.UserInfoEntity>({
 		}
 	],
 
-	// 详情钩子
+	// 詳情鉤子
 	onInfo(data, { next, done }) {
-		// 继续请求 info 接口，可以带其他自定义参数
+		// 繼續請求 info 介面，可以帶其他自定義參數
 		// next({
 		// 	id: data.id,
 		//	status: 1
 		// });
 
-		// 使用其他接口
+		// 使用其他介面
 		// service.demo.goods.info({ id: data.id }).then((res) => {
 		// 	done(res);
 		// });
 
-		// 直接取列表的数据返回
+		// 直接取列表的資料返回
 		done(data);
 	},
 
-	// 提交钩子
+	// 提交鉤子
 	onSubmit(data, { next, close, done }) {
 		console.log('onSubmit', data);
-		// 继续请求 update/add 接口
+		// 繼續請求 update/add 介面
 		next(data);
 
-		// 自定义接口
+		// 自定義介面
 		// service.demo.goods
 		// 	.update(data)
 		// 	.then(() => {
-		// 		ElMessage.success("保存成功");
+		// 		ElMessage.success("儲存成功");
 
-		// 		// 操作完，刷新列表
+		// 		// 操作完，重新整理列表
 		// 		refresh();
 
-		// 		// 关闭窗口
+		// 		// 關閉視窗
 		// 		close();
 		// 	})
 		// 	.catch((err) => {
 		// 		ElMessage.error(err.message);
 
-		// 		// 关闭加载状态
+		// 		// 關閉載入狀態
 		// 		done();
 		// 	});
 	},
 
-	// 打开后，数据加载完，onInfo 之后
+	// 開啟後，資料載入完，onInfo 之後
 	onOpened(data) {
 		if (Upsert.value?.mode != 'info') {
-			ElMessage.info('编辑中');
+			ElMessage.info('編輯中');
 		}
 	},
 
-	// 关闭钩子
+	// 關閉鉤子
 	onClose(action, done) {
 		if (Upsert.value?.mode == 'update') {
 			if (action == 'close') {
-				return ElMessageBox.confirm('还没填完，确定关闭不？', '提示', {
+				return ElMessageBox.confirm('還沒填完，確定關閉不？', '提示', {
 					type: 'warning'
 				})
 					.then(() => {
@@ -379,7 +379,7 @@ const Upsert = useUpsert<Eps.UserInfoEntity>({
 						ElMessage.info('好吧');
 					})
 					.catch(() => {
-						ElMessage.success('请继续编辑');
+						ElMessage.success('請繼續編輯');
 					});
 			}
 		}
@@ -395,15 +395,15 @@ const Table = useTable({
 			type: 'selection',
 			width: 60
 		},
-		// 展开列
+		// 展開列
 		{
-			label: '展开',
+			label: '展開',
 			type: 'expand',
 			prop: 'detail',
 			width: 60
 		},
 		{
-			label: '头像',
+			label: '頭像',
 			prop: 'avatar',
 			width: 100,
 			component: {
@@ -419,22 +419,22 @@ const Table = useTable({
 			minWidth: 120
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			minWidth: 140,
 
-			// 带搜索组件
+			// 帶搜尋元件
 			search: {
 				component: {
 					name: 'el-input',
 					props: {
-						placeholder: '搜索手机号'
+						placeholder: '搜尋手機號'
 					}
 				}
 			}
 		},
 		{
-			label: '账号',
+			label: '賬號',
 			prop: 'account',
 			minWidth: 150
 		},
@@ -442,7 +442,7 @@ const Table = useTable({
 			label: '存款(元)',
 			prop: 'wages',
 			minWidth: 150,
-			sortable: 'desc' // 默认倒序
+			sortable: 'desc' // 預設倒序
 		},
 		{
 			label: '工作',
@@ -450,9 +450,9 @@ const Table = useTable({
 			dict: dict.get('occupation'),
 			dictColor: true,
 			minWidth: 150,
-			dictAllLevels: true, // 显示所有等级
+			dictAllLevels: true, // 顯示所有等級
 
-			// 带搜索组件
+			// 帶搜尋元件
 			search: {
 				component: {
 					name: 'cl-select',
@@ -463,7 +463,7 @@ const Table = useTable({
 			}
 		},
 		{
-			label: '状态',
+			label: '狀態',
 			orderNum: 2,
 			prop: 'status',
 			minWidth: 100,
@@ -483,7 +483,7 @@ const Table = useTable({
 					props: {
 						type: 'date',
 						valueFormat: 'YYYY-MM-DD',
-						placeholder: '搜索日期'
+						placeholder: '搜尋日期'
 					}
 				}
 			}
@@ -491,16 +491,16 @@ const Table = useTable({
 		{
 			type: 'op',
 			width: 340,
-			// 静态配置按钮
+			// 靜態配置按鈕
 			// buttons: ["info", "edit", "delete"],
-			// 动态配置按钮
+			// 動態配置按鈕
 			buttons({ scope }) {
 				return [
 					'info',
 					'edit',
 					'delete',
 					{
-						label: '自定义',
+						label: '自定義',
 						onClick() {
 							ElMessage.info(`他是：${scope.row.name}`);
 						}
@@ -511,13 +511,13 @@ const Table = useTable({
 	]
 });
 
-// 合计
+// 合計
 function onSummaryMethod() {
-	// 添加自定义列组件后
-	return ['合计', '', ...refs.columnCustom.summary(subData)];
+	// 新增自定義列元件後
+	return ['合計', '', ...refs.columnCustom.summary(subData)];
 }
 
-// 高级搜索
+// 高階搜尋
 const AdvSearch = useAdvSearch({
 	items: [
 		{
@@ -531,7 +531,7 @@ const AdvSearch = useAdvSearch({
 			}
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			component: {
 				name: 'el-input',
@@ -554,7 +554,7 @@ const AdvSearch = useAdvSearch({
 	]
 });
 
-// 搜索
+// 搜尋
 const Search = useSearch({
 	items: [
 		{

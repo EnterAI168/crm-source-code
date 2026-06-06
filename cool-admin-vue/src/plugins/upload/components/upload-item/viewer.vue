@@ -1,6 +1,6 @@
 <template>
 	<div class="viewer-image">
-		<!-- 图片 -->
+		<!-- 圖片 -->
 		<el-image-viewer
 			v-if="img.visible"
 			:url-list="[img.url]"
@@ -10,10 +10,10 @@
 		/>
 	</div>
 
-	<!-- 文档 -->
+	<!-- 檔案 -->
 	<cl-dialog
 		v-model="doc.visible"
-		:title="$t('文档预览')"
+		:title="$t('檔案預覽')"
 		height="70vh"
 		width="80%"
 		:scrollbar="false"
@@ -35,29 +35,29 @@ import { useCool } from '/@/cool';
 
 const { refs, setRefs } = useCool();
 
-// 图片预览
+// 圖片預覽
 const img = reactive({
 	visible: false,
 	url: ''
 });
 
-// 文档预览
+// 檔案預覽
 const doc = reactive({
 	visible: false,
 	loading: false,
 	url: ''
 });
 
-// 打开
+// 開啟
 function open(item: Upload.Item) {
 	if (item?.type) {
-		// 链接
+		// 連結
 		const url = item.url || '';
 
-		// 类型
+		// 型別
 		const type = getType(url);
 
-		// 图片预览
+		// 圖片預覽
 		if (type == 'image') {
 			img.visible = true;
 			img.url = url;
@@ -65,7 +65,7 @@ function open(item: Upload.Item) {
 			return true;
 		}
 
-		// 文档预览
+		// 檔案預覽
 		if (['word', 'excel', 'ppt', 'pdf'].includes(type)) {
 			doc.visible = true;
 			doc.loading = true;
@@ -84,7 +84,7 @@ function open(item: Upload.Item) {
 	}
 }
 
-// 关闭
+// 關閉
 function close() {
 	img.visible = false;
 }

@@ -3,7 +3,7 @@ import { FORMAT, ILogger, Inject } from '@midwayjs/core';
 import { BaseSysLogService } from '../service/sys/log';
 
 /**
- * 日志定时任务
+ * 日誌定時任務
  */
 @Job({
   cronTime: FORMAT.CRONTAB.EVERY_DAY,
@@ -17,9 +17,9 @@ export class BaseLogJob implements IJob {
   logger: ILogger;
 
   async onTick() {
-    this.logger.info('清除日志定时任务开始执行');
+    this.logger.info('清除日誌定時任務開始執行');
     const startTime = Date.now();
     await this.baseSysLogService.clear();
-    this.logger.info(`清除日志定时任务结束，耗时:${Date.now() - startTime}ms`);
+    this.logger.info(`清除日誌定時任務結束，耗時:${Date.now() - startTime}ms`);
   }
 }

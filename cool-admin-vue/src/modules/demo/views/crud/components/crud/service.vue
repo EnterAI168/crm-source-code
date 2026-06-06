@@ -6,10 +6,10 @@
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['crud/service.vue']" />
 
-			<!-- 自定义表格组件 -->
+			<!-- 自定義表格元件 -->
 			<cl-dialog v-model="visible" title="Service 配置" width="80%">
 				<cl-crud ref="Crud">
 					<cl-row>
@@ -31,7 +31,7 @@
 						<cl-pagination />
 					</cl-row>
 
-					<!-- 新增、编辑 -->
+					<!-- 新增、編輯 -->
 					<cl-upsert ref="Upsert" />
 				</cl-crud>
 			</cl-dialog>
@@ -49,7 +49,7 @@ import { ref } from 'vue';
 import { useCool } from '/@/cool';
 import { useDict } from '/$/dict';
 
-//【很重要】service 是所有请求的集合，是一个对象（刷新页面和保存代码会自动读取后端的所有接口）
+//【很重要】service 是所有請求的集合，是一個物件（重新整理頁面和儲存程式碼會自動讀取後端的所有介面）
 const { service, route } = useCool();
 console.log('service', service);
 
@@ -59,24 +59,24 @@ const { dict } = useDict();
 const Crud = useCrud(
 	{
 		//【很重要】配置 service，如：service.base.sys.user
-		// 不需要到具体的方法，如：service.base.sys.user.page，这是错误的！
+		// 不需要到具體的方法，如：service.base.sys.user.page，這是錯誤的！
 
-		// 实际用法
+		// 實際用法
 		// service: service.base.sys.user,
 
-		// 测试示例
+		// 測試示例
 		service: 'test'
 
-		// 自定义配置1，添加本地 service 文件。
-		// 【很重要】参考 /src/modules/demo/service/test.ts
-		// 【很重要】必须放在目录 modules/*/service/ 下，才会自动注入到 service 中
+		// 自定義配置1，新增本地 service 檔案。
+		// 【很重要】參考 /src/modules/demo/service/test.ts
+		// 【很重要】必須放在目錄 modules/*/service/ 下，才會自動注入到 service 中
 		// service: service.test
 
-		// 自定义配置2，针对一些特殊场景
+		// 自定義配置2，針對一些特殊場景
 		// service: {
 		// 	page(params: any) {
-		// 		// params 请求参数
-		// 		//【很重要】必须返回一个 Promise 格式
+		// 		// params 請求參數
+		// 		//【很重要】必須返回一個 Promise 格式
 		// 		return Promise.resolve({
 		// 			list: [],
 		// 			pagination: {
@@ -91,10 +91,10 @@ const Crud = useCrud(
 		// }
 	},
 	app => {
-		// 首次调用刷新接口。在弹窗的情况下可以注释，用 Crud.value?.refresh() 方式手动调用
+		// 首次呼叫重新整理介面。在彈窗的情況下可以註釋，用 Crud.value?.refresh() 方式手動呼叫
 		app.refresh();
 
-		// 带参数
+		// 帶參數
 		// app.refresh({
 		// 	userId: route.query.id
 		// });
@@ -116,7 +116,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			minWidth: 140
 		},
@@ -127,7 +127,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '创建时间',
+			label: '建立時間',
 			prop: 'createTime',
 			minWidth: 170,
 			sortable: 'desc'
@@ -150,7 +150,7 @@ const Upsert = useUpsert({
 			}
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			component: {
 				name: 'el-input'

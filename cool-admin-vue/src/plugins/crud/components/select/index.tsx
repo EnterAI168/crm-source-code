@@ -37,28 +37,28 @@ export default defineComponent({
 		},
 		width: [String, Number],
 
-		// 是否树形
+		// 是否樹形
 		tree: Boolean,
-		// 是否返回选中层级下的所有值
+		// 是否返回選中層級下的所有值
 		allLevelsId: Boolean,
-		// 是否父子不互相关联
+		// 是否父子不互相關聯
 		checkStrictly: Boolean,
-		// 默认展开所有
+		// 預設展開所有
 		defaultExpandAll: Boolean,
-		// 顶级标签
+		// 頂級標籤
 		topLabel: String,
-		// 是否选择当前表格数据，如果是，则不能选择自身及其下级
+		// 是否選擇當前表格資料，如果是，則不能選擇自身及其下級
 		current: Boolean,
 
-		// 请求接口，如果是字符串，则使用 crud 下的方法
+		// 請求介面，如果是字串，則使用 crud 下的方法
 		api: [String, Function],
 
-		// 值变化刷新
+		// 值變化重新整理
 		refreshOnChange: {
 			type: Boolean,
 			default: true
 		},
-		// 是否在激活时刷新
+		// 是否在啟用時重新整理
 		refreshOnActivated: {
 			type: Boolean,
 			default: true
@@ -77,13 +77,13 @@ export default defineComponent({
 		// cl-form
 		const Form = useForm();
 
-		// 是否用于搜索
+		// 是否用於搜尋
 		const isSearch = computed(() => !Form.value || Form.value?.name === 'search');
 
-		// 选项
+		// 選項
 		const options = ref<Dict.Item[]>();
 
-		// 选中值
+		// 選中值
 		const value = useModel(props, 'modelValue');
 
 		// 列表
@@ -93,7 +93,7 @@ export default defineComponent({
 			if (props.current) {
 				data = cloneDeep(toValue(Crud.value?.['cl-table']?.data));
 
-				// 禁用自身及其下级
+				// 停用自身及其下級
 				function deep(d: any, f: boolean) {
 					if (d.id && d.id == Form.value?.getForm('id')) {
 						f = true;
@@ -115,7 +115,7 @@ export default defineComponent({
 				data = toValue(options.value || props.options) || [];
 			}
 
-			// 如果存在顶级标签
+			// 如果存在頂級標籤
 			if (props.topLabel) {
 				return [
 					{
@@ -129,12 +129,12 @@ export default defineComponent({
 			return data;
 		});
 
-		// 获取值
+		// 獲取值
 		function getValue(val: any): any | any[] {
 			if (props.allLevelsId) {
 				const ids: any[] = [];
 
-				// 获取所有的值
+				// 獲取所有的值
 				const deep = (arr: Dict.Item[], f: boolean) => {
 					arr.forEach(e => {
 						const f2 = e[props.valueKey] == val;
@@ -157,7 +157,7 @@ export default defineComponent({
 			}
 		}
 
-		// 值改变
+		// 值改變
 		function onChange(val: any) {
 			const v = getValue(val);
 
@@ -176,7 +176,7 @@ export default defineComponent({
 			refs.select?.focus();
 		}
 
-		// 获取选项数据
+		// 獲取選項資料
 		function refresh() {
 			let req: Promise<any> | null = null;
 
@@ -214,15 +214,15 @@ export default defineComponent({
 		});
 
 		return () => {
-			// 样式
+			// 樣式
 			const style = {
 				width: parsePx(props.width!)
 			};
 
-			// 占位符
-			const placeholder = isSearch.value ? t('全部') : t('请选择');
+			// 佔位符
+			const placeholder = isSearch.value ? t('全部') : t('請選擇');
 
-			// 树形下拉框
+			// 樹形下拉框
 			const TreeSelect = (
 				<el-tree-select
 					v-model={value.value}

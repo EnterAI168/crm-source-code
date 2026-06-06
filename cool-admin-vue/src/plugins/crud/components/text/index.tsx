@@ -7,7 +7,7 @@ export default defineComponent({
 	props: {
 		modelValue: null,
 		formatter: Function as PropType<(value: any, scope: any) => string>
-		// 继承 el-text https://element-plus.org/zh-CN/component/text.html#attributes
+		// 繼承 el-text https://element-plus.org/zh-CN/component/text.html#attributes
 	},
 
 	setup(props) {

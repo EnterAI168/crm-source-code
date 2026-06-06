@@ -6,7 +6,7 @@ import { InjectEntityModel } from '@midwayjs/typeorm';
 import { Repository } from 'typeorm';
 
 /**
- * 测试
+ * 測試
  */
 @CoolController({
   api: ['add', 'delete', 'update', 'info', 'list', 'page'],
@@ -23,12 +23,12 @@ export class OpenDemoGoodsController extends BaseController {
   @Inject()
   demoGoodsService: DemoGoodsService;
 
-  @Post('/sqlPage', { summary: 'sql分页查询' })
+  @Post('/sqlPage', { summary: 'sql分頁查詢' })
   async sqlPage(@Body() query) {
     return this.ok(await this.demoGoodsService.sqlPage(query));
   }
 
-  @Post('/entityPage', { summary: 'entity分页查询' })
+  @Post('/entityPage', { summary: 'entity分頁查詢' })
   async entityPage(@Body() query) {
     return this.ok(await this.demoGoodsService.entityPage(query));
   }

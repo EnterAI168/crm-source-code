@@ -2,14 +2,14 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>select-table</el-tag>
-			<span>选择表格</span>
+			<span>選擇表格</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['crud/select-table.vue']" />
 
-			<!-- 自定义表格组件 -->
+			<!-- 自定義表格元件 -->
 			<cl-form ref="Form" />
 		</div>
 
@@ -28,18 +28,18 @@ const Form = useForm();
 
 const columns = [
 	{
-		label: '头像',
+		label: '頭像',
 		prop: 'avatarUrl',
 		component: {
 			name: 'cl-avatar'
 		}
 	},
 	{
-		label: '昵称',
+		label: '暱稱',
 		prop: 'nickName'
 	},
 	{
-		label: '创建时间',
+		label: '建立時間',
 		prop: 'createTime'
 	}
 ];
@@ -47,10 +47,10 @@ const columns = [
 function open() {
 	Form.value?.open({
 		width: '800px',
-		title: '选择表格',
+		title: '選擇表格',
 		items: [
 			{
-				label: '多选 - default',
+				label: '多選 - default',
 				prop: 'a',
 				value: [],
 				component: {
@@ -65,7 +65,7 @@ function open() {
 				span: 12
 			},
 			{
-				label: '单选 - default',
+				label: '單選 - default',
 				prop: 'b',
 				component: {
 					name: 'cl-select-table',
@@ -79,7 +79,7 @@ function open() {
 				span: 12
 			},
 			{
-				label: '多选 - text',
+				label: '多選 - text',
 				prop: 'c',
 				value: [],
 				component: {
@@ -94,7 +94,7 @@ function open() {
 				span: 12
 			},
 			{
-				label: '单选 - text',
+				label: '單選 - text',
 				prop: 'd',
 				component: {
 					name: 'cl-select-table',
@@ -108,7 +108,7 @@ function open() {
 				span: 12
 			},
 			{
-				label: '回显',
+				label: '回顯',
 				prop: 'f',
 				component: {
 					name: 'cl-select-table',
@@ -118,12 +118,12 @@ function open() {
 						columns,
 						service: service.user.info
 					},
-					// 【很重要】设置 ref
+					// 【很重要】設定 ref
 					ref: setRefs('selectTable')
 				}
 			},
 			{
-				label: '多选 - table',
+				label: '多選 - table',
 				prop: 'e',
 				value: [],
 				component: {
@@ -140,7 +140,7 @@ function open() {
 		// useUpsert 中使用 onOpened
 		on: {
 			open() {
-				// 【很重要】设置回显，实际根据接口返回
+				// 【很重要】設定回顯，實際根據介面返回
 				refs.selectTable?.set([
 					{
 						id: 1,

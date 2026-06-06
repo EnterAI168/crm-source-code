@@ -3,7 +3,7 @@ import { MidwayConfig } from '@midwayjs/core';
 import { TenantSubscriber } from '../modules/base/db/tenant';
 
 /**
- * 本地开发 npm run dev 读取的配置文件
+ * 本地開發 npm run dev 讀取的配置檔案
  */
 export default {
   typeorm: {
@@ -11,33 +11,33 @@ export default {
       default: {
         type: 'mysql',
         host: '127.0.0.1',
-        port: 3306,
+        port: 3308,
         username: 'root',
         password: 'root',
         database: 'cool-crm',
-        // 自动建表 注意：线上部署的时候不要使用，有可能导致数据丢失
+        // 自動建表 注意：線上部署的時候不要使用，有可能導致資料丟失
         synchronize: true,
-        // 打印日志
+        // 列印日誌
         logging: false,
-        // 字符集
+        // 字元集
         charset: 'utf8mb4',
-        // 是否开启缓存
+        // 是否開啟快取
         cache: true,
-        // 实体路径
+        // 實體路徑
         entities: ['**/modules/*/entity'],
-        // 订阅者
+        // 訂閱者
         subscribers: [TenantSubscriber],
       },
     },
   },
   cool: {
-    // 实体与路径，跟生成代码、前端请求、swagger文档相关 注意：线上不建议开启，以免暴露敏感信息
+    // 實體與路徑，跟生成程式碼、前端請求、swagger檔案相關 注意：線上不建議開啟，以免暴露敏感資訊
     eps: true,
-    // 是否自动导入模块数据库
+    // 是否自動匯入模組資料庫
     initDB: true,
-    // 判断是否初始化的方式
+    // 判斷是否初始化的方式
     initJudge: 'db',
-    // 是否自动导入模块菜单
+    // 是否自動匯入模組選單
     initMenu: true,
   } as CoolConfig,
 } as MidwayConfig;

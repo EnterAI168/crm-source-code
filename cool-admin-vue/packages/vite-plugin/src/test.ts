@@ -54,7 +54,7 @@ export function test() {
 			}"
 			title="更快速"
 			date="2025-06-28 10:00:00"
-			content="通过集成 cool-admin 的用户登录、版本管理、消息通知以及订单管理等基础模块。有效降低了开发成本，进而增强了市场竞争力。"
+			content="通過整合 cool-admin 的使用者登入、版本管理、訊息通知以及訂單管理等基礎模組。有效降低了開發成本，進而增強了市場競爭力。"
 		>
 		</cl-timeline-item>
 		17<text class="title dark:!text-surface-50"></text>
@@ -63,16 +63,16 @@ export function test() {
 
 	const nodes = getNodes(html);
 
-	console.log("所有节点:");
+	console.log("所有節點:");
 	nodes.forEach((node, index) => {
-		console.log(`第${index + 1}个节点:`, node);
+		console.log(`第${index + 1}個節點:`, node);
 	});
 
-	console.log("\n详细分析:");
+	console.log("\n詳細分析:");
 	nodes.forEach((node, index) => {
 		const classContents = getClassContent(node);
 		const classNames = getClassNames(node);
-		console.log(`第${index + 1}个节点:`);
+		console.log(`第${index + 1}個節點:`);
 		console.log("classContents", classContents);
 		console.log("classNames", classNames);
 

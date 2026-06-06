@@ -2,13 +2,13 @@ import { BaseEntity, transformerJson } from '../../base/entity/base';
 import { Entity, Column, Index } from 'typeorm';
 
 /**
- * 数据回收站 软删除的时候数据会回收到该表
+ * 資料回收站 軟刪除的時候資料會回收到該表
  */
 @Entity('recycle_data')
 export class RecycleDataEntity extends BaseEntity {
   @Column({ comment: '表', type: 'json', transformer: transformerJson })
   entityInfo: {
-    // 数据源名称
+    // 資料來源名稱
     dataSourceName: string;
     // entity
     entity: string;
@@ -19,23 +19,23 @@ export class RecycleDataEntity extends BaseEntity {
   userId: number;
 
   @Column({
-    comment: '被删除的数据',
+    comment: '被刪除的資料',
     type: 'json',
     transformer: transformerJson,
   })
   data: object[];
 
-  @Column({ comment: '请求的接口', nullable: true })
+  @Column({ comment: '請求的介面', nullable: true })
   url: string;
 
   @Column({
-    comment: '请求参数',
+    comment: '請求參數',
     nullable: true,
     type: 'json',
     transformer: transformerJson,
   })
   params: string;
 
-  @Column({ comment: '删除数据条数', default: 1 })
+  @Column({ comment: '刪除資料條數', default: 1 })
   count: number;
 }

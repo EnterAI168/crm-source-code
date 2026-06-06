@@ -1,6 +1,6 @@
 <template>
 	<el-button v-if="isDev" style="margin-left: 10px" @click="autoCreate">{{
-		$t('自动添加')
+		$t('自動新增')
 	}}</el-button>
 
 	<cl-form ref="Form">
@@ -10,18 +10,18 @@
 					<el-divider content-position="left">{{ item.prefix }}</el-divider>
 
 					<div v-for="(a, ai) in item.api" :key="ai" class="item">
-						<!-- 是否开启 -->
+						<!-- 是否開啟 -->
 						<el-switch v-model="a.checked"></el-switch>
 
-						<!-- 名称 -->
+						<!-- 名稱 -->
 						<el-input
 							v-model="a.summary"
 							clearable
-							:placeholder="$t('权限名称')"
+							:placeholder="$t('權限名稱')"
 							:disabled="!a.checked"
 						/>
 
-						<!-- 权限 -->
+						<!-- 權限 -->
 						<cl-menu-perms v-model="a.perms" :disabled="!a.checked" />
 					</div>
 				</div>
@@ -52,13 +52,13 @@ const { service } = useCool();
 const { t } = useI18n();
 const Form = useForm();
 
-// 获取实体数据
+// 獲取實體資料
 async function getEntity() {
 	return service.base.open.eps().then((eps: EpsData) => {
 		const modules: EpsModule[] = [];
 		const paths: string[] = [];
 
-		// 遍历实体
+		// 遍歷實體
 		for (const i in eps) {
 			eps[i].forEach(e => {
 				e.prefix = e.prefix?.replace('/admin/', '');
@@ -73,7 +73,7 @@ async function getEntity() {
 
 		return {
 			prop: 'entity',
-			label: t('实体数据'),
+			label: t('實體資料'),
 			component: {
 				name: 'el-cascader',
 				props: {
@@ -107,12 +107,12 @@ async function getEntity() {
 	});
 }
 
-// 自动创建
+// 自動建立
 async function autoCreate() {
 	emit('open');
 
 	Form.value?.open({
-		title: t('自动添加权限'),
+		title: t('自動新增權限'),
 		width: '800px',
 		dialog: {
 			draggable: true,
@@ -122,13 +122,13 @@ async function autoCreate() {
 			labelPosition: 'top'
 		},
 		op: {
-			saveButtonText: t('一键添加')
+			saveButtonText: t('一鍵新增')
 		},
 		items: [
 			await getEntity(),
 			{
 				prop: 'list',
-				label: t('权限列表'),
+				label: t('權限列表'),
 				value: [],
 				hidden({ scope }) {
 					return !scope.entity;
@@ -141,25 +141,25 @@ async function autoCreate() {
 		on: {
 			submit(data: { list: any[]; entity: any }, { done, close }) {
 				if (!data.entity) {
-					ElMessage.error(t('请选择实体数据'));
+					ElMessage.error(t('請選擇實體資料'));
 					done();
 					return;
 				}
 
-				// 选中权限
+				// 選中權限
 				const checked: EpsApi[] = data.list
 					.map(e => e.api)
 					.flat()
 					.filter(e => e.checked);
 
 				if (checked.find(e => !e.summary)) {
-					ElMessage.error(t('请填写权限名称'));
+					ElMessage.error(t('請填寫權限名稱'));
 					done();
 					return;
 				}
 
 				if (checked.length == 0) {
-					ElMessage.error(t('请至少选择一个权限'));
+					ElMessage.error(t('請至少選擇一個權限'));
 					done();
 					return;
 				}
@@ -175,7 +175,7 @@ async function autoCreate() {
 					})
 				)
 					.then(() => {
-						ElMessage.success(t('添加权限成功'));
+						ElMessage.success(t('新增權限成功'));
 						close();
 						emit('close');
 					})

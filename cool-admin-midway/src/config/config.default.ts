@@ -5,20 +5,20 @@ import * as path from 'path';
 import { pCachePath, pUploadPath } from '../comm/path';
 import { availablePort } from '../comm/port';
 
-// redis缓存
+// redis快取
 // import { redisStore } from 'cache-manager-ioredis-yet';
 
 export default {
-  // 确保每个项目唯一，项目首次启动会自动生成
+  // 確保每個專案唯一，專案首次啟動會自動生成
   keys: 'bc8a48e8-c0ab-4616-8d4a-5c817d28b889',
   koa: {
-    port: availablePort(8001),
+    port: availablePort(8008),
   },
-  // 开启异步上下文管理
+  // 開啟非同步上下文管理
   asyncContextManager: {
     enable: true,
   },
-  // 静态文件配置
+  // 靜態檔案配置
   staticFile: {
     buffer: true,
     dirs: {
@@ -32,12 +32,12 @@ export default {
       },
     },
   },
-  // 文件上传
+  // 檔案上傳
   upload: {
     fileSize: '200mb',
     whitelist: null,
   },
-  // 缓存 可切换成其他缓存如：redis http://www.midwayjs.org/docs/extensions/caching
+  // 快取 可切換成其他快取如：redis http://www.midwayjs.org/docs/extensions/caching
   cacheManager: {
     clients: {
       default: {
@@ -64,27 +64,27 @@ export default {
   //   },
   // },
   cool: {
-    // 已经插件化，本地文件上传查看 plugin/config.ts，其他云存储查看对应插件的使用
+    // 已經外掛化，本地檔案上傳檢視 plugin/config.ts，其他雲端儲存檢視對應外掛的使用
     file: {},
-    // 是否开启多租户
+    // 是否開啟多租戶
     tenant: {
-      // 是否开启多租户
+      // 是否開啟多租戶
       enable: false,
-      // 需要过滤多租户的url, 支持通配符， 如/admin/**/* 表示admin模块下的所有接口都进行多租户过滤
+      // 需要過濾多租戶的url, 支援萬用字元， 如/admin/**/* 表示admin模組下的所有介面都進行多租戶過濾
       urls: [],
     },
-    // 国际化配置
+    // 國際化配置
     i18n: {
-      // 是否开启
+      // 是否開啟
       enable: false,
-      // 语言
+      // 語言
       languages: ['zh-cn', 'zh-tw', 'en'],
     },
     // crud配置
     crud: {
-      // 插入模式，save不会校验字段(允许传入不存在的字段)，insert会校验字段
+      // 插入模式，save不會校驗欄位(允許傳入不存在的欄位)，insert會校驗欄位
       upsert: 'save',
-      // 软删除
+      // 軟刪除
       softDelete: true,
     },
   } as CoolConfig,

@@ -15,18 +15,18 @@ export default (): ModuleConfig => {
 		options: {
 			name: 'default',
 
-			// 自定义主题色
+			// 自定義主題色
 			// color: "#4165d7",
 
-			// 主题列表
+			// 主題列表
 			list: [
 				{
-					label: t('默认'),
+					label: t('預設'),
 					name: 'default',
 					color: '#4165d7'
 				},
 				{
-					label: t('翠绿'),
+					label: t('翠綠'),
 					name: 'cuilv',
 					color: '#51C21A'
 				},
@@ -41,7 +41,7 @@ export default (): ModuleConfig => {
 					color: '#FFA500'
 				},
 				{
-					label: t('樱桃'),
+					label: t('櫻桃'),
 					name: 'yingtao',
 					color: '#FF69B4'
 				},
@@ -66,8 +66,8 @@ export default (): ModuleConfig => {
 			useTheme();
 		},
 
-		label: '主题',
-		description: '自定义主色、菜单分组、暗黑模式',
+		label: '主題',
+		description: '自定義主色、選單分組、暗黑模式',
 		author: 'CRM',
 		version: '1.0.0',
 		updateTime: '2024-07-22'

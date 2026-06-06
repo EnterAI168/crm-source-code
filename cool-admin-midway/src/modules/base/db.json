@@ -2,29 +2,29 @@
   "base_sys_param": [
       {
           "keyName": "rich",
-          "name": "富文本参数",
-          "data": "<h3><strong>这是一个富文本</strong></h3><p>xxx</p><p>xxxxxxxxxx</p><p><br></p>",
+          "name": "富文本參數",
+          "data": "<h3><strong>這是一個富文本</strong></h3><p>xxx</p><p>xxxxxxxxxx</p><p><br></p>",
           "dataType": 1,
           "remark": null
       },
       {
           "keyName": "json",
-          "name": "JSON参数",
+          "name": "JSON參數",
           "data": "{\n  \"code\": 111233\n}",
           "dataType": 0,
           "remark": null
       },
       {
           "keyName": "file",
-          "name": "文件",
+          "name": "檔案",
           "data": "",
           "dataType": 2,
           "remark": null
       },
       {
           "keyName": "text",
-          "name": "测试",
-          "data": "这是一段字符串",
+          "name": "測試",
+          "data": "這是一段字串",
           "dataType": 0,
           "remark": null
       }
@@ -48,19 +48,19 @@
       },
       {
           "id": 11,
-          "name": "开发",
+          "name": "開發",
           "parentId": 12,
           "orderNum": 2
       },
       {
           "id": 12,
-          "name": "测试",
+          "name": "測試",
           "parentId": 1,
           "orderNum": 1
       },
       {
           "id": 13,
-          "name": "游客",
+          "name": "遊客",
           "parentId": 1,
           "orderNum": 3
       }
@@ -71,7 +71,7 @@
           "userId": "1",
           "name": "超管",
           "label": "admin",
-          "remark": "最高权限的角色",
+          "remark": "最高權限的角色",
           "relevance": 1,
           "menuIdList": "null",
           "departmentIdList": "null"
@@ -81,15 +81,15 @@
       {
           "id": 1,
           "departmentId": 1,
-          "name": "超级管理员",
+          "name": "超級管理員",
           "username": "admin",
           "password": "e10adc3949ba59abbe56e057f20f883e",
           "passwordV": 7,
-          "nickName": "管理员",
+          "nickName": "管理員",
           "phone": "18000000000",
           "email": "team@cool-js.com",
           "status": 1,
-          "remark": "拥有最高权限的用户",
+          "remark": "擁有最高權限的使用者",
           "socketId": null
       }
   ],

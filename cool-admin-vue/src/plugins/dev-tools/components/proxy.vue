@@ -44,7 +44,7 @@ function refresh() {
 	const d = list.value.find(e => e.enable);
 
 	if (!d) {
-		ElMessageBox.confirm('当前代理异常，是否切换为默认环境？', '提示', {
+		ElMessageBox.confirm('當前代理異常，是否切換為預設環境？', '提示', {
 			type: 'warning'
 		})
 			.then(() => {

@@ -10,7 +10,7 @@ import {
 import { BaseTranslateService } from '../service/translate';
 
 /**
- * 导入菜单
+ * 匯入選單
  */
 @CoolEvent()
 export class BaseMenuEvent {

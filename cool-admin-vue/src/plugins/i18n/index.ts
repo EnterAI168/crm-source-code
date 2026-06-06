@@ -1,5 +1,6 @@
 import messages from '@intlify/unplugin-vue-i18n/messages';
 import { config } from '/@/config';
+import { localeText } from '/@/utils/localeText';
 
 export const t = (key: string, params?: Record<string, string>) => {
 	const language = config.i18n.locale;
@@ -7,10 +8,10 @@ export const t = (key: string, params?: Record<string, string>) => {
 	// @ts-ignore
 	const message: string = messages?.[language]?.[key]?.loc?.source || key;
 
-	// 参数插值
+	// 參數插值
 	if (params) {
-		return message.replace(/\{(\w+)\}/g, (_, param) => params[param] || `{${param}}`);
+		return localeText(message.replace(/\{(\w+)\}/g, (_, param) => params[param] || `{${param}}`));
 	}
 
-	return message;
+	return localeText(message);
 };

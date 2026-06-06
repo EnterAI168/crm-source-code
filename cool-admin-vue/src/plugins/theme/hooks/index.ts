@@ -12,7 +12,7 @@ export const useTheme = defineStore('theme', () => {
 	const isDark = useDark();
 	const { options } = module.get('theme');
 
-	// 当前主题
+	// 當前主題
 	const theme = reactive<Theme>(
 		storage.get('theme') ||
 			assign(
@@ -24,23 +24,23 @@ export const useTheme = defineStore('theme', () => {
 			)
 	);
 
-	// 主题列表
+	// 主題列表
 	const themes = ref(options.list);
 
-	// 主题色
+	// 主題色
 	const color = computed(() => theme.color);
 
-	// 设置主题
+	// 設定主題
 	function setTheme({ color, name, isGroup, transition, dark }: Theme) {
-		// 设置暗黑模式
+		// 設定暗黑模式
 		if (dark !== undefined) {
 			isDark.value = dark;
 		}
 
-		// 主题配置
+		// 主題配置
 		const theme = storage.get('theme') || {};
 
-		// 变量前缀
+		// 變數字首
 		const pre = '--el-color-primary';
 
 		// 白色混合色
@@ -52,7 +52,7 @@ export const useTheme = defineStore('theme', () => {
 		// 元素
 		const el = document.documentElement;
 
-		// 主题
+		// 主題
 		if (name) {
 			const item = options.list.find(e => e.name == name);
 
@@ -66,11 +66,11 @@ export const useTheme = defineStore('theme', () => {
 			theme.name = name;
 		}
 
-		// 设置主色
+		// 設定主色
 		if (color) {
 			el.style.setProperty(pre, color);
 
-			// 设置辅色
+			// 設定輔色
 			for (let i = 1; i < 10; i += 1) {
 				if (isDark.value) {
 					el.style.setProperty(`${pre}-light-${i}`, mix(color, mixBlack, i * 0.1));
@@ -84,7 +84,7 @@ export const useTheme = defineStore('theme', () => {
 			theme.color = color;
 		}
 
-		// 菜单分组显示
+		// 選單分組顯示
 		if (isGroup !== undefined) {
 			theme.isGroup = isGroup;
 			app.set({
@@ -94,7 +94,7 @@ export const useTheme = defineStore('theme', () => {
 			});
 		}
 
-		// 转场动画
+		// 轉場動畫
 		if (transition !== undefined) {
 			theme.transition = transition;
 			app.set({
@@ -107,7 +107,7 @@ export const useTheme = defineStore('theme', () => {
 		storage.set('theme', theme);
 	}
 
-	// 切换暗黑模式
+	// 切換暗黑模式
 	function changeDark(el: Element, isDark: boolean, cb: () => void) {
 		// @ts-ignore
 		const transition = document.startViewTransition(() => {

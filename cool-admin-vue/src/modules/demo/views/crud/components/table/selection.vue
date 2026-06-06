@@ -2,20 +2,20 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>selection</el-tag>
-			<span>多选框数据</span>
+			<span>多選框資料</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['table/selection.vue']" />
 
-			<!-- 自定义表格组件 -->
-			<cl-dialog v-model="visible" title="多选框数据" width="80%">
+			<!-- 自定義表格元件 -->
+			<cl-dialog v-model="visible" title="多選框資料" width="80%">
 				<cl-crud ref="Crud">
 					<cl-row>
-						<el-button @click="selectRow">选中2行</el-button>
+						<el-button @click="selectRow">選中2行</el-button>
 						<el-button :disabled="Table?.selection.length == 0" @click="clear">
-							取消选择
+							取消選擇
 						</el-button>
 					</cl-row>
 
@@ -24,7 +24,7 @@
 					</cl-row>
 
 					<cl-row>
-						<el-text>已选 {{ Table?.selection.length }} 人</el-text>
+						<el-text>已選 {{ Table?.selection.length }} 人</el-text>
 						<cl-flex1 />
 						<cl-pagination />
 					</cl-row>
@@ -70,7 +70,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			minWidth: 140
 		},
@@ -81,7 +81,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '创建时间',
+			label: '建立時間',
 			prop: 'createTime',
 			minWidth: 170,
 			sortable: 'desc'
@@ -92,7 +92,7 @@ const Table = useTable({
 function selectRow() {
 	const [a, b] = Table.value?.data || [];
 
-	// 选中2个
+	// 選中2個
 	Table.value?.toggleRowSelection(a);
 	Table.value?.toggleRowSelection(b);
 }

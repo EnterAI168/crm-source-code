@@ -43,8 +43,8 @@
 		</div>
 
 		<template #footer>
-			<el-button @click="close">{{ $t('关闭') }}</el-button>
-			<el-button v-if="isCopy" type="success" @click="toCopy">{{ $t('复制') }}</el-button>
+			<el-button @click="close">{{ $t('關閉') }}</el-button>
+			<el-button v-if="isCopy" type="success" @click="toCopy">{{ $t('複製') }}</el-button>
 		</template>
 	</cl-dialog>
 </template>
@@ -91,9 +91,9 @@ const props = defineProps({
 		default: '60%'
 	},
 	formatter: Function,
-	// 多个内容展示
+	// 多個內容展示
 	tabs: Array as PropType<TabItem[]>,
-	// 组件参数
+	// 元件參數
 	props: Object
 });
 
@@ -101,30 +101,30 @@ const { refs, setRefs } = useCool();
 const { copy } = useClipboard();
 const { t } = useI18n();
 
-// 是否可见
+// 是否可見
 const visible = ref(false);
 
-// 内容
+// 內容
 const content = ref('');
 
-// 语言
+// 語言
 const language = ref();
 
-// 激活的标签
+// 啟用的標籤
 const active = ref(0);
 
 // 列表
 const list = ref<TabItem[]>([]);
 
-// 是否代码预览
+// 是否程式碼預覽
 const isCode = computed(() => {
 	return props.type == 'code';
 });
 
-// 是否可以复制
+// 是否可以複製
 const isCopy = computed(() => isCode);
 
-// 编辑器配置
+// 編輯器配置
 const editConfig = computed(() => {
 	return {
 		language: language.value,
@@ -132,17 +132,17 @@ const editConfig = computed(() => {
 	};
 });
 
-// 标题
+// 標題
 const title = computed(() => {
-	return props.title || (isCode.value ? t('代码预览') : t('文本预览'));
+	return props.title || (isCode.value ? t('程式碼預覽') : t('文本預覽'));
 });
 
-// 按钮
+// 按鈕
 const btnText = computed(() => {
-	return props.text || t('点击查看');
+	return props.text || t('點選檢視');
 });
 
-// 打开
+// 開啟
 async function open(data?: string | TabItem[]) {
 	if (!data) {
 		data = props.modelValue;
@@ -162,7 +162,7 @@ async function open(data?: string | TabItem[]) {
 	visible.value = true;
 }
 
-// 设置内容
+// 設定內容
 function setContent(val: any) {
 	if (isString(val)) {
 		content.value = val;
@@ -171,33 +171,33 @@ function setContent(val: any) {
 	}
 }
 
-// 切换
+// 切換
 async function onTabChange(index: any) {
 	const item = list.value[index];
 
-	// 设置语言
+	// 設定語言
 	language.value = item.language;
 
-	// 设置
+	// 設定
 	setContent(item.data);
 
 	await nextTick();
 
-	// 格式化代码
+	// 格式化程式碼
 	if (isCode.value) {
 		refs.editor?.formatCode?.();
 	}
 }
 
-// 关闭
+// 關閉
 function close() {
 	visible.value = false;
 }
 
-// 复制
+// 複製
 function toCopy() {
 	copy(content.value);
-	ElMessage.success(t('复制成功'));
+	ElMessage.success(t('複製成功'));
 }
 
 defineExpose({

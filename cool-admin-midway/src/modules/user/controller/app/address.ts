@@ -32,7 +32,7 @@ export class AppUserAddressController extends BaseController {
   @Inject()
   ctx;
 
-  @Get('/default', { summary: '默认地址' })
+  @Get('/default', { summary: '預設地址' })
   async default() {
     return this.ok(await this.userAddressService.default(this.ctx.user.id));
   }

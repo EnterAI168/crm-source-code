@@ -23,15 +23,15 @@ export const PLUGIN_CACHE_KEY = 'plugin:init';
 export const EVENT_PLUGIN_READY = 'EVENT_PLUGIN_READY';
 
 /**
- * 插件中心
+ * 外掛中心
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)
 export class PluginCenterService {
-  // 插件列表
+  // 外掛列表
   plugins: Map<string, any> = new Map();
 
-  // 插件配置
+  // 外掛配置
   pluginInfos: Map<string, PluginInfo> = new Map();
 
   @App()
@@ -61,7 +61,7 @@ export class PluginCenterService {
   }
 
   /**
-   * 初始化一个
+   * 初始化一個
    * @param keyName key名
    */
   async initOne(keyName: string) {
@@ -72,7 +72,7 @@ export class PluginCenterService {
   }
 
   /**
-   * 移除插件
+   * 移除外掛
    * @param keyName
    * @param isHook
    */
@@ -85,13 +85,13 @@ export class PluginCenterService {
   }
 
   /**
-   * 注册插件
-   * @param key 唯一标识
-   * @param cls 类
-   * @param pluginInfo 插件信息
+   * 註冊外掛
+   * @param key 唯一標識
+   * @param cls 類
+   * @param pluginInfo 外掛資訊
    */
   async register(key: string, cls: any, pluginInfo?: PluginInfo) {
-    // 单例插件
+    // 單例外掛
     if (pluginInfo?.singleton) {
       const instance = new cls();
       await instance.init(this.pluginInfos.get(key), null, this.app, {
@@ -100,13 +100,13 @@ export class PluginCenterService {
       });
       this.plugins.set(key, instance);
     } else {
-      // 普通插件
+      // 普通外掛
       this.plugins.set(key, cls);
     }
   }
 
   /**
-   * 初始化钩子
+   * 初始化鉤子
    */
   async initHooks() {
     const hooksPath = path.join(
@@ -130,8 +130,8 @@ export class PluginCenterService {
   }
 
   /**
-   * 初始化插件
-   * @param condition 插件条件
+   * 初始化外掛
+   * @param condition 外掛條件
    */
   async initPlugin(condition?: {
     hook?: string;
@@ -179,12 +179,12 @@ export class PluginCenterService {
   }
 
   /**
-   * 获得配置
+   * 獲得配置
    * @param config
    * @returns
    */
   private getConfig(config: any) {
-    // 处理配置为字符串的情况
+    // 處理配置為字串的情況
     if (typeof config === 'string') {
       try {
         config = JSON.parse(config);
@@ -192,7 +192,7 @@ export class PluginCenterService {
         return {};
       }
     }
-    // 如果配置为空或非对象类型，则返回空对象
+    // 如果配置為空或非物件型別，則返回空物件
     if (!config || typeof config !== 'object') {
       return {};
     }
@@ -208,7 +208,7 @@ export class PluginCenterService {
   }
 
   /**
-   * 获得实例
+   * 獲得例項
    * @param content
    * @returns
    */

@@ -21,19 +21,19 @@ export default defineComponent({
 	name: "cl-search",
 
 	props: {
-		// 是否行内
+		// 是否行內
 		inline: {
 			type: Boolean,
 			default: true
 		},
 
-		// cl-form 表单配置
+		// cl-form 表單配置
 		props: {
 			type: Object,
 			default: () => ({})
 		},
 
-		// 表单值
+		// 表單值
 		data: {
 			type: Object,
 			default: () => ({})
@@ -45,13 +45,13 @@ export default defineComponent({
 			default: () => []
 		},
 
-		// 是否需要重置按钮
+		// 是否需要重置按鈕
 		resetBtn: {
 			type: Boolean,
 			default: false
 		},
 
-		// 是否需要折叠
+		// 是否需要摺疊
 		collapse: {
 			type: Boolean,
 			default: false
@@ -60,7 +60,7 @@ export default defineComponent({
 		// 初始化
 		onLoad: Function,
 
-		// 搜索时钩子
+		// 搜尋時鉤子
 		onSearch: Function
 	},
 
@@ -80,16 +80,16 @@ export default defineComponent({
 		// cl-form
 		const Form = useForm();
 
-		// 加载中
+		// 載入中
 		const loading = ref(false);
 
-		// 展开
+		// 展開
 		const isExpand = ref(!config.collapse);
 
-		// 显示展开、收起按钮
+		// 顯示展開、收起按鈕
 		const showExpandBtn = ref(false);
 
-		// 搜索
+		// 搜尋
 		function search(params?: any) {
 			const form = Form.value?.getForm();
 
@@ -141,17 +141,17 @@ export default defineComponent({
 				d[e.prop!] = undefined;
 			});
 
-			// 重置表单
+			// 重置表單
 			Form.value?.reset();
 
-			// 列表刷新
+			// 列表重新整理
 			search(d);
 
 			// 重置事件
 			emit("reset", d);
 		}
 
-		// 收起、展开
+		// 收起、展開
 		function expand() {
 			isExpand.value = !isExpand.value;
 
@@ -160,7 +160,7 @@ export default defineComponent({
 			})
 		}
 
-		// 判断展开状态
+		// 判斷展開狀態
 		function onExpand() {
 			if (config.collapse) {
 				const el = refs.form?.querySelector(".cl-form__items");
@@ -229,14 +229,14 @@ export default defineComponent({
 		return () => {
 			const btnEl = (
 				<el-form-item label=" " class="cl-search__btns">
-					{/* 重置按钮 */}
+					{/* 重置按鈕 */}
 					{config.resetBtn && (
 						<el-button size={style.size} icon={Refresh} onClick={reset}>
 							{crud.dict.label.reset}
 						</el-button>
 					)}
 
-					{/* 搜索按钮 */}
+					{/* 搜尋按鈕 */}
 					<el-button
 						type="primary"
 						loading={loading.value}
@@ -248,7 +248,7 @@ export default defineComponent({
 						{crud.dict.label.search}
 					</el-button>
 
-					{/* 自定义按钮 */}
+					{/* 自定義按鈕 */}
 					{slots?.buttons?.(Form.value?.form)}
 				</el-form-item>
 			);

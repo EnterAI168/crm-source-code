@@ -1,6 +1,6 @@
 [
     {
-        "name": "系统管理",
+        "name": "系統管理",
         "router": "/sys",
         "perms": null,
         "type": 0,
@@ -11,7 +11,7 @@
         "isShow": true,
         "childMenus": [
             {
-                "name": "权限管理",
+                "name": "權限管理",
                 "router": null,
                 "perms": null,
                 "type": 0,
@@ -22,7 +22,7 @@
                 "isShow": true,
                 "childMenus": [
                     {
-                        "name": "菜单列表",
+                        "name": "選單列表",
                         "router": "/sys/menu",
                         "perms": null,
                         "type": 1,
@@ -45,7 +45,7 @@
                                 "childMenus": []
                             },
                             {
-                                "name": "删除",
+                                "name": "刪除",
                                 "router": null,
                                 "perms": "base:sys:menu:delete",
                                 "type": 2,
@@ -57,7 +57,7 @@
                                 "childMenus": []
                             },
                             {
-                                "name": "查询",
+                                "name": "查詢",
                                 "router": null,
                                 "perms": "base:sys:menu:page,base:sys:menu:list,base:sys:menu:info",
                                 "type": 2,
@@ -69,7 +69,7 @@
                                 "childMenus": []
                             },
                             {
-                                "name": "参数",
+                                "name": "參數",
                                 "router": "/test/aa",
                                 "perms": null,
                                 "type": 1,
@@ -81,7 +81,7 @@
                                 "childMenus": []
                             },
                             {
-                                "name": "编辑",
+                                "name": "編輯",
                                 "router": null,
                                 "perms": "base:sys:menu:info,base:sys:menu:update",
                                 "type": 2,
@@ -118,7 +118,7 @@
                                 "childMenus": []
                             },
                             {
-                                "name": "删除",
+                                "name": "刪除",
                                 "router": null,
                                 "perms": "base:sys:role:delete",
                                 "type": 2,
@@ -142,7 +142,7 @@
                                 "childMenus": []
                             },
                             {
-                                "name": "查询",
+                                "name": "查詢",
                                 "router": null,
                                 "perms": "base:sys:role:page,base:sys:role:list,base:sys:role:info",
                                 "type": 2,
@@ -154,144 +154,11 @@
                                 "childMenus": []
                             }
                         ]
-                    },
-                    {
-                        "name": "用户列表",
-                        "router": "/sys/user",
-                        "perms": null,
-                        "type": 1,
-                        "icon": "icon-user",
-                        "orderNum": 0,
-                        "viewPath": "modules/base/views/user/index.vue",
-                        "keepAlive": true,
-                        "isShow": true,
-                        "childMenus": [
-                            {
-                                "name": "部门列表",
-                                "router": null,
-                                "perms": "base:sys:department:list",
-                                "type": 2,
-                                "icon": null,
-                                "orderNum": 0,
-                                "viewPath": null,
-                                "keepAlive": true,
-                                "isShow": true,
-                                "childMenus": []
-                            },
-                            {
-                                "name": "新增部门",
-                                "router": null,
-                                "perms": "base:sys:department:add",
-                                "type": 2,
-                                "icon": null,
-                                "orderNum": 0,
-                                "viewPath": null,
-                                "keepAlive": true,
-                                "isShow": true,
-                                "childMenus": []
-                            },
-                            {
-                                "name": "更新部门",
-                                "router": null,
-                                "perms": "base:sys:department:update",
-                                "type": 2,
-                                "icon": null,
-                                "orderNum": 0,
-                                "viewPath": null,
-                                "keepAlive": true,
-                                "isShow": true,
-                                "childMenus": []
-                            },
-                            {
-                                "name": "删除部门",
-                                "router": null,
-                                "perms": "base:sys:department:delete",
-                                "type": 2,
-                                "icon": null,
-                                "orderNum": 0,
-                                "viewPath": null,
-                                "keepAlive": true,
-                                "isShow": true,
-                                "childMenus": []
-                            },
-                            {
-                                "name": "部门排序",
-                                "router": null,
-                                "perms": "base:sys:department:order",
-                                "type": 2,
-                                "icon": null,
-                                "orderNum": 0,
-                                "viewPath": null,
-                                "keepAlive": true,
-                                "isShow": true,
-                                "childMenus": []
-                            },
-                            {
-                                "name": "用户转移",
-                                "router": null,
-                                "perms": "base:sys:user:move",
-                                "type": 2,
-                                "icon": null,
-                                "orderNum": 0,
-                                "viewPath": null,
-                                "keepAlive": true,
-                                "isShow": true,
-                                "childMenus": []
-                            },
-                            {
-                                "name": "新增",
-                                "router": null,
-                                "perms": "base:sys:user:add",
-                                "type": 2,
-                                "icon": null,
-                                "orderNum": 0,
-                                "viewPath": null,
-                                "keepAlive": true,
-                                "isShow": true,
-                                "childMenus": []
-                            },
-                            {
-                                "name": "删除",
-                                "router": null,
-                                "perms": "base:sys:user:delete",
-                                "type": 2,
-                                "icon": null,
-                                "orderNum": 0,
-                                "viewPath": null,
-                                "keepAlive": true,
-                                "isShow": true,
-                                "childMenus": []
-                            },
-                            {
-                                "name": "修改",
-                                "router": null,
-                                "perms": "base:sys:user:delete,base:sys:user:update",
-                                "type": 2,
-                                "icon": null,
-                                "orderNum": 0,
-                                "viewPath": null,
-                                "keepAlive": true,
-                                "isShow": true,
-                                "childMenus": []
-                            },
-                            {
-                                "name": "查询",
-                                "router": null,
-                                "perms": "base:sys:user:page,base:sys:user:list,base:sys:user:info",
-                                "type": 2,
-                                "icon": null,
-                                "orderNum": 0,
-                                "viewPath": null,
-                                "keepAlive": true,
-                                "isShow": true,
-                                "childMenus": []
-                            }
-                        ]
                     }
                 ]
             },
             {
-                "name": "参数配置",
+                "name": "參數配置",
                 "router": null,
                 "perms": null,
                 "type": 0,
@@ -302,7 +169,7 @@
                 "isShow": true,
                 "childMenus": [
                     {
-                        "name": "参数列表",
+                        "name": "參數列表",
                         "router": "/sys/param",
                         "perms": null,
                         "type": 1,
@@ -337,7 +204,7 @@
                                 "childMenus": []
                             },
                             {
-                                "name": "删除",
+                                "name": "刪除",
                                 "router": null,
                                 "perms": "base:sys:param:delete",
                                 "type": 2,
@@ -349,7 +216,7 @@
                                 "childMenus": []
                             },
                             {
-                                "name": "查看",
+                                "name": "檢視",
                                 "router": null,
                                 "perms": "base:sys:param:page,base:sys:param:list,base:sys:param:info",
                                 "type": 2,
@@ -365,7 +232,7 @@
                 ]
             },
             {
-                "name": "监控管理",
+                "name": "監控管理",
                 "router": null,
                 "perms": null,
                 "type": 0,
@@ -376,7 +243,7 @@
                 "isShow": true,
                 "childMenus": [
                     {
-                        "name": "请求日志",
+                        "name": "請求日誌",
                         "router": "/sys/log",
                         "perms": null,
                         "type": 1,
@@ -387,7 +254,7 @@
                         "isShow": true,
                         "childMenus": [
                             {
-                                "name": "权限",
+                                "name": "權限",
                                 "router": null,
                                 "perms": "base:sys:log:page,base:sys:log:clear,base:sys:log:getKeep,base:sys:log:setKeep",
                                 "type": 2,
@@ -403,7 +270,7 @@
                 ]
             },
             {
-                "name": "任务管理",
+                "name": "任務管理",
                 "router": null,
                 "perms": null,
                 "type": 0,
@@ -414,7 +281,7 @@
                 "isShow": true,
                 "childMenus": [
                     {
-                        "name": "任务列表",
+                        "name": "任務列表",
                         "router": "/task/list",
                         "perms": null,
                         "type": 1,
@@ -425,7 +292,7 @@
                         "isShow": true,
                         "childMenus": [
                             {
-                                "name": "权限",
+                                "name": "權限",
                                 "router": null,
                                 "perms": "task:info:page,task:info:list,task:info:info,task:info:add,task:info:delete,task:info:update,task:info:stop,task:info:start,task:info:once,task:info:log",
                                 "type": 2,
@@ -454,7 +321,7 @@
         "isShow": true,
         "childMenus": [
             {
-                "name": "文档官网",
+                "name": "檔案官網",
                 "router": "/tutorial/doc",
                 "perms": null,
                 "type": 1,
@@ -491,7 +358,7 @@
         "isShow": false,
         "childMenus": [
             {
-                "name": "图片上传",
+                "name": "圖片上傳",
                 "router": null,
                 "perms": "space:info:page,space:info:list,space:info:info,space:info:add,space:info:delete,space:info:update,space:type:page,space:type:list,space:type:info,space:type:add,space:type:delete,space:type:update",
                 "type": 2,
@@ -505,19 +372,70 @@
         ]
     },
     {
-        "name": "首页",
+        "name": "首頁",
         "router": "/",
         "perms": null,
-        "type": 1,
-        "icon": null,
+        "type": 0,
+        "icon": "icon-home",
         "orderNum": 0,
-        "viewPath": "modules/demo/views/home/index.vue",
+        "viewPath": null,
         "keepAlive": true,
-        "isShow": false,
-        "childMenus": []
+        "isShow": true,
+        "childMenus": [
+            {
+                "name": "平台統計",
+                "router": "/crm/platform/statistics",
+                "perms": "crm:platformStatistics:page",
+                "type": 1,
+                "icon": "icon-data",
+                "orderNum": 0,
+                "viewPath": "modules/customer/views/platform-statistics.vue",
+                "keepAlive": true,
+                "isShow": true,
+                "childMenus": [
+                    {
+                        "name": "頁面",
+                        "router": null,
+                        "perms": "crm:platformStatistics:page",
+                        "type": 2,
+                        "icon": null,
+                        "orderNum": 1,
+                        "viewPath": null,
+                        "keepAlive": false,
+                        "isShow": false,
+                        "childMenus": []
+                    }
+                ]
+            },
+            {
+                "name": "發票統計",
+                "router": "/crm/invoice/statistics",
+                "perms": "crm:invoiceStatistics:page",
+                "type": 1,
+                "icon": "icon-chart",
+                "orderNum": 1,
+                "viewPath": "modules/customer/views/invoice-statistics.vue",
+                "keepAlive": true,
+                "isShow": true,
+                "childMenus": [
+                    {
+                        "name": "頁面",
+                        "router": null,
+                        "perms": "crm:invoiceStatistics:page",
+                        "type": 2,
+                        "icon": null,
+                        "orderNum": 1,
+                        "viewPath": null,
+                        "keepAlive": false,
+                        "isShow": false,
+                        "childMenus": []
+                    }
+                ]
+            }
+        ]
     },
     {
-        "name": "数据管理",
+        "name": "資料管理",
         "router": null,
         "perms": null,
         "type": 0,
@@ -539,7 +457,7 @@
                 "isShow": true,
                 "childMenus": [
                     {
-                        "name": "删除",
+                        "name": "刪除",
                         "router": null,
                         "perms": "dict:info:delete",
                         "type": 2,
@@ -563,7 +481,7 @@
                         "childMenus": []
                     },
                     {
-                        "name": "获得字典数据",
+                        "name": "獲得字典資料",
                         "router": null,
                         "perms": "dict:info:data",
                         "type": 2,
@@ -575,7 +493,7 @@
                         "childMenus": []
                     },
                     {
-                        "name": "单个信息",
+                        "name": "單個資訊",
                         "router": null,
                         "perms": "dict:info:info",
                         "type": 2,
@@ -587,7 +505,7 @@
                         "childMenus": []
                     },
                     {
-                        "name": "列表查询",
+                        "name": "列表查詢",
                         "router": null,
                         "perms": "dict:info:list",
                         "type": 2,
@@ -599,7 +517,7 @@
                         "childMenus": []
                     },
                     {
-                        "name": "分页查询",
+                        "name": "分頁查詢",
                         "router": null,
                         "perms": "dict:info:page",
                         "type": 2,
@@ -623,7 +541,7 @@
                         "childMenus": []
                     },
                     {
-                        "name": "组权限",
+                        "name": "組權限",
                         "router": null,
                         "perms": "dict:type:list,dict:type:update,dict:type:delete,dict:type:add",
                         "type": 2,
@@ -635,7 +553,7 @@
                         "childMenus": []
                     },
                     {
-                        "name": "字典类型",
+                        "name": "字典型別",
                         "router": null,
                         "perms": "dict:type:delete,dict:type:update,dict:type:info,dict:type:list,dict:type:page,dict:type:add",
                         "type": 2,
@@ -649,7 +567,7 @@
                 ]
             },
             {
-                "name": "数据回收站",
+                "name": "資料回收站",
                 "router": "/recycle/data",
                 "perms": null,
                 "type": 1,
@@ -660,7 +578,7 @@
                 "isShow": true,
                 "childMenus": [
                     {
-                        "name": "恢复数据",
+                        "name": "恢復資料",
                         "router": null,
                         "perms": "recycle:data:restore",
                         "type": 2,
@@ -672,7 +590,7 @@
                         "childMenus": []
                     },
                     {
-                        "name": "单个信息",
+                        "name": "單個資訊",
                         "router": null,
                         "perms": "recycle:data:info",
                         "type": 2,
@@ -684,7 +602,7 @@
                         "childMenus": []
                     },
                     {
-                        "name": "分页查询",
+                        "name": "分頁查詢",
                         "router": null,
                         "perms": "recycle:data:page",
                         "type": 2,
@@ -698,7 +616,7 @@
                 ]
             },
             {
-                "name": "文件管理",
+                "name": "檔案管理",
                 "router": "/upload/list",
                 "perms": null,
                 "type": 1,
@@ -709,7 +627,7 @@
                 "isShow": true,
                 "childMenus": [
                     {
-                        "name": "权限",
+                        "name": "權限",
                         "router": null,
                         "perms": "space:type:delete,space:type:update,space:type:info,space:type:list,space:type:page,space:type:add,space:info:getConfig,space:info:delete,space:info:update,space:info:info,space:info:list,space:info:page,space:info:add",
                         "type": 2,
@@ -725,7 +643,7 @@
         ]
     },
     {
-        "name": "用户管理",
+        "name": "使用者管理",
         "router": null,
         "perms": null,
         "type": 0,
@@ -736,7 +654,7 @@
         "isShow": true,
         "childMenus": [
             {
-                "name": "用户列表",
+                "name": "使用者列表",
                 "router": "/user/list",
                 "perms": null,
                 "type": 1,
@@ -747,9 +665,81 @@
                 "isShow": true,
                 "childMenus": [
                     {
-                        "name": "删除",
+                        "name": "部門列表",
                         "router": null,
-                        "perms": "user:info:delete",
+                        "perms": "base:sys:department:list",
+                        "type": 2,
+                        "icon": null,
+                        "orderNum": 0,
+                        "viewPath": null,
+                        "keepAlive": true,
+                        "isShow": true,
+                        "childMenus": []
+                    },
+                    {
+                        "name": "新增部門",
+                        "router": null,
+                        "perms": "base:sys:department:add",
+                        "type": 2,
+                        "icon": null,
+                        "orderNum": 0,
+                        "viewPath": null,
+                        "keepAlive": true,
+                        "isShow": true,
+                        "childMenus": []
+                    },
+                    {
+                        "name": "更新部門",
+                        "router": null,
+                        "perms": "base:sys:department:update",
+                        "type": 2,
+                        "icon": null,
+                        "orderNum": 0,
+                        "viewPath": null,
+                        "keepAlive": true,
+                        "isShow": true,
+                        "childMenus": []
+                    },
+                    {
+                        "name": "刪除部門",
+                        "router": null,
+                        "perms": "base:sys:department:delete",
+                        "type": 2,
+                        "icon": null,
+                        "orderNum": 0,
+                        "viewPath": null,
+                        "keepAlive": true,
+                        "isShow": true,
+                        "childMenus": []
+                    },
+                    {
+                        "name": "部門排序",
+                        "router": null,
+                        "perms": "base:sys:department:order",
+                        "type": 2,
+                        "icon": null,
+                        "orderNum": 0,
+                        "viewPath": null,
+                        "keepAlive": true,
+                        "isShow": true,
+                        "childMenus": []
+                    },
+                    {
+                        "name": "使用者轉移",
+                        "router": null,
+                        "perms": "base:sys:user:move",
+                        "type": 2,
+                        "icon": null,
+                        "orderNum": 0,
+                        "viewPath": null,
+                        "keepAlive": true,
+                        "isShow": true,
+                        "childMenus": []
+                    },
+                    {
+                        "name": "刪除",
+                        "router": null,
+                        "perms": "base:sys:user:delete",
                         "type": 2,
                         "icon": null,
                         "orderNum": 0,
@@ -761,7 +751,7 @@
                     {
                         "name": "修改",
                         "router": null,
-                        "perms": "user:info:update,user:info:info",
+                        "perms": "base:sys:user:delete,base:sys:user:update",
                         "type": 2,
                         "icon": null,
                         "orderNum": 0,
@@ -771,9 +761,9 @@
                         "childMenus": []
                     },
                     {
-                        "name": "单个信息",
+                        "name": "單個資訊",
                         "router": null,
-                        "perms": "user:info:info",
+                        "perms": "base:sys:user:info",
                         "type": 2,
                         "icon": null,
                         "orderNum": 0,
@@ -783,9 +773,9 @@
                         "childMenus": []
                     },
                     {
-                        "name": "列表查询",
+                        "name": "列表查詢",
                         "router": null,
-                        "perms": "user:info:list",
+                        "perms": "base:sys:user:list",
                         "type": 2,
                         "icon": null,
                         "orderNum": 0,
@@ -795,9 +785,9 @@
                         "childMenus": []
                     },
                     {
-                        "name": "分页查询",
+                        "name": "分頁查詢",
                         "router": null,
-                        "perms": "user:info:page",
+                        "perms": "base:sys:user:page",
                         "type": 2,
                         "icon": null,
                         "orderNum": 0,
@@ -809,7 +799,7 @@
                     {
                         "name": "新增",
                         "router": null,
-                        "perms": "user:info:add",
+                        "perms": "base:sys:user:add",
                         "type": 2,
                         "icon": null,
                         "orderNum": 0,
@@ -819,11 +809,145 @@
                         "childMenus": []
                     }
                 ]
+            },
+            {
+                "name": "部門管理",
+                "router": "/sys/department",
+                "perms": null,
+                "type": 1,
+                "icon": "icon-dept",
+                "orderNum": 2,
+                "viewPath": "modules/base/views/department.vue",
+                "keepAlive": true,
+                "isShow": true,
+                "childMenus": [
+                    {
+                        "name": "部門列表",
+                        "router": null,
+                        "perms": "base:sys:department:list",
+                        "type": 2,
+                        "icon": null,
+                        "orderNum": 1,
+                        "viewPath": null,
+                        "keepAlive": false,
+                        "isShow": true,
+                        "childMenus": []
+                    },
+                    {
+                        "name": "新增部門",
+                        "router": null,
+                        "perms": "base:sys:department:add",
+                        "type": 2,
+                        "icon": null,
+                        "orderNum": 2,
+                        "viewPath": null,
+                        "keepAlive": false,
+                        "isShow": true,
+                        "childMenus": []
+                    },
+                    {
+                        "name": "更新部門",
+                        "router": null,
+                        "perms": "base:sys:department:update",
+                        "type": 2,
+                        "icon": null,
+                        "orderNum": 3,
+                        "viewPath": null,
+                        "keepAlive": false,
+                        "isShow": true,
+                        "childMenus": []
+                    },
+                    {
+                        "name": "刪除部門",
+                        "router": null,
+                        "perms": "base:sys:department:delete",
+                        "type": 2,
+                        "icon": null,
+                        "orderNum": 4,
+                        "viewPath": null,
+                        "keepAlive": false,
+                        "isShow": true,
+                        "childMenus": []
+                    },
+                    {
+                        "name": "部門排序",
+                        "router": null,
+                        "perms": "base:sys:department:order",
+                        "type": 2,
+                        "icon": null,
+                        "orderNum": 5,
+                        "viewPath": null,
+                        "keepAlive": false,
+                        "isShow": true,
+                        "childMenus": []
+                    }
+                ]
+            },
+            {
+                "name": "獎金配置",
+                "router": "/crm/bonus/config",
+                "perms": "crm:bonusConfig:page",
+                "type": 1,
+                "icon": "icon-form",
+                "orderNum": 3,
+                "viewPath": "modules/customer/views/bonus-config.vue",
+                "keepAlive": true,
+                "isShow": true,
+                "childMenus": [
+                    {
+                        "name": "列表",
+                        "router": null,
+                        "perms": "crm:bonusConfig:page",
+                        "type": 2,
+                        "icon": null,
+                        "orderNum": 1,
+                        "viewPath": null,
+                        "keepAlive": false,
+                        "isShow": false,
+                        "childMenus": []
+                    },
+                    {
+                        "name": "新增",
+                        "router": null,
+                        "perms": "crm:bonusConfig:add",
+                        "type": 2,
+                        "icon": null,
+                        "orderNum": 2,
+                        "viewPath": null,
+                        "keepAlive": false,
+                        "isShow": false,
+                        "childMenus": []
+                    },
+                    {
+                        "name": "編輯",
+                        "router": null,
+                        "perms": "crm:bonusConfig:update",
+                        "type": 2,
+                        "icon": null,
+                        "orderNum": 3,
+                        "viewPath": null,
+                        "keepAlive": false,
+                        "isShow": false,
+                        "childMenus": []
+                    },
+                    {
+                        "name": "刪除",
+                        "router": null,
+                        "perms": "crm:bonusConfig:delete",
+                        "type": 2,
+                        "icon": null,
+                        "orderNum": 4,
+                        "viewPath": null,
+                        "keepAlive": false,
+                        "isShow": false,
+                        "childMenus": []
+                    }
+                ]
             }
         ]
     },
     {
-        "name": "扩展管理",
+        "name": "擴充套件管理",
         "router": null,
         "perms": null,
         "type": 0,
@@ -835,7 +959,7 @@
         "childMenus": [
             {
                 "tenantId": null,
-                "name": "插件列表",
+                "name": "外掛列表",
                 "router": "/helper/plugins",
                 "perms": null,
                 "type": 1,
@@ -847,7 +971,7 @@
                 "childMenus": [
                     {
                         "tenantId": null,
-                        "name": "删除",
+                        "name": "刪除",
                         "router": null,
                         "perms": "plugin:info:delete",
                         "type": 2,
@@ -860,7 +984,7 @@
                     },
                     {
                         "tenantId": null,
-                        "name": "分页查询",
+                        "name": "分頁查詢",
                         "router": null,
                         "perms": "plugin:info:page",
                         "type": 2,
@@ -873,7 +997,7 @@
                     },
                     {
                         "tenantId": null,
-                        "name": "单个信息",
+                        "name": "單個資訊",
                         "router": null,
                         "perms": "plugin:info:info",
                         "type": 2,
@@ -886,7 +1010,7 @@
                     },
                     {
                         "tenantId": null,
-                        "name": "安装插件",
+                        "name": "安裝外掛",
                         "router": null,
                         "perms": "plugin:info:install",
                         "type": 2,
@@ -912,7 +1036,7 @@
                     },
                     {
                         "tenantId": null,
-                        "name": "列表查询",
+                        "name": "列表查詢",
                         "router": null,
                         "perms": "plugin:info:list",
                         "type": 2,
@@ -941,7 +1065,7 @@
         ]
     },
     {
-        "name": "产品管理",
+        "name": "產品管理",
         "router": null,
         "perms": null,
         "type": 0,
@@ -952,7 +1076,7 @@
         "isShow": true,
         "childMenus": [
             {
-                "name": "产品分类",
+                "name": "產品分類",
                 "router": "/product/category",
                 "perms": null,
                 "type": 1,
@@ -963,7 +1087,7 @@
                 "isShow": true,
                 "childMenus": [
                     {
-                        "name": "权限",
+                        "name": "權限",
                         "router": null,
                         "perms": "product:category:page,product:category:list,product:category:info,product:category:add,product:category:update,product:category:delete",
                         "type": 2,
@@ -977,7 +1101,7 @@
                 ]
             },
             {
-                "name": "产品管理",
+                "name": "產品管理",
                 "router": "/product/list",
                 "perms": null,
                 "type": 1,
@@ -988,7 +1112,7 @@
                 "isShow": true,
                 "childMenus": [
                     {
-                        "name": "权限",
+                        "name": "權限",
                         "router": null,
                         "perms": "product:info:page,product:info:list,product:info:info,product:info:add,product:info:update,product:info:delete",
                         "type": 2,

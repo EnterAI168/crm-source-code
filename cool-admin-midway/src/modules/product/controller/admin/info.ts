@@ -4,7 +4,7 @@ import { ProductInfoEntity } from '../../entity/info';
 import { ProductInfoService } from '../../service/info';
 
 /**
- * 产品管理
+ * 產品管理
  */
 @Provide()
 @CoolController({

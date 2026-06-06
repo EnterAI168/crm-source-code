@@ -2,37 +2,37 @@ import { useEventListener } from '@vueuse/core';
 import { reactive, watch } from 'vue';
 import { getBrowser } from '../utils';
 
-// 使用 reactive 创建一个响应式的浏览器对象
+// 使用 reactive 建立一個響應式的瀏覽器物件
 const browser = reactive(getBrowser());
 
-// 存储屏幕变化事件的回调函数数组
+// 儲存螢幕變化事件的回撥函式陣列
 const events: (() => void)[] = [];
 
-// 监听浏览器屏幕属性的变化
+// 監聽瀏覽器螢幕屬性的變化
 watch(
-	() => browser.screen, // 监听的属性
+	() => browser.screen, // 監聽的屬性
 	() => {
-		// 当屏幕属性变化时，执行所有注册的回调函数
+		// 當螢幕屬性變化時，執行所有註冊的回撥函式
 		events.forEach(ev => ev());
 	}
 );
 
-// 监听窗口的 resize 事件，并更新浏览器对象
+// 監聽視窗的 resize 事件，並更新瀏覽器物件
 useEventListener(window, 'resize', () => {
-	// 使用 Object.assign 更新响应式对象的属性
+	// 使用 Object.assign 更新響應式物件的屬性
 	Object.assign(browser, getBrowser());
 });
 
-// 导出一个自定义的 hook
+// 匯出一個自定義的 hook
 export function useBrowser() {
 	return {
-		browser, // 返回响应式的浏览器对象
-		// 注册屏幕变化的回调函数
+		browser, // 返回響應式的瀏覽器物件
+		// 註冊螢幕變化的回撥函式
 		onScreenChange(ev: () => void, immediate = true) {
-			// 将回调函数添加到事件数组中
+			// 將回撥函式新增到事件陣列中
 			events.push(ev);
 
-			// 如果 immediate 为 true，立即执行回调函数
+			// 如果 immediate 為 true，立即執行回撥函式
 			if (immediate) {
 				ev();
 			}

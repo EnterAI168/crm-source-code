@@ -1,5 +1,5 @@
 <template>
-	<error-page :code="404" :desc="$t('找不到您要查找的页面')" />
+	<error-page :code="404" :desc="$t('找不到您要查詢的頁面')" />
 </template>
 
 <script lang="ts" setup>

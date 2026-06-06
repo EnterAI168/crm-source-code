@@ -1,3 +1,13 @@
 {
-  "entities": ["info"]
+  "entities": [
+    "info",
+    "quoteOrder",
+    "quoteItem",
+    "quoteStage",
+    "quoteHistory",
+    "quoteInvoice",
+    "bonusConfig",
+    "performance",
+    "contractReminder"
+  ]
 }

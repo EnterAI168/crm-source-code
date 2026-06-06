@@ -1,13 +1,13 @@
 <template>
 	<div class="page">
-		<el-descriptions title="动态路由参数" border :column="1">
+		<el-descriptions title="動態路由參數" border :column="1">
 			<el-descriptions-item label="ID">{{ $route.params.id || '-' }}</el-descriptions-item>
-			<el-descriptions-item label="Name">{{ name || '无' }}</el-descriptions-item>
+			<el-descriptions-item label="Name">{{ name || '無' }}</el-descriptions-item>
 		</el-descriptions>
 
 		<div class="op">
-			<el-button @click="toLink(1)">链接1</el-button>
-			<el-button @click="toLink(2)">链接2</el-button>
+			<el-button @click="toLink(1)">連結1</el-button>
+			<el-button @click="toLink(2)">連結2</el-button>
 		</div>
 	</div>
 </template>
@@ -26,7 +26,7 @@ const { router } = useCool();
 function toLink(n: number) {
 	switch (n) {
 		case 1:
-			router.push(`/demo/test/route/${random(100)}/神仙都没用`);
+			router.push(`/demo/test/route/${random(100)}/神仙都沒用`);
 			break;
 
 		case 2:

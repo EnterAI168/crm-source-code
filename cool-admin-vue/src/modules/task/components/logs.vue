@@ -2,22 +2,22 @@
 	<cl-dialog v-model="visible" :title="title" width="1000px">
 		<cl-crud ref="Crud" padding="0">
 			<cl-row>
-				<!-- 刷新按钮 -->
+				<!-- 重新整理按鈕 -->
 				<cl-refresh-btn />
-				<!-- 状态 -->
-				<cl-filter :label="$t('状态')">
+				<!-- 狀態 -->
+				<cl-filter :label="$t('狀態')">
 					<cl-select :options="options.status" prop="status" :width="120" />
 				</cl-filter>
 			</cl-row>
 
 			<cl-row>
-				<!-- 数据表格 -->
+				<!-- 資料表格 -->
 				<cl-table ref="Table" />
 			</cl-row>
 
 			<cl-row>
 				<cl-flex1 />
-				<!-- 分页控件 -->
+				<!-- 分頁控制元件 -->
 				<cl-pagination />
 			</cl-row>
 		</cl-crud>
@@ -37,13 +37,13 @@ import { useI18n } from 'vue-i18n';
 const { service } = useCool();
 const { t } = useI18n();
 
-// 是否可见
+// 是否可見
 const visible = ref(false);
 
-// 标题
+// 標題
 const title = ref('');
 
-// 选项
+// 選項
 const options = reactive({
 	status: [
 		{
@@ -52,7 +52,7 @@ const options = reactive({
 			type: 'success'
 		},
 		{
-			label: t('失败'),
+			label: t('失敗'),
 			value: 0,
 			type: 'danger'
 		}
@@ -74,13 +74,13 @@ const Table = useTable({
 			minWidth: 200
 		},
 		{
-			label: t('执行状态'),
+			label: t('執行狀態'),
 			prop: 'status',
 			minWidth: 120,
 			dict: options.status
 		},
 		{
-			label: t('执行时间'),
+			label: t('執行時間'),
 			prop: 'createTime',
 			minWidth: 170
 		}
@@ -97,17 +97,17 @@ const Crud = useCrud({
 	}
 });
 
-// 打开
+// 開啟
 function open(data: Eps.TaskInfoEntity) {
 	visible.value = true;
-	title.value = t('日志列表（{name}）', { name: data.name });
+	title.value = t('日誌列表（{name}）', { name: data.name });
 
 	nextTick(() => {
 		Crud.value?.refresh({ id: data.id, page: 1 });
 	});
 }
 
-// 关闭
+// 關閉
 function close() {
 	visible.value = false;
 }

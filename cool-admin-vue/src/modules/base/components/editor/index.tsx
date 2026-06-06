@@ -37,7 +37,7 @@ export default defineComponent({
 					slots
 				)
 			) : (
-				<el-input type="textarea" rows={4} placeholder={t('请输入')} {...props} />
+				<el-input type="textarea" rows={4} placeholder={t('請輸入')} {...props} />
 			);
 		};
 	}

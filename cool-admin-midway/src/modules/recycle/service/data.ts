@@ -8,7 +8,7 @@ import * as moment from 'moment';
 import { BaseSysConfService } from '../../base/service/sys/conf';
 
 /**
- * 数据回收
+ * 資料回收
  */
 @Provide()
 @Scope(ScopeEnum.Request, { allowDowngrade: true })
@@ -23,7 +23,7 @@ export class RecycleDataService extends BaseService {
   baseSysConfService: BaseSysConfService;
 
   /**
-   * 恢复数据
+   * 恢復資料
    * @param ids
    */
   async restore(ids: number[]) {
@@ -41,7 +41,7 @@ export class RecycleDataService extends BaseService {
   }
 
   /**
-   * 记录数据
+   * 記錄資料
    * @param params
    */
   async record(params) {
@@ -65,7 +65,7 @@ export class RecycleDataService extends BaseService {
   }
 
   /**
-   * 日志
+   * 日誌
    * @param isAll 是否清除全部
    */
   async clear(isAll?) {

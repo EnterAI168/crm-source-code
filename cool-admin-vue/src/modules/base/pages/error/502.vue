@@ -1,5 +1,5 @@
 <template>
-	<error-page :code="502" :desc="$t('马上回来')" />
+	<error-page :code="502" :desc="$t('馬上回來')" />
 </template>
 
 <script lang="ts" setup>

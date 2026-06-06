@@ -1,0 +1,76 @@
+[
+  {
+    "name": "供應商管理",
+    "router": "/crm/supplier",
+    "perms": null,
+    "type": 0,
+    "icon": "icon-shop",
+    "orderNum": 6,
+    "viewPath": null,
+    "keepAlive": true,
+    "isShow": true,
+    "childMenus": [
+      {
+        "name": "供應商列表",
+        "router": "/crm/supplier/list",
+        "perms": "crm:supplier:page",
+        "type": 1,
+        "icon": "icon-list",
+        "orderNum": 1,
+        "viewPath": "modules/supplier/views/list.vue",
+        "keepAlive": true,
+        "isShow": true,
+        "childMenus": [
+          {
+            "name": "分頁",
+            "router": null,
+            "perms": "crm:supplier:page",
+            "type": 2,
+            "icon": null,
+            "orderNum": 1,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "新增",
+            "router": null,
+            "perms": "crm:supplier:add",
+            "type": 2,
+            "icon": null,
+            "orderNum": 2,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "編輯",
+            "router": null,
+            "perms": "crm:supplier:update",
+            "type": 2,
+            "icon": null,
+            "orderNum": 3,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          },
+          {
+            "name": "刪除",
+            "router": null,
+            "perms": "crm:supplier:delete",
+            "type": 2,
+            "icon": null,
+            "orderNum": 4,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -10,7 +10,7 @@ export default (): ModuleConfig => {
 			import('echarts');
 		},
 
-		label: 'ECharts 图表',
+		label: 'ECharts 圖表',
 		description: 'echarts、vue-echarts 配置',
 		author: 'CRM',
 		version: '1.0.0',

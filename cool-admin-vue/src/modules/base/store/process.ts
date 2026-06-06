@@ -5,7 +5,7 @@ import { assign } from 'lodash-es';
 export const useProcessStore = defineStore('process', function () {
 	const list = ref<Process.List>([]);
 
-	// 添加
+	// 新增
 	function add(data: any) {
 		list.value.forEach((e: Process.Item) => {
 			e.active = false;
@@ -29,7 +29,7 @@ export const useProcessStore = defineStore('process', function () {
 		}
 	}
 
-	// 关闭当前
+	// 關閉當前
 	function close() {
 		const index = list.value.findIndex(e => e.active);
 
@@ -43,7 +43,7 @@ export const useProcessStore = defineStore('process', function () {
 		list.value.splice(index, 1);
 	}
 
-	// 设置
+	// 設定
 	function set(data: Process.Item[]) {
 		list.value = data;
 	}
@@ -53,7 +53,7 @@ export const useProcessStore = defineStore('process', function () {
 		list.value = [];
 	}
 
-	// 设置标题
+	// 設定標題
 	function setTitle(title: string) {
 		const item = list.value.find(e => e.active);
 

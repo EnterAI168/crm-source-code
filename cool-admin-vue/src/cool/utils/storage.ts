@@ -1,19 +1,19 @@
 import store from 'store';
 
 export default {
-	// 后缀标识
+	// 字尾標識
 	suffix: '_deadtime',
 
 	/**
-	 * 获取
-	 * @param {string} key 关键字
+	 * 獲取
+	 * @param {string} key 關鍵字
 	 */
 	get(key: string) {
 		return store.get(key);
 	},
 
 	/**
-	 * 获取全部
+	 * 獲取全部
 	 */
 	info() {
 		const data: Record<string, any> = {};
@@ -26,10 +26,10 @@ export default {
 	},
 
 	/**
-	 * 设置
-	 * @param {string} key 关键字
+	 * 設定
+	 * @param {string} key 關鍵字
 	 * @param {*} value 值
-	 * @param {number} expires 过期时间
+	 * @param {number} expires 過期時間
 	 */
 	set(key: string, value: any, expires?: number) {
 		store.set(key, value);
@@ -41,8 +41,8 @@ export default {
 	},
 
 	/**
-	 * 是否过期
-	 * @param {string} key 关键字
+	 * 是否過期
+	 * @param {string} key 關鍵字
 	 */
 	isExpired(key: string) {
 		const expiration = this.getExpiration(key) || 0;
@@ -50,8 +50,8 @@ export default {
 	},
 
 	/**
-	 * 获取到期时间
-	 * @param {string} key 关键字
+	 * 獲取到期時間
+	 * @param {string} key 關鍵字
 	 */
 	getExpiration(key: string) {
 		return this.get(key + this.suffix);
@@ -59,7 +59,7 @@ export default {
 
 	/**
 	 * 移除
-	 * @param {string} key 关键字
+	 * @param {string} key 關鍵字
 	 */
 	remove(key: string) {
 		store.remove(key);
@@ -67,8 +67,8 @@ export default {
 	},
 
 	/**
-	 * 移除到期时间
-	 * @param {string} key 关键字
+	 * 移除到期時間
+	 * @param {string} key 關鍵字
 	 */
 	removeExpiration(key: string) {
 		store.remove(key + this.suffix);

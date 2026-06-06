@@ -2,7 +2,7 @@
 	<div class="count-views">
 		<div class="card">
 			<div class="card__header">
-				<span class="label">{{ $t('浏览量') }}</span>
+				<span class="label">{{ $t('瀏覽量') }}</span>
 				<cl-svg name="trend" class="icon" />
 			</div>
 
@@ -11,7 +11,7 @@
 			</div>
 
 			<div class="card__footer">
-				<span class="mr-2">{{ $t('访客数') }}</span>
+				<span class="mr-2">{{ $t('訪客數') }}</span>
 				<span>142</span>
 			</div>
 		</div>

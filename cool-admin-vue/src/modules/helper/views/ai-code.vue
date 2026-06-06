@@ -30,7 +30,7 @@ const { router, service, refs, setRefs } = useCool();
 const menu = useMenu();
 const { t } = useI18n();
 
-// 加载框
+// 載入框
 const loader = reactive({
 	visible: false,
 	text: '',
@@ -49,14 +49,14 @@ const loader = reactive({
 });
 
 function back() {
-	ElMessageBox.confirm(t('确定要退出编码吗？'), t('提示'))
+	ElMessageBox.confirm(t('確定要退出編碼嗎？'), t('提示'))
 		.then(() => {
 			router.replace('/');
 		})
 		.catch(() => {});
 }
 
-// 监听消息
+// 監聽訊息
 async function onMessage({
 	name,
 	data
@@ -64,22 +64,22 @@ async function onMessage({
 	name: string;
 	data: { menu: EpsModule[]; files: { path: string; content: string }[] };
 }) {
-	// 创建文件、菜单
+	// 建立檔案、選單
 	if (name === 'aiCode.create') {
 		loader.open();
 
-		// 创建菜单
+		// 建立選單
 		await Promise.all(
 			data.menu.map(async e => {
 				if (e.type == 0 && e.router) {
 					await menu.del(e.router);
 
-					loader.setText(t('创建目录：{name}', { name: e.name }));
+					loader.setText(t('建立目錄：{name}', { name: e.name }));
 
 					await service.base.sys.menu.add(e).then(async res => {
 						const arr = data.menu.map(a => {
 							if (a.router && a.router?.indexOf(e.router + '/') >= 0) {
-								loader.setText(t('创建菜单：{name}', { name: a.name }));
+								loader.setText(t('建立選單：{name}', { name: a.name }));
 
 								return menu.create({
 									...a,
@@ -97,9 +97,9 @@ async function onMessage({
 		);
 
 		if (ctx.serviceLang == 'Java') {
-			loader.setText(t('创建 Java 文件'));
+			loader.setText(t('建立 Java 檔案'));
 
-			// 创建后端文件
+			// 建立後端檔案
 			await service.base.coding.createCode({
 				codes: data.files.filter(e => {
 					return startsWith(e.path, 'java');
@@ -108,9 +108,9 @@ async function onMessage({
 		}
 
 		if (ctx.serviceLang == 'Node') {
-			loader.setText(t('创建 Node 文件'));
+			loader.setText(t('建立 Node 檔案'));
 
-			// 创建后端文件
+			// 建立後端檔案
 			await service.base.coding.createCode({
 				codes: data.files
 					.filter(e => {
@@ -125,14 +125,14 @@ async function onMessage({
 			});
 		}
 
-		loader.setText(t('正在重启服务'));
+		loader.setText(t('正在重啟服務'));
 
-		// 等待服务重启
+		// 等待服務重啟
 		await checkService();
 
-		loader.setText(t('创建 Vue 文件'));
+		loader.setText(t('建立 Vue 檔案'));
 
-		// // 创建前端文件
+		// // 建立前端檔案
 		await Promise.all(
 			data.files.map(e => {
 				if (startsWith(e.path, 'vue')) {
@@ -151,11 +151,11 @@ async function onMessage({
 
 		loader.close();
 
-		// 刷新
+		// 重新整理
 		location.reload();
 	}
 
-	// 获取目录
+	// 獲取目錄
 	if (name === 'aiCode.loaded') {
 		service.base.coding.getModuleTree().then(res => {
 			refs.aiCode.send('aiCode.setDir', res);
@@ -163,7 +163,7 @@ async function onMessage({
 	}
 }
 
-// 检测服务，3s一次
+// 檢測服務，3s一次
 async function checkService() {
 	return new Promise(resolve => {
 		const tryRequest = () => {

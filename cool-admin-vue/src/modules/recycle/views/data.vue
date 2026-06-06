@@ -1,7 +1,7 @@
 <template>
 	<cl-crud ref="Crud">
 		<cl-row>
-			<!-- 刷新按钮 -->
+			<!-- 重新整理按鈕 -->
 			<cl-refresh-btn />
 			<el-button
 				type="success"
@@ -9,22 +9,22 @@
 				@click="restore()"
 				v-permission="service.recycle.data.permission.restore"
 			>
-				{{ $t('批量恢复') }}
+				{{ $t('批次恢復') }}
 			</el-button>
 
 			<cl-flex1 />
-			<!-- 关键字搜索 -->
+			<!-- 關鍵字搜尋 -->
 			<cl-search-key />
 		</cl-row>
 
 		<cl-row>
-			<!-- 数据表格 -->
+			<!-- 資料表格 -->
 			<cl-table ref="Table" />
 		</cl-row>
 
 		<cl-row>
 			<cl-flex1 />
-			<!-- 分页控件 -->
+			<!-- 分頁控制元件 -->
 			<cl-pagination />
 		</cl-row>
 	</cl-crud>
@@ -54,7 +54,7 @@ const Table = useTable({
 		},
 		{ label: t('操作人'), prop: 'userName', minWidth: 120 },
 		{
-			label: t('被删除的数据'),
+			label: t('被刪除的資料'),
 			prop: 'data',
 			minWidth: 200,
 			component: {
@@ -65,13 +65,13 @@ const Table = useTable({
 			}
 		},
 		{
-			label: t('请求的接口'),
+			label: t('請求的介面'),
 			prop: 'url',
 			showOverflowTooltip: true,
 			minWidth: 150
 		},
 		{
-			label: t('请求参数'),
+			label: t('請求參數'),
 			prop: 'params',
 			minWidth: 150,
 			component: {
@@ -81,9 +81,9 @@ const Table = useTable({
 				}
 			}
 		},
-		{ label: t('删除条数'), prop: 'count', minWidth: 120, sortable: 'custom' },
+		{ label: t('刪除條數'), prop: 'count', minWidth: 120, sortable: 'custom' },
 		{
-			label: t('创建时间'),
+			label: t('建立時間'),
 			prop: 'createTime',
 			minWidth: 170,
 			sortable: 'desc'
@@ -93,7 +93,7 @@ const Table = useTable({
 			width: 120,
 			buttons: [
 				{
-					label: t('恢复'),
+					label: t('恢復'),
 					hidden: !service.recycle.data._permission.restore,
 					type: 'success',
 					onClick({ scope }) {
@@ -110,16 +110,16 @@ const Crud = useCrud({
 	service: service.recycle.data
 });
 
-// 刷新
+// 重新整理
 function refresh(params?: any) {
 	Crud.value?.refresh(params);
 }
 
-// 数据恢复
+// 資料恢復
 function restore(id?: string) {
 	const ids = id ? [id] : Table.value?.selection.map(e => e.id);
 
-	ElMessageBox.confirm(t('此操作将恢复被删除的数据，是否继续？'), t('提示'), {
+	ElMessageBox.confirm(t('此操作將恢復被刪除的資料，是否繼續？'), t('提示'), {
 		type: 'warning'
 	})
 		.then(() => {
@@ -128,7 +128,7 @@ function restore(id?: string) {
 					ids
 				})
 				.then(() => {
-					ElMessage.success(t('数据恢复成功'));
+					ElMessage.success(t('資料恢復成功'));
 					refresh();
 				})
 				.catch(err => {

@@ -11,7 +11,7 @@ const Crud = {
 		// 穿透值
 		useProvide(app, options);
 
-		// 设置组件
+		// 設定元件
 		useComponent(app);
 
 		return {

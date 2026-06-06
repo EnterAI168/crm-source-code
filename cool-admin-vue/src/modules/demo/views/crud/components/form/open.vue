@@ -6,11 +6,11 @@
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['form/open.vue']" />
 
-			<!-- 自定义表单组件 -->
-			<!--【很重要】ref 一定要对应 useForm 定义的值 -->
+			<!-- 自定義表單元件 -->
+			<!--【很重要】ref 一定要對應 useForm 定義的值 -->
 			<cl-form ref="Form"></cl-form>
 		</div>
 
@@ -31,18 +31,18 @@ function open() {
 
 		items: [
 			{
-				label: '昵称',
-				// 绑定值的标识，表单提交及回显会自动根据 prop 获取对应的值
+				label: '暱稱',
+				// 繫結值的標識，表單提交及回顯會自動根據 prop 獲取對應的值
 				prop: 'nickname',
-				// 组件绑定
+				// 元件繫結
 				component: {
-					// 必须是“全局注册”的组件名，如 element-plus 的 el-input、el-date-picker 等
+					// 必須是“全域性註冊”的元件名，如 element-plus 的 el-input、el-date-picker 等
 					name: 'el-input',
 
-					// 绑定的组件参数配置，如 clearable、placeholder 等
-					// 组件内 emit 的用 on[name] 接收，如 onChange、onInput、onBlur 等
+					// 繫結的元件參數配置，如 clearable、placeholder 等
+					// 元件內 emit 的用 on[name] 接收，如 onChange、onInput、onBlur 等
 					props: {
-						placeholder: '请输入昵称',
+						placeholder: '請輸入暱稱',
 						clearable: true,
 						onChange(value: string) {}
 					}
@@ -53,28 +53,28 @@ function open() {
 				component: {
 					name: 'el-input-number'
 				},
-				// 默认值，第一次打开有效
+				// 預設值，第一次開啟有效
 				value: 18
 			}
 		],
 		on: {
-			// 打开时触发
+			// 開啟時觸發
 			open() {
 				console.log(Form.value?.validateField);
 			},
 
-			// 关闭时触发。当配置该方法时，关闭事件会被阻断，使用 done() 关闭窗口
+			// 關閉時觸發。當配置該方法時，關閉事件會被阻斷，使用 done() 關閉視窗
 			close(action, done) {
-				// action 为关闭窗口的触发动作 "save" | "close"
-				// done 关闭事件
+				// action 為關閉視窗的觸發動作 "save" | "close"
+				// done 關閉事件
 				done();
 			},
 
-			// 提交时触发
+			// 提交時觸發
 			submit(data, { done, close }) {
-				// data 为表单值
-				// done 关闭加载事件、但不关闭窗口
-				// close 关闭窗口
+				// data 為表單值
+				// done 關閉載入事件、但不關閉視窗
+				// close 關閉視窗
 
 				close();
 			}

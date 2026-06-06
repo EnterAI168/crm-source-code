@@ -6,7 +6,7 @@ import { BaseSysConfService } from '../../../service/sys/conf';
 import { BaseSysLogService } from '../../../service/sys/log';
 
 /**
- * 系统日志
+ * 系統日誌
  */
 @Provide()
 @CoolController({
@@ -37,7 +37,7 @@ export class BaseSysLogController extends BaseController {
   baseSysConfService: BaseSysConfService;
 
   /**
-   * 清空日志
+   * 清空日誌
    */
   @Post('/clear', { summary: '清理' })
   public async clear() {
@@ -46,18 +46,18 @@ export class BaseSysLogController extends BaseController {
   }
 
   /**
-   * 设置日志保存时间
+   * 設定日誌儲存時間
    */
-  @Post('/setKeep', { summary: '日志保存时间' })
+  @Post('/setKeep', { summary: '日誌儲存時間' })
   public async setKeep(@Body('value') value: number) {
     await this.baseSysConfService.updateVaule('logKeep', value);
     return this.ok();
   }
 
   /**
-   * 获得日志保存时间
+   * 獲得日誌儲存時間
    */
-  @Get('/getKeep', { summary: '获得日志保存时间' })
+  @Get('/getKeep', { summary: '獲得日誌儲存時間' })
   public async getKeep() {
     return this.ok(await this.baseSysConfService.getValue('logKeep'));
   }

@@ -2,15 +2,15 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>tips</el-tag>
-			<span>代码类型提示</span>
+			<span>程式碼型別提示</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['other/tips.vue']" />
 
-			<!-- 自定义表格组件 -->
-			<cl-dialog v-model="visible" title="代码类型提示" width="80%">
+			<!-- 自定義表格元件 -->
+			<cl-dialog v-model="visible" title="程式碼型別提示" width="80%">
 				<cl-crud ref="Crud">
 					<cl-row>
 						<cl-refresh-btn />
@@ -30,7 +30,7 @@
 						<cl-pagination />
 					</cl-row>
 
-					<!-- 新增、编辑 -->
+					<!-- 新增、編輯 -->
 					<cl-upsert ref="Upsert" />
 				</cl-crud>
 			</cl-dialog>
@@ -60,7 +60,7 @@ const Crud = useCrud(
 );
 
 // cl-table 配置
-//【很重要】添加类型标注 <Eps.BaseSysUserEntity>，也可以自定义类型
+//【很重要】新增型別標註 <Eps.BaseSysUserEntity>，也可以自定義型別
 const Table = useTable<Eps.BaseSysUserEntity>({
 	autoHeight: false,
 	contextMenu: ['refresh'],
@@ -70,8 +70,8 @@ const Table = useTable<Eps.BaseSysUserEntity>({
 			type: 'selection'
 		},
 		{
-			prop: 'headImg', //【很重要】编辑的时候会提示 BaseSysUserEntity 实体的属性名
-			label: '头像',
+			prop: 'headImg', //【很重要】編輯的時候會提示 BaseSysUserEntity 實體的屬性名
+			label: '頭像',
 			component: {
 				name: 'cl-avatar'
 			},
@@ -84,11 +84,11 @@ const Table = useTable<Eps.BaseSysUserEntity>({
 		},
 		{
 			prop: 'nickName',
-			label: '昵称',
+			label: '暱稱',
 			minWidth: 150
 		},
 		{
-			label: '创建时间',
+			label: '建立時間',
 			prop: 'createTime',
 			minWidth: 170,
 			sortable: 'desc'
@@ -100,16 +100,16 @@ const Table = useTable<Eps.BaseSysUserEntity>({
 });
 
 // cl-upsert 配置
-//【很重要】添加类型标注 <Eps.BaseSysUserEntity>，也可以自定义类型
+//【很重要】新增型別標註 <Eps.BaseSysUserEntity>，也可以自定義型別
 const Upsert = useUpsert<Eps.BaseSysUserEntity>({
 	items: [
 		{
-			prop: 'headImg', //【很重要】编辑的时候会提示 BaseSysUserEntity 实体的属性名
-			label: '头像',
+			prop: 'headImg', //【很重要】編輯的時候會提示 BaseSysUserEntity 實體的屬性名
+			label: '頭像',
 			component: {
 				name: 'cl-upload',
 				props: {
-					text: '选择头像'
+					text: '選擇頭像'
 				}
 			}
 		},
@@ -124,7 +124,7 @@ const Upsert = useUpsert<Eps.BaseSysUserEntity>({
 		},
 		{
 			prop: 'username',
-			label: '用户名',
+			label: '使用者名稱',
 			required: true,
 			span: 12,
 			component: {
@@ -133,7 +133,7 @@ const Upsert = useUpsert<Eps.BaseSysUserEntity>({
 		}
 	],
 	onSubmit(data, { next }) {
-		// 【很重要】data 的类型也会被定义成 BaseSysUserEntity
+		// 【很重要】data 的型別也會被定義成 BaseSysUserEntity
 
 		next({
 			...data,

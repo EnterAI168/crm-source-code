@@ -7,28 +7,28 @@ export default defineComponent({
 	name: "cl-search-key",
 
 	props: {
-		// 绑定值
+		// 繫結值
 		modelValue: String,
-		// 选中字段
+		// 選中欄位
 		field: {
 			type: String,
 			default: "keyWord"
 		},
-		// 字段列表
+		// 欄位列表
 		fieldList: {
 			type: Array as PropType<Array<{ label: string; value: string }>>,
 			default: () => []
 		},
-		// 搜索时的钩子
+		// 搜尋時的鉤子
 		onSearch: Function,
-		// 输入框占位内容
+		// 輸入框佔位內容
 		placeholder: String,
-		// 宽度
+		// 寬度
 		width: {
 			type: [String, Number],
 			default: 280
 		},
-		// 是否实时刷新
+		// 是否即時重新整理
 		refreshOnInput: Boolean
 	},
 
@@ -38,10 +38,10 @@ export default defineComponent({
 		const { crud } = useCore();
 		const { style } = useConfig();
 
-		// 选中字段
+		// 選中欄位
 		const selectField = ref(props.field);
 
-		// 加载状态
+		// 載入狀態
 		const loading = ref(false);
 
 		// 文字提示
@@ -59,13 +59,13 @@ export default defineComponent({
 			}
 		});
 
-		// 搜索内容
+		// 搜尋內容
 		const value = useModel(props, "modelValue");
 
-		// 锁
+		// 鎖
 		let lock = false;
 
-		// 搜索
+		// 搜尋
 		function search() {
 			if (!lock) {
 				const params: obj = {};
@@ -98,14 +98,14 @@ export default defineComponent({
 			}
 		}
 
-		// 回车搜索
+		// 回車搜尋
 		function onKeydown({ key }: KeyboardEvent) {
 			if (key === "Enter") {
 				search();
 			}
 		}
 
-		// 监听变化
+		// 監聽變化
 		function onChange(val: string) {
 			if (!props.refreshOnInput) {
 				search();
@@ -119,7 +119,7 @@ export default defineComponent({
 			}
 		}
 
-		// 监听输入
+		// 監聽輸入
 		const onInput = debounce((val: string) => {
 			emit("change", val);
 
@@ -128,7 +128,7 @@ export default defineComponent({
 			}
 		}, 300);
 
-		// 监听字段选择
+		// 監聽欄位選擇
 		function onFieldChange() {
 			emit("field-change", selectField.value);
 			value.value = undefined;

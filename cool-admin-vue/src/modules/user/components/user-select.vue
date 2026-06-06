@@ -1,7 +1,7 @@
 <template>
 	<cl-select-table
 		v-model="value"
-		:title="t('选择用户')"
+		:title="t('選擇使用者')"
 		:service="service.user.info"
 		:columns="columns"
 		:multiple="multiple"
@@ -30,7 +30,7 @@ const value = useModel(props, 'modelValue');
 const columns = ref([
 	{
 		prop: 'avatarUrl',
-		label: t('头像'),
+		label: t('頭像'),
 		component: {
 			name: 'cl-avatar'
 		},
@@ -38,7 +38,7 @@ const columns = ref([
 	},
 	{
 		prop: 'phone',
-		label: t('手机号'),
+		label: t('手機號'),
 		minWidth: 120
 	},
 	{
@@ -47,7 +47,7 @@ const columns = ref([
 		minWidth: 150
 	},
 	{
-		label: t('状态'),
+		label: t('狀態'),
 		prop: 'status',
 		minWidth: 100,
 		dict: [
@@ -57,7 +57,7 @@ const columns = ref([
 				type: 'success'
 			},
 			{
-				label: t('禁用'),
+				label: t('停用'),
 				value: 0,
 				type: 'danger'
 			}

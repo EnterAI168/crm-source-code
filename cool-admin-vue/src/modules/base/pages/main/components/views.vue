@@ -22,10 +22,10 @@ import { useCool } from '/@/cool';
 const { mitt } = useCool();
 const { process, app } = useBase();
 
-// 缓存数
+// 快取數
 const key = ref(1);
 
-// 缓存列表
+// 快取列表
 const caches = computed(() => {
 	return process.list
 		.filter(e => e.meta?.keepAlive)
@@ -34,7 +34,7 @@ const caches = computed(() => {
 		});
 });
 
-// 刷新页面
+// 重新整理頁面
 function refresh() {
 	key.value += 1;
 }

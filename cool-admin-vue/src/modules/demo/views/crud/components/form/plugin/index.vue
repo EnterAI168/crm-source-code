@@ -2,15 +2,15 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>plugin</el-tag>
-			<span>插件的使用</span>
+			<span>外掛的使用</span>
 		</div>
 
 		<div class="c">
 			<el-button @click="open('manager')">管理者</el-button>
-			<el-button @click="open('user')">用户</el-button>
+			<el-button @click="open('user')">使用者</el-button>
 			<demo-code :files="['form/plugin/index.vue', 'form/plugin/role.ts']" />
 
-			<!-- 自定义表单组件 -->
+			<!-- 自定義表單元件 -->
 			<cl-form ref="Form"></cl-form>
 		</div>
 
@@ -29,7 +29,7 @@ const Form = useForm();
 function open(role: string) {
 	Form.value?.open(
 		{
-			title: '插件的使用',
+			title: '外掛的使用',
 
 			items: [
 				{
@@ -41,24 +41,24 @@ function open(role: string) {
 					}
 				},
 				{
-					// 自定义参数 role，匹配插件传入的角色
+					// 自定義參數 role，匹配外掛傳入的角色
 					role: 'user',
-					label: '面试职位',
+					label: '面試職位',
 					prop: 'work',
 					value: 1,
 					component: {
 						name: 'el-radio-group',
 						options: [
 							{
-								label: '前端开发',
+								label: '前端開發',
 								value: 1
 							},
 							{
-								label: '后端开发',
+								label: '後端開發',
 								value: 2
 							},
 							{
-								label: 'UI设计',
+								label: 'UI設計',
 								value: 3
 							}
 						]
@@ -66,7 +66,7 @@ function open(role: string) {
 				},
 				{
 					role: 'user',
-					label: '期望薪资',
+					label: '期望薪資',
 					prop: 'salary',
 					value: 5000,
 					component: {
@@ -79,7 +79,7 @@ function open(role: string) {
 				},
 				{
 					role: 'manager',
-					label: '入职时间',
+					label: '入職時間',
 					prop: 'date',
 					component: {
 						name: 'el-date-picker'
@@ -87,7 +87,7 @@ function open(role: string) {
 				},
 				{
 					role: 'manager',
-					label: '负责人',
+					label: '負責人',
 					prop: 'head',
 					component: {
 						name: 'el-input'
@@ -101,7 +101,7 @@ function open(role: string) {
 			}
 		},
 		[
-			// 自定义插件，角色权限控制
+			// 自定義外掛，角色權限控制
 			setRole(role)
 		]
 	);

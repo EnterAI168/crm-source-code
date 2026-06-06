@@ -2,13 +2,13 @@ import { BaseEntity } from '../../base/entity/base';
 import { Column, Entity } from 'typeorm';
 
 /**
- * 图片空间信息分类
+ * 圖片空間資訊分類
  */
 @Entity('space_type')
 export class SpaceTypeEntity extends BaseEntity {
-  @Column({ comment: '类别名称' })
+  @Column({ comment: '類別名稱' })
   name: string;
 
-  @Column({ comment: '父分类ID', nullable: true })
+  @Column({ comment: '父分類ID', nullable: true })
   parentId: number;
 }

@@ -1,20 +1,20 @@
 <template>
 	<div class="cl-view-group" :class="[isExpand ? 'is-expand' : 'is-collapse']">
 		<div class="cl-view-group__wrap">
-			<!-- 左侧 -->
+			<!-- 左側 -->
 			<div class="cl-view-group__left">
 				<slot name="left">
 					<div class="scope">
 						<div class="head">
 							<el-text class="label">{{ config.label }}</el-text>
 
-							<el-tooltip v-if="config.enableRefresh" :content="$t('刷新')">
+							<el-tooltip v-if="config.enableRefresh" :content="$t('重新整理')">
 								<div class="icon" @click="refresh()">
 									<cl-svg name="refresh" />
 								</div>
 							</el-tooltip>
 
-							<el-tooltip v-if="config.enableAdd" :content="$t('添加')">
+							<el-tooltip v-if="config.enableAdd" :content="$t('新增')">
 								<div
 									class="icon"
 									@click="edit()"
@@ -30,7 +30,7 @@
 						<div v-if="config.enableKeySearch" class="search">
 							<el-input
 								v-model="keyWord"
-								:placeholder="$t('搜索关键字')"
+								:placeholder="$t('搜尋關鍵字')"
 								clearable
 								:prefix-icon="Search"
 								@change="
@@ -43,7 +43,7 @@
 
 						<div v-loading="loading" class="data">
 							<el-scrollbar>
-								<!-- 树类型 -->
+								<!-- 樹型別 -->
 								<template v-if="tree.visible">
 									<el-tree
 										:ref="setRefs('tree')"
@@ -80,7 +80,7 @@
 									</el-tree>
 								</template>
 
-								<!-- 列表类型 -->
+								<!-- 列表型別 -->
 								<template v-else>
 									<ul
 										v-infinite-scroll="onMore"
@@ -140,13 +140,13 @@
 					</div>
 				</slot>
 
-				<!-- 收起按钮 -->
+				<!-- 收起按鈕 -->
 				<div v-if="browser.isMini" class="collapse-btn" @click="expand(false)">
 					<cl-svg name="right" />
 				</div>
 			</div>
 
-			<!-- 右侧 -->
+			<!-- 右側 -->
 			<div class="cl-view-group__right">
 				<div class="head">
 					<div
@@ -159,7 +159,7 @@
 
 					<slot name="title" :selected="selected">
 						<span class="title">
-							{{ config.title }}（{{ selected?.name || $t('未选择') }}）
+							{{ config.title }}（{{ selected?.name || $t('未選擇') }}）
 						</span>
 					</slot>
 
@@ -204,7 +204,7 @@ const { t } = useI18n();
 const config = reactive(
 	assign(
 		{
-			label: t('组'),
+			label: t('組'),
 			title: t('列表'),
 			leftWidth: '300px',
 			data: {},
@@ -219,29 +219,29 @@ const config = reactive(
 	)
 ) as ClViewGroup.Options;
 
-// 左侧内容是否自定义
+// 左側內容是否自定義
 const isCustom = !!slots.left;
 
 if (isEmpty(config.service) && !isCustom) {
 	console.error('[cl-view-group] service is required');
 }
 
-// 加载中
+// 載入中
 const loading = ref(false);
 
-// 搜索关键字
+// 搜尋關鍵字
 const keyWord = ref('');
 
 // 列表
 const list = ref<ClViewGroup.Item[]>([]);
 
-// 是否展开
+// 是否展開
 const isExpand = ref(true);
 
-// 选中值
+// 選中值
 const selected = ref<ClViewGroup.Item>();
 
-// 树配置
+// 樹配置
 const tree = reactive(
 	merge(
 		{
@@ -259,12 +259,12 @@ const tree = reactive(
 	)
 );
 
-// 收起、展开
+// 收起、展開
 function expand(value?: boolean) {
 	isExpand.value = value === undefined ? !isExpand.value : value;
 }
 
-// 设置选中值
+// 設定選中值
 function select(data?: ClViewGroup.Item) {
 	if (!data) {
 		data = list.value[0];
@@ -285,10 +285,10 @@ function select(data?: ClViewGroup.Item) {
 	});
 }
 
-// 编辑
+// 編輯
 function edit(item?: ClViewGroup.Item) {
 	Form.value?.open({
-		title: (item ? t('编辑') : t('添加')) + config.label,
+		title: (item ? t('編輯') : t('新增')) + config.label,
 		form: {
 			...item
 		},
@@ -296,7 +296,7 @@ function edit(item?: ClViewGroup.Item) {
 			submit(data, { close, done }) {
 				config.service[item ? 'update' : 'add'](data)
 					.then(() => {
-						ElMessage.success(t('保存成功'));
+						ElMessage.success(t('儲存成功'));
 
 						if (item) {
 							assign(item, data);
@@ -315,9 +315,9 @@ function edit(item?: ClViewGroup.Item) {
 	});
 }
 
-// 删除
+// 刪除
 function remove(item: ClViewGroup.Item) {
-	ElMessageBox.confirm(t('此操作将会删除选择的数据，是否继续？'), t('提示'), {
+	ElMessageBox.confirm(t('此操作將會刪除選擇的資料，是否繼續？'), t('提示'), {
 		type: 'warning'
 	})
 		.then(() => {
@@ -325,12 +325,12 @@ function remove(item: ClViewGroup.Item) {
 				config.service
 					.delete(params)
 					.then(async () => {
-						ElMessage.success(t('删除成功'));
+						ElMessage.success(t('刪除成功'));
 
-						// 刷新列表
+						// 重新整理列表
 						await refresh();
 
-						// 删除当前
+						// 刪除當前
 						if (selected.value?.id == item.id) {
 							select();
 						}
@@ -340,7 +340,7 @@ function remove(item: ClViewGroup.Item) {
 					});
 			}
 
-			// 删除事件
+			// 刪除事件
 			if (config.onDelete) {
 				config.onDelete(item, { next });
 			} else {
@@ -350,18 +350,18 @@ function remove(item: ClViewGroup.Item) {
 		.catch(() => null);
 }
 
-// 请求参数
+// 請求參數
 const reqParams = {
 	order: 'createTime',
 	sort: 'asc',
 	page: 1,
-	size: 50 // 每页条数
+	size: 50 // 每頁條數
 };
 
-// 是否加载完
+// 是否載入完
 const loaded = ref(false);
 
-// 刷新
+// 重新整理
 async function refresh(params?: any) {
 	if (isCustom) {
 		return false;
@@ -380,12 +380,12 @@ async function refresh(params?: any) {
 	let req: Promise<void>;
 
 	if (tree.visible) {
-		// 树形数据
+		// 樹形資料
 		req = config.service.list(data).then(res => {
 			list.value = deepTree(res);
 		});
 	} else {
-		// 列表数据
+		// 列表資料
 		req = config.service.page(data).then(res => {
 			const arr = config.onData?.(res.list) || res.list;
 
@@ -419,14 +419,14 @@ async function refresh(params?: any) {
 	loading.value = false;
 }
 
-// 加载更多
+// 載入更多
 function onMore() {
 	refresh({
 		page: reqParams.page + 1
 	});
 }
 
-// 右键菜单
+// 右鍵選單
 function onContextMenu(e: any, item: ClViewGroup.Item) {
 	if (!config.enableContextMenu) {
 		return false;
@@ -438,7 +438,7 @@ function onContextMenu(e: any, item: ClViewGroup.Item) {
 		},
 		list: [
 			{
-				label: t('编辑'),
+				label: t('編輯'),
 				hidden: !config.service._permission?.update,
 				callback(done) {
 					done();
@@ -446,7 +446,7 @@ function onContextMenu(e: any, item: ClViewGroup.Item) {
 				}
 			},
 			{
-				label: t('删除'),
+				label: t('刪除'),
 				hidden: !config.service._permission?.delete,
 				callback(done) {
 					done();
@@ -458,7 +458,7 @@ function onContextMenu(e: any, item: ClViewGroup.Item) {
 	});
 }
 
-// 监听屏幕变化
+// 監聽螢幕變化
 onScreenChange(() => {
 	expand(!browser.isMini);
 });

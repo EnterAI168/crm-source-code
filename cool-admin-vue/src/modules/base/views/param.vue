@@ -9,9 +9,9 @@
 				:options="options.dataType"
 				prop="dataType"
 				:width="120"
-				:placeholder="$t('数据类型')"
+				:placeholder="$t('資料型別')"
 			/>
-			<cl-search-key :placeholder="$t('搜索名称、keyName')" />
+			<cl-search-key :placeholder="$t('搜尋名稱、keyName')" />
 		</cl-row>
 
 		<cl-row>
@@ -41,11 +41,11 @@ import { useI18n } from 'vue-i18n';
 const { service } = useCool();
 const { t } = useI18n();
 
-// 选项
+// 選項
 const options = reactive({
 	dataType: [
 		{
-			label: t('字符串'),
+			label: t('字串'),
 			value: 0,
 			type: 'info'
 		},
@@ -55,7 +55,7 @@ const options = reactive({
 			type: 'success'
 		},
 		{
-			label: t('文件'),
+			label: t('檔案'),
 			value: 2
 		}
 	]
@@ -74,7 +74,7 @@ const Table = useTable({
 			width: 60
 		},
 		{
-			label: t('名称'),
+			label: t('名稱'),
 			prop: 'name',
 			minWidth: 150
 		},
@@ -84,7 +84,7 @@ const Table = useTable({
 			minWidth: 150
 		},
 		{
-			label: '数据',
+			label: '資料',
 			prop: 'data',
 			minWidth: 200,
 			component: {
@@ -95,13 +95,13 @@ const Table = useTable({
 			}
 		},
 		{
-			label: t('数据类型'),
+			label: t('資料型別'),
 			prop: 'dataType',
 			minWidth: 120,
 			dict: options.dataType
 		},
 		{
-			label: t('备注'),
+			label: t('備註'),
 			prop: 'remark',
 			minWidth: 200,
 			showOverflowTooltip: true
@@ -121,7 +121,7 @@ const Upsert = useUpsert({
 	items: [
 		{
 			prop: 'name',
-			label: t('名称'),
+			label: t('名稱'),
 			span: 12,
 			required: true,
 			component: {
@@ -136,13 +136,13 @@ const Upsert = useUpsert({
 			component: {
 				name: 'el-input',
 				props: {
-					placeholder: t('请输入Key')
+					placeholder: t('請輸入Key')
 				}
 			}
 		},
 		{
 			prop: 'dataType',
-			label: t('类型'),
+			label: t('型別'),
 			value: 0,
 			required: true,
 			component: {
@@ -152,7 +152,7 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'data_0',
-			label: t('数据'),
+			label: t('資料'),
 			hidden({ scope }) {
 				return scope.dataType != 0;
 			},
@@ -167,7 +167,7 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'data_1',
-			label: t('数据'),
+			label: t('資料'),
 			hidden({ scope }) {
 				return scope.dataType != 1;
 			},
@@ -181,7 +181,7 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'data_2',
-			label: t('数据'),
+			label: t('資料'),
 			required: true,
 			hidden({ scope }) {
 				return scope.dataType != 2;
@@ -197,11 +197,11 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'remark',
-			label: t('备注'),
+			label: t('備註'),
 			component: {
 				name: 'el-input',
 				props: {
-					placeholder: t('请输入备注'),
+					placeholder: t('請輸入備註'),
 					rows: 3,
 					type: 'textarea'
 				}
@@ -210,17 +210,45 @@ const Upsert = useUpsert({
 	],
 
 	onOpened(data) {
-		data[`data_${data.dataType}`] = data.data;
+		data[`data_${data.dataType}`] = formatTemplateParamData(data);
 	},
 
 	onSubmit(data, { next }) {
 		next({
 			...data,
-			data: data[`data_${data.dataType}`],
+			data: normalizeTemplateParamData(data),
 			data_0: undefined,
 			data_1: undefined,
 			data_2: undefined
 		});
 	}
 });
+
+function isMailTemplateParam(data: any) {
+	return ['crmInvoiceMailTemplate', 'crmCustomerMailTemplate'].includes(data?.keyName);
+}
+
+function formatTemplateParamData(data: any) {
+	const value = data.data;
+	if (data.dataType !== 0 || !isMailTemplateParam(data) || typeof value !== 'string') {
+		return value;
+	}
+	try {
+		return JSON.stringify(JSON.parse(value), null, 2);
+	} catch (e) {
+		return value;
+	}
+}
+
+function normalizeTemplateParamData(data: any) {
+	const value = data[`data_${data.dataType}`];
+	if (data.dataType !== 0 || !isMailTemplateParam(data) || typeof value !== 'string') {
+		return value;
+	}
+	try {
+		return JSON.stringify(JSON.parse(value), null, 2);
+	} catch (e) {
+		return value;
+	}
+}
 </script>

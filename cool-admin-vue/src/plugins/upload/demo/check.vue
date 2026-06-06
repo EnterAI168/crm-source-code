@@ -11,7 +11,7 @@ const { t } = useI18n();
 function onBeforeUpload(file: any) {
 	return new Promise(resolve => {
 		if (file.size > 100000) {
-			ElMessage.warning(t('文件不能大于100k'));
+			ElMessage.warning(t('檔案不能大於100k'));
 		} else {
 			resolve(true);
 		}

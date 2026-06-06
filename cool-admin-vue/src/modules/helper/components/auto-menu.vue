@@ -1,5 +1,5 @@
 <template>
-	<el-button type="success" @click="open" v-if="isDev">{{ $t('快速创建') }}</el-button>
+	<el-button type="success" @click="open" v-if="isDev">{{ $t('快速建立') }}</el-button>
 
 	<cl-form ref="Form">
 		<template #slot-entity="{ scope }">
@@ -9,7 +9,7 @@
 				clearable
 				separator="."
 				:options="tree"
-				:placeholder="$t('请选择数据结构')"
+				:placeholder="$t('請選擇資料結構')"
 				@change="onEntityChange"
 			/>
 		</template>
@@ -38,23 +38,23 @@ const menu = useMenu();
 const Form = useForm();
 const { t } = useI18n();
 
-// 实体列表
+// 實體列表
 const list: any[] = [];
 
-// 实体树形列表
+// 實體樹形列表
 const tree = computed(() => deepPaths(list.map(e => e.value)));
 
-// 打开
+// 開啟
 function open() {
 	refs.aiCode.send('getEps');
 
 	Form.value?.open({
-		title: t('快速创建'),
+		title: t('快速建立'),
 		width: '800px',
 		items: [
 			{
 				prop: 'entity',
-				label: t('数据结构'),
+				label: t('資料結構'),
 				component: {
 					name: 'slot-entity'
 				},
@@ -63,43 +63,43 @@ function open() {
 			},
 			{
 				prop: 'parentId',
-				label: t('上级节点'),
+				label: t('上級節點'),
 				span: 16,
 				component: {
 					name: 'cl-menu-select',
 					props: {
 						type: 1,
-						placeholder: t('请选择上级节点')
+						placeholder: t('請選擇上級節點')
 					}
 				}
 			},
 			{
 				prop: 'name',
-				label: t('菜单名称'),
+				label: t('選單名稱'),
 				span: 8,
 				component: {
 					name: 'el-input',
 					props: {
-						placeholder: t('请输入菜单名称')
+						placeholder: t('請輸入選單名稱')
 					}
 				},
 				required: true
 			},
 			{
 				prop: 'router',
-				label: t('菜单路由'),
+				label: t('選單路由'),
 				span: 8,
 				component: {
 					name: 'el-input',
 					props: {
-						placeholder: t('请输入菜单路由，如：/test')
+						placeholder: t('請輸入選單路由，如：/test')
 					}
 				},
 				rules: {
 					required: true,
 					validator(_, value, callback) {
 						if (!(value || '').startsWith('/')) {
-							callback(new Error(t('必须以 / 开头')));
+							callback(new Error(t('必須以 / 開頭')));
 						} else {
 							callback();
 						}
@@ -108,13 +108,13 @@ function open() {
 			},
 			{
 				prop: 'orderNum',
-				label: t('菜单排序'),
+				label: t('選單排序'),
 				span: 8,
 				value: 1,
 				component: {
 					name: 'el-input-number',
 					props: {
-						placeholder: t('请填写菜单排序'),
+						placeholder: t('請填寫選單排序'),
 						min: 0,
 						max: 99,
 						'controls-position': 'right'
@@ -123,12 +123,12 @@ function open() {
 			},
 			{
 				prop: 'icon',
-				label: t('菜单图标'),
+				label: t('選單圖示'),
 				component: {
 					name: 'cl-menu-icon',
 					props: {
 						showIcon: true,
-						placeholder: t('请选择图标')
+						placeholder: t('請選擇圖示')
 					}
 				}
 			},
@@ -136,20 +136,20 @@ function open() {
 				prop: 'keepAlive',
 				value: true,
 				flex: false,
-				label: t('路由缓存'),
+				label: t('路由快取'),
 				component: {
 					name: 'cl-switch'
 				}
 			}
 		],
 		op: {
-			saveButtonText: t('开始创建')
+			saveButtonText: t('開始建立')
 		},
 		on: {
 			async submit(data, { done, close }) {
 				const entity = list.find(e => e.value == data.entity.join('/'));
 
-				// 发送消息
+				// 發送訊息
 				refs.aiCode.send(
 					'createVue',
 					{
@@ -181,7 +181,7 @@ function open() {
 	});
 }
 
-// 实体切换
+// 實體切換
 function onEntityChange(val: any) {
 	const item = list.find(e => e.value == val?.join('/'));
 

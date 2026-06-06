@@ -4,7 +4,7 @@ import { UserInfoEntity } from '../../../user/entity/info';
 import { DemoGoodsService } from '../../service/goods';
 
 /**
- * 商品模块-商品信息
+ * 商品模組-商品資訊
  */
 @CoolController({
   api: ['add', 'delete', 'update', 'info', 'list', 'page'],

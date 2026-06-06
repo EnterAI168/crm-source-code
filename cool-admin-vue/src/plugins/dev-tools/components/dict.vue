@@ -1,7 +1,7 @@
 <template>
 	<div class="dt-dict">
 		<div class="top">
-			<el-tooltip :content="$t('刷新')">
+			<el-tooltip :content="$t('重新整理')">
 				<div class="cl-comm__icon" @click="reload">
 					<cl-svg name="refresh" />
 				</div>
@@ -10,7 +10,7 @@
 			<el-input
 				v-model="keyWord"
 				class="search"
-				:placeholder="$t('搜索关键字')"
+				:placeholder="$t('搜尋關鍵字')"
 				clearable
 				@input="onKeyWordChange"
 			>
@@ -22,16 +22,16 @@
 
 		<el-result
 			icon="warning"
-			:title="$t('没有可用的字典')"
-			:sub-title="$t('请添加新的字典条目')"
+			:title="$t('沒有可用的字典')"
+			:sub-title="$t('請新增新的字典條目')"
 			v-if="isEmpty(list)"
 		>
 			<template #extra>
 				<el-button type="success" @click="add">
-					{{ $t('去添加') }}
+					{{ $t('去新增') }}
 				</el-button>
 				<el-button type="primary" @click="reload">
-					{{ $t('刷新') }}
+					{{ $t('重新整理') }}
 				</el-button>
 			</template>
 		</el-result>

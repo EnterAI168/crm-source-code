@@ -4,7 +4,7 @@ import { CrmCustomerFollowupEntity } from '../../entity/followup';
 import { CrmCustomerFollowupService } from '../../service/followup';
 
 /**
- * 客户跟进记录
+ * 客戶跟進記錄
  */
 @Provide()
 @CoolController({

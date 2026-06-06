@@ -4,7 +4,7 @@ import { SpaceInfoEntity } from '../../entity/info';
 import { SpaceInfoService } from '../../service/info';
 
 /**
- * 图片空间信息
+ * 圖片空間資訊
  */
 @Provide()
 @CoolController({

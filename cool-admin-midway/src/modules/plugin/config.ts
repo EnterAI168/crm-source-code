@@ -1,25 +1,25 @@
 import { ModuleConfig } from '@cool-midway/core';
 
 /**
- * 模块配置
+ * 模組配置
  */
 export default options => {
   return {
-    // 模块名称
-    name: '插件模块',
-    // 模块描述
-    description: '插件查看、安装、卸载、配置等',
-    // 中间件，只对本模块有效
+    // 模組名稱
+    name: '外掛模組',
+    // 模組描述
+    description: '外掛檢視、安裝、解除安裝、配置等',
+    // 中介軟體，只對本模組有效
     middlewares: [],
-    // 中间件，全局有效
+    // 中介軟體，全域性有效
     globalMiddlewares: [],
-    // 模块加载顺序，默认为0，值越大越优先加载
+    // 模組載入順序，預設為0，值越大越優先載入
     order: 0,
-    // 基础插件配置
+    // 基礎外掛配置
     hooks: {
-      // 文件上传
+      // 檔案上傳
       upload: {
-        // 地址前缀
+        // 地址字首
         domain: `http://127.0.0.1:${options?.app?.getConfig('koa.port')}`,
       },
     },

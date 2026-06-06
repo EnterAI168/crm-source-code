@@ -32,10 +32,10 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue']);
 
-// 图标列表
+// 圖示列表
 const list = ref(svgIcons.filter(e => e.indexOf('icon-') === 0));
 
-// 已选图标
+// 已選圖示
 const value = useModel(props, 'modelValue');
 </script>
 

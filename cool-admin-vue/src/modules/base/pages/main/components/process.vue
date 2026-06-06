@@ -26,7 +26,7 @@
 						@contextmenu.stop.prevent="openCM($event, item)"
 					>
 						<span class="label tracking-wider">
-							{{ item.meta.label || item.name || item.path }}
+							{{ localeText(item.meta.label || item.name || item.path) }}
 						</span>
 
 						<cl-svg class="close" name="close" @mousedown.stop="onDel(Number(index))" />
@@ -55,32 +55,33 @@ import { useCool } from '/@/cool';
 import { ContextMenu } from '@cool-vue/crud';
 import { useBase } from '/$/base';
 import { useI18n } from 'vue-i18n';
+import { localeText } from '/@/utils/localeText';
 
 const { refs, setRefs, route, router, mitt } = useCool();
 const { process, app } = useBase();
 const { t } = useI18n();
 
-// 刷新当前路由
+// 重新整理當前路由
 function toRefresh() {
 	mitt.emit('view.refresh');
 }
 
-// 回首页
+// 回首頁
 function toHome() {
 	router.push('/');
 }
 
-// 返回上一页
+// 返回上一頁
 function toBack() {
 	router.back();
 }
 
-// 设置全屏
+// 設定全屏
 function toFull() {
 	app.setFull(!app.isFull);
 }
 
-// 跳转
+// 跳轉
 function toPath() {
 	const d = process.list.find(e => e.active);
 
@@ -90,7 +91,7 @@ function toPath() {
 	}
 }
 
-// 移动到
+// 移動到
 function scrollTo(left: number) {
 	refs.scroller.wrapRef.scrollTo({
 		left,
@@ -98,7 +99,7 @@ function scrollTo(left: number) {
 	});
 }
 
-// 调整滚动位置
+// 調整滾動位置
 function adScroll(index: number) {
 	const el = refs[`item-${index}`];
 
@@ -107,24 +108,24 @@ function adScroll(index: number) {
 	}
 }
 
-// 选择
+// 選擇
 function onTap(item: Process.Item, index: number) {
 	adScroll(index);
 	router.push(item.fullPath);
 }
 
-// 删除
+// 刪除
 function onDel(index: number) {
 	process.remove(index);
 	toPath();
 }
 
-// 右键菜单
+// 右鍵選單
 function openCM(e: any, item: Process.Item) {
 	ContextMenu.open(e, {
 		list: [
 			{
-				label: t('关闭当前'),
+				label: t('關閉當前'),
 				hidden: item.path !== route.path,
 				callback(done) {
 					done();
@@ -134,7 +135,7 @@ function openCM(e: any, item: Process.Item) {
 				}
 			},
 			{
-				label: t('关闭其他'),
+				label: t('關閉其他'),
 				callback(done) {
 					done();
 
@@ -143,7 +144,7 @@ function openCM(e: any, item: Process.Item) {
 				}
 			},
 			{
-				label: t('关闭所有'),
+				label: t('關閉所有'),
 				callback(done) {
 					done();
 
@@ -163,14 +164,14 @@ watch(
 );
 
 onMounted(() => {
-	// 添加滚轮事件监听器
+	// 新增滾輪事件監聽器
 	refs.scroller.wrapRef?.addEventListener(
 		'wheel',
 		function (event: WheelEvent) {
-			// 滚动的速度因子，可以根据需要调整
+			// 滾動的速度因子，可以根據需要調整
 			const scrollSpeed = 2;
 
-			// 计算滚动的距离
+			// 計算滾動的距離
 			const distance = event.deltaY * scrollSpeed;
 
 			scrollTo(refs.scroller.wrapRef.scrollLeft + distance);

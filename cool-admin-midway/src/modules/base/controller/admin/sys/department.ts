@@ -4,7 +4,7 @@ import { BaseSysDepartmentEntity } from '../../../entity/sys/department';
 import { BaseSysDepartmentService } from '../../../service/sys/department';
 
 /**
- * 部门
+ * 部門
  */
 @Provide()
 @CoolController({
@@ -22,7 +22,7 @@ export class BaseDepartmentController extends BaseController {
   baseDepartmentService: BaseSysDepartmentService;
 
   /**
-   * 部门排序
+   * 部門排序
    */
   @Post('/order', { summary: '排序' })
   async order(@Body(ALL) params: any) {

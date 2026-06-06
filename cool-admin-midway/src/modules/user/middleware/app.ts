@@ -7,7 +7,7 @@ import { CoolCommException, CoolUrlTagData, TagTypes } from '@cool-midway/core';
 import { Utils } from '../../../comm/utils';
 
 /**
- * 用户
+ * 使用者
  */
 @Middleware()
 export class UserMiddleware implements IMiddleware<Context, NextFunction> {
@@ -43,10 +43,10 @@ export class UserMiddleware implements IMiddleware<Context, NextFunction> {
           ctx.user = jwt.verify(token, this.jwtConfig.secret);
 
           if (ctx.user.isRefresh) {
-            throw new CoolCommException('登录失效~');
+            throw new CoolCommException('登入失效~');
           }
         } catch (error) {}
-        // 使用matchUrl方法来检查URL是否应该被忽略
+        // 使用matchUrl方法來檢查URL是否應該被忽略
         const isIgnored = this.ignoreUrls.some(pattern =>
           this.utils.matchUrl(pattern, url)
         );
@@ -56,7 +56,7 @@ export class UserMiddleware implements IMiddleware<Context, NextFunction> {
         } else {
           if (!ctx.user) {
             ctx.status = 401;
-            throw new CoolCommException('登录失效~');
+            throw new CoolCommException('登入失效~');
           }
         }
       }

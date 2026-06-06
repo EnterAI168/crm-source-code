@@ -2,14 +2,14 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>group</el-tag>
-			<span>分组显示</span>
+			<span>分組顯示</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['form/group.vue']" />
 
-			<!-- 自定义表单组件 -->
+			<!-- 自定義表單元件 -->
 			<cl-form ref="Form"></cl-form>
 		</div>
 
@@ -26,31 +26,31 @@ const Form = useForm();
 
 function open() {
 	Form.value?.open({
-		title: '分组显示',
+		title: '分組顯示',
 		items: [
 			{
-				//【很重要】必须为 tabs
+				//【很重要】必須為 tabs
 				type: 'tabs',
 				props: {
-					// 分组样式
+					// 分組樣式
 					type: 'card',
-					// 分组列表，必须是 { label, value } 的数组格式
+					// 分組列表，必須是 { label, value } 的陣列格式
 					labels: [
 						{
-							label: '基础信息', // 标题
-							value: 'base' // 唯一标识
+							label: '基礎資訊', // 標題
+							value: 'base' // 唯一標識
 						},
 						{
-							label: '认证信息',
+							label: '認證資訊',
 							value: 'auth'
 						}
 					]
 				}
 			},
-			// 基础信息
+			// 基礎資訊
 			{
-				group: 'base', // 标识
-				label: '账号',
+				group: 'base', // 標識
+				label: '賬號',
 				prop: 'account',
 				required: true,
 				component: {
@@ -58,8 +58,8 @@ function open() {
 				}
 			},
 			{
-				group: 'base', // 标识
-				label: '密码',
+				group: 'base', // 標識
+				label: '密碼',
 				prop: 'password',
 				required: true,
 				component: {
@@ -67,10 +67,10 @@ function open() {
 				}
 			},
 
-			// 其他信息 group = other
+			// 其他資訊 group = other
 			{
-				group: 'auth', // 标识
-				label: '身份证',
+				group: 'auth', // 標識
+				label: '身份證',
 				prop: 'idcard',
 				required: true,
 				component: {
@@ -78,16 +78,16 @@ function open() {
 				}
 			},
 			{
-				group: 'auth', // 标识
-				label: '学校',
+				group: 'auth', // 標識
+				label: '學校',
 				prop: 'school',
 				component: {
 					name: 'el-input'
 				}
 			},
 			{
-				group: 'auth', // 标识
-				label: '专业',
+				group: 'auth', // 標識
+				label: '專業',
 				prop: 'major',
 				component: {
 					name: 'el-input'
@@ -95,7 +95,7 @@ function open() {
 			}
 		],
 		on: {
-			//【提示】当第一组验证通过后，会自动切换到下一组展示，直到全部通过才可提交
+			//【提示】當第一組驗證通過後，會自動切換到下一組展示，直到全部通過才可提交
 			submit(data, { close }) {
 				close();
 			}

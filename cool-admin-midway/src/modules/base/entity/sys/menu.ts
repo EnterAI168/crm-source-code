@@ -2,46 +2,46 @@ import { BaseEntity } from '../base';
 import { Column, Entity } from 'typeorm';
 
 /**
- * 菜单
+ * 選單
  */
 @Entity('base_sys_menu')
 export class BaseSysMenuEntity extends BaseEntity {
-  @Column({ comment: '父菜单ID', nullable: true })
+  @Column({ comment: '父選單ID', nullable: true })
   parentId: number;
 
-  @Column({ comment: '菜单名称' })
+  @Column({ comment: '選單名稱' })
   name: string;
 
-  @Column({ comment: '菜单地址', nullable: true })
+  @Column({ comment: '選單地址', nullable: true })
   router: string;
 
-  @Column({ comment: '权限标识', type: 'text', nullable: true })
+  @Column({ comment: '權限標識', type: 'text', nullable: true })
   perms: string;
 
   @Column({
-    comment: '类型 0-目录 1-菜单 2-按钮',
+    comment: '型別 0-目錄 1-選單 2-按鈕',
     default: 0,
   })
   type: number;
 
-  @Column({ comment: '图标', nullable: true })
+  @Column({ comment: '圖示', nullable: true })
   icon: string;
 
   @Column({ comment: '排序', default: 0 })
   orderNum: number;
 
-  @Column({ comment: '视图地址', nullable: true })
+  @Column({ comment: '檢視地址', nullable: true })
   viewPath: string;
 
-  @Column({ comment: '路由缓存', default: true })
+  @Column({ comment: '路由快取', default: true })
   keepAlive: boolean;
 
-  @Column({ comment: '是否显示', default: true })
+  @Column({ comment: '是否顯示', default: true })
   isShow: boolean;
 
-  // 父菜单名称
+  // 父選單名稱
   parentName: string;
 
-  // 子菜单
+  // 子選單
   childMenus: any;
 }

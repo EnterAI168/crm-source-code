@@ -3,7 +3,7 @@
 		<template v-if="pickerType == 'table'">
 			<template v-if="multiple">
 				<div class="mb-[10px]">
-					<el-button type="success" @click="open">{{ $t('添加') }}</el-button>
+					<el-button type="success" @click="open">{{ $t('新增') }}</el-button>
 					<el-button
 						type="danger"
 						:disabled="refs.table?.selection.length == 0"
@@ -34,7 +34,7 @@
 		<template v-else>
 			<div class="cl-select-table__picker-inner" @click="open">
 				<span v-if="isEmpty(data)" class="placeholder">{{
-					placeholder || $t('请选择')
+					placeholder || $t('請選擇')
 				}}</span>
 
 				<template v-else>
@@ -77,21 +77,21 @@
 	<cl-dialog v-model="visible" width="1200px" :title="title">
 		<cl-crud ref="Crud" padding="0">
 			<cl-row>
-				<!-- 刷新按钮 -->
+				<!-- 重新整理按鈕 -->
 				<cl-refresh-btn />
 
-				<!-- 全选 -->
+				<!-- 全選 -->
 				<el-button v-if="multiple" type="primary" @click="selectAll">{{
-					$t('全选')
+					$t('全選')
 				}}</el-button>
 
 				<cl-flex1 />
-				<!-- 条件搜索 -->
+				<!-- 條件搜尋 -->
 				<cl-search ref="Search" />
 			</cl-row>
 
 			<cl-row>
-				<!-- 数据表格 -->
+				<!-- 資料表格 -->
 				<cl-table ref="Table" :auto-height="false" @selection-change="onSelectionChange">
 					<template #column-check="{ scope }">
 						<el-button
@@ -99,17 +99,17 @@
 							type="success"
 							disabled
 						>
-							{{ $t('已选') }}
+							{{ $t('已選') }}
 						</el-button>
-						<el-button v-else @click="select(scope.row)">{{ $t('选择') }}</el-button>
+						<el-button v-else @click="select(scope.row)">{{ $t('選擇') }}</el-button>
 					</template>
 				</cl-table>
 			</cl-row>
 
 			<cl-row>
-				<span v-if="multiple">{{ $t('已选') }} {{ selection.length }} {{ $t('人') }}</span>
+				<span v-if="multiple">{{ $t('已選') }} {{ selection.length }} {{ $t('人') }}</span>
 				<cl-flex1 />
-				<!-- 分页控件 -->
+				<!-- 分頁控制元件 -->
 				<cl-pagination />
 			</cl-row>
 		</cl-crud>
@@ -122,7 +122,7 @@
 				:disabled="isEmpty(selection)"
 				@click="select()"
 			>
-				{{ $t('选择') }}
+				{{ $t('選擇') }}
 			</el-button>
 		</template>
 	</cl-dialog>
@@ -143,7 +143,7 @@ import { CrudProps } from '../../comm';
 
 const { t } = useI18n();
 
-// 替换你的类型
+// 替換你的型別
 type Item = {
 	id?: string | number;
 	nickName?: string;
@@ -164,25 +164,25 @@ const props = defineProps({
 	...CrudProps,
 	modelValue: null,
 	scope: Object as PropType<Item>,
-	// 标题
+	// 標題
 	title: String,
-	// 请选择
+	// 請選擇
 	placeholder: String,
-	// 请求服务
+	// 請求服務
 	service: null,
-	// 显示选择器
+	// 顯示選擇器
 	showPicker: {
 		type: Boolean,
 		default: true
 	},
-	// 选择器类型
+	// 選擇器型別
 	pickerType: {
 		type: String as PropType<'default' | 'text' | 'table'>,
 		default: 'default'
 	},
 	// 字典
 	dict: Object as PropType<Dict>,
-	// 是否多选
+	// 是否多選
 	multiple: {
 		type: Boolean,
 		default: true
@@ -208,7 +208,7 @@ const dict = merge(
 	props.dict
 );
 
-// 上级表单
+// 上級表單
 const Form = useForm();
 
 // cl-table
@@ -239,10 +239,10 @@ const Crud = useCrud({
 	async onRefresh(params, { next }) {
 		const res = await next(params);
 
-		// 添加已加载列表的 id
+		// 新增已載入列表的 id
 		loadIds.value.push(...res.list.map(e => e[dict.id]));
 
-		// 数据反选
+		// 資料反選
 		selection.value.forEach(e => {
 			const d = Table.value?.data.find(a => a[dict.id] == e[dict.id]);
 
@@ -253,27 +253,27 @@ const Crud = useCrud({
 	}
 });
 
-// 刷新
+// 重新整理
 async function refresh(params?: any) {
 	return Crud.value?.refresh(params);
 }
 
-// 弹窗是否可见
+// 彈窗是否可見
 const visible = ref(false);
 
-// 已选的数据列表，双向绑定用
+// 已選的資料列表，雙向繫結用
 const list = ref<Item[]>([]);
 
-// 已选列表
+// 已選列表
 const selection = ref<Item[]>([]);
 
-// 分页
+// 分頁
 const pager = reactive({
 	page: 1,
 	size: 10
 });
 
-// 数据列表
+// 資料列表
 const data = computed(() => {
 	if (props.pickerType == 'table') {
 		const { page, size } = pager;
@@ -283,26 +283,26 @@ const data = computed(() => {
 	}
 });
 
-// 已加载列表的 id
+// 已載入列表的 id
 const loadIds = ref<number[]>([]);
 
-// 监听已选列表
+// 監聽已選列表
 function onSelectionChange(arr: Item[]) {
-	// 已加载的
+	// 已載入的
 	const ids = Array.from(new Set(loadIds.value));
 
-	// 过滤掉已加载的，再加上已选的
+	// 過濾掉已載入的，再加上已選的
 	selection.value = selection.value.filter(e => !ids.includes(e[dict.id]!)).concat(...arr);
 }
 
-// 打开选择弹窗
+// 開啟選擇彈窗
 function open() {
 	visible.value = true;
 
-	// 清空数据
+	// 清空資料
 	loadIds.value = [];
 
-	// 设置已选
+	// 設定已選
 	selection.value = cloneDeep(list.value);
 
 	nextTick(() => {
@@ -312,19 +312,19 @@ function open() {
 	});
 }
 
-// 关闭选择弹窗
+// 關閉選擇彈窗
 function close() {
 	visible.value = false;
 }
 
-// 设置值
+// 設定值
 function set(data: Item[] | Item) {
 	list.value = cloneDeep(isArray(data) ? data : [data]);
 }
 
-// 选择
+// 選擇
 function select(item?: Item) {
-	// 单选不触发 onSelectionChange 手动设置
+	// 單選不觸發 onSelectionChange 手動設定
 	if (item) {
 		selection.value = [item];
 	}
@@ -334,9 +334,9 @@ function select(item?: Item) {
 	close();
 }
 
-// 全选
+// 全選
 async function selectAll() {
-	// 全部数据
+	// 全部資料
 	await Crud.value?.refresh({ page: 1, size: 10000 }).then(res => {
 		list.value = res.list;
 	});
@@ -350,10 +350,10 @@ function remove() {
 		const ids = ((refs.table?.selection || []) as any[]).map(e => e[dict.id]);
 
 		list.value = list.value.filter(e => {
-			// 清空选择状态
+			// 清空選擇狀態
 			refs.table?.toggleRowSelection(e, false);
 
-			// 移除已选的
+			// 移除已選的
 			return !ids.find(id => id == e[dict.id]);
 		});
 	} else {
@@ -361,7 +361,7 @@ function remove() {
 	}
 }
 
-// 监听已选列表，返回 ids/id
+// 監聽已選列表，返回 ids/id
 watch(
 	list,
 	(arr = []) => {

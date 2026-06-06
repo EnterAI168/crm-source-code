@@ -6,19 +6,19 @@ export default (): ModuleConfig => {
 
 		views: [
 			{
-				// 单个参数
+				// 單個參數
 				// path: "/demo/test/route/:id",
 
-				// 多个参数
+				// 多個參數
 				// path: "/demo/test/route/:id/:name",
 
-				// 参数可选
+				// 參數可選
 				path: '/demo/test/route/:id/:name?',
 
-				// 更多看文档：https://router.vuejs.org/zh/guide/essentials/route-matching-syntax.html
+				// 更多看檔案：https://router.vuejs.org/zh/guide/essentials/route-matching-syntax.html
 
 				meta: {
-					label: '动态路由参数'
+					label: '動態路由參數'
 				},
 				component: () => import('./views/test/route.vue')
 			}

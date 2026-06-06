@@ -6,7 +6,7 @@ import { DemoGoodsEntity } from '../entity/goods';
 import { noTenant } from '../../base/db/tenant';
 
 /**
- * 商品服务
+ * 商品服務
  */
 @Provide()
 export class DemoTenantService extends BaseService {
@@ -17,7 +17,7 @@ export class DemoTenantService extends BaseService {
   ctx;
 
   /**
-   * 使用多租户
+   * 使用多租戶
    */
   async use() {
     await this.demoGoodsEntity.createQueryBuilder().getMany();
@@ -25,26 +25,26 @@ export class DemoTenantService extends BaseService {
   }
 
   /**
-   * 不使用多租户(局部不使用)
+   * 不使用多租戶(區域性不使用)
    */
   async noUse() {
-    // 过滤多租户
+    // 過濾多租戶
     await this.demoGoodsEntity.createQueryBuilder().getMany();
-    // 被noTenant包裹，不会过滤多租户
+    // 被noTenant包裹，不會過濾多租戶
     await noTenant(this.ctx, async () => {
       return await this.demoGoodsEntity.createQueryBuilder().getMany();
     });
-    // 过滤多租户
+    // 過濾多租戶
     await this.demoGoodsEntity.find();
   }
 
   /**
-   * 无效多租户
+   * 無效多租戶
    */
   async invalid() {
-    // 自定义sql，不进行多租户过滤
+    // 自定義sql，不進行多租戶過濾
     await this.nativeQuery('select * from demo_goods');
-    // 自定义分页sql，不进行多租户过滤
+    // 自定義分頁sql，不進行多租戶過濾
     await this.sqlRenderPage('select * from demo_goods');
   }
 }

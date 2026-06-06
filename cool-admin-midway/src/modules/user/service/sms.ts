@@ -9,7 +9,7 @@ import { PluginService } from '../../plugin/service/info';
  */
 @Provide()
 export class UserSmsService extends BaseService {
-  // 获得模块的配置信息
+  // 獲得模組的配置資訊
   @Config('module.user.sms')
   config;
 
@@ -37,16 +37,16 @@ export class UserSmsService extends BaseService {
   }
 
   /**
-   * 发送验证码
+   * 發送驗證碼
    * @param phone
    */
   async sendSms(phone) {
-    // 随机四位验证码
+    // 隨機四位驗證碼
     const code = _.random(1000, 9999);
     const pluginKey = this.config.pluginKey;
     if (!this.plugin)
       throw new CoolCommException(
-        '未配置短信插件，请到插件市场下载安装配置：https://cool-js.com/plugin?keyWord=短信'
+        '未配置簡訊外掛，請到外掛市場下載安裝配置：https://cool-js.com/plugin?keyWord=簡訊'
       );
     try {
       if (pluginKey == 'sms-tx') {
@@ -59,12 +59,12 @@ export class UserSmsService extends BaseService {
       }
       this.midwayCache.set(`sms:${phone}`, code, this.config.timeout * 1000);
     } catch (error) {
-      throw new CoolCommException('发送过于频繁，请稍后再试');
+      throw new CoolCommException('發送過於頻繁，請稍後再試');
     }
   }
 
   /**
-   * 验证验证码
+   * 驗證驗證碼
    * @param phone
    * @param code
    * @returns

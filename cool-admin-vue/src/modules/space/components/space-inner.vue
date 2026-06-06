@@ -3,9 +3,9 @@
 		<cl-view-group ref="ViewGroup">
 			<template #right>
 				<div class="cl-upload-space-inner__right">
-					<!-- 操作栏 -->
+					<!-- 操作欄 -->
 					<div class="cl-upload-space-inner__header">
-						<el-button @click="refresh({ page: 1 })">{{ $t('刷新') }}</el-button>
+						<el-button @click="refresh({ page: 1 })">{{ $t('重新整理') }}</el-button>
 
 						<div :style="{ margin: '0px 10px' }">
 							<cl-upload
@@ -19,7 +19,7 @@
 								@success="onSuccess"
 								@upload="onUpload"
 							>
-								<el-button type="primary">{{ $t('点击上传') }}</el-button>
+								<el-button type="primary">{{ $t('點選上傳') }}</el-button>
 							</cl-upload>
 						</div>
 
@@ -28,14 +28,14 @@
 								type="danger"
 								:disabled="selection.length == 0"
 								@click="remove()"
-								>{{ $t('删除选中文件') }}</el-button
+								>{{ $t('刪除選中檔案') }}</el-button
 							>
 						</template>
 					</div>
 
-					<!-- 文件区域 -->
+					<!-- 檔案區域 -->
 					<el-scrollbar v-loading="loading" class="cl-upload-space-inner__file">
-						<!-- 文件列表 -->
+						<!-- 檔案列表 -->
 						<template v-if="list.length > 0">
 							<div
 								class="cl-upload-space-inner__file-list"
@@ -51,7 +51,7 @@
 								>
 									<upload-item :item="item" :list="list" @remove="remove" />
 
-									<!-- 已选序号 -->
+									<!-- 已選序號 -->
 									<div
 										v-show="onIndex(item.id)"
 										class="cl-upload-space-inner__file-index"
@@ -62,12 +62,12 @@
 							</div>
 						</template>
 
-						<!-- 空态 -->
+						<!-- 空態 -->
 						<div v-else class="cl-upload-space-inner__file-empty">
 							<el-icon class="el-icon--upload">
 								<upload-filled />
 							</el-icon>
-							<p>{{ $t('将文件拖到此处，或点击按钮上传') }}</p>
+							<p>{{ $t('將檔案拖到此處，或點選按鈕上傳') }}</p>
 						</div>
 					</el-scrollbar>
 
@@ -83,7 +83,7 @@
 						/>
 
 						<span v-show="!browser.isMini" class="total">{{
-							$t('共 {total} 条', { total: pagination.total })
+							$t('共 {total} 條', { total: pagination.total })
 						}}</span>
 					</div>
 				</div>
@@ -121,8 +121,8 @@ const { service, browser, refs, setRefs } = useCool();
 const { t } = useI18n();
 
 const { ViewGroup } = useViewGroup({
-	label: t('分类'),
-	title: t('文件列表'),
+	label: t('分類'),
+	title: t('檔案列表'),
 	service: service.space.type,
 	onEdit() {
 		return {
@@ -135,7 +135,7 @@ const { ViewGroup } = useViewGroup({
 			},
 			items: [
 				{
-					label: t('名称'),
+					label: t('名稱'),
 					prop: 'name',
 					value: '',
 					required: true,
@@ -158,28 +158,28 @@ const { ViewGroup } = useViewGroup({
 	}
 });
 
-// 是否加载中
+// 是否載入中
 const loading = ref(false);
 
-// 已选列表
+// 已選列表
 const selection = ref<Eps.SpaceInfoEntity[]>([]);
 
-// 文件列表
+// 檔案列表
 const list = ref<Eps.SpaceInfoEntity[]>([]);
 
-// 分页信息
+// 分頁資訊
 const pagination = reactive({
 	page: 1,
 	size: 20,
 	total: 0
 });
 
-// 清空选择
+// 清空選擇
 function clear() {
 	selection.value = [];
 }
 
-// 上传成功
+// 上傳成功
 function onSuccess<T extends { id: number }>(data: T) {
 	service.space.info
 		.add({
@@ -194,43 +194,43 @@ function onSuccess<T extends { id: number }>(data: T) {
 		});
 }
 
-// 上传时
+// 上傳時
 function onUpload(data: any) {
 	list.value.unshift(data);
 }
 
-// 请求参数
+// 請求參數
 const reqParams = {
 	page: 1
 };
 
-// 刷新列表
+// 重新整理列表
 async function refresh(params?: any) {
-	// 合并参数
+	// 合併參數
 	assign(reqParams, {
 		type: props.accept?.split('/')[0].replace('*', '') || undefined,
 		...pagination,
 		...params
 	});
 
-	// 加载中
+	// 載入中
 	if (reqParams.page == 1) {
 		loading.value = true;
 	}
 
 	await service.space.info.page(reqParams).then(res => {
-		// 设置分页
+		// 設定分頁
 		assign(pagination, res.pagination);
 
-		// 设置列表
+		// 設定列表
 		list.value = res.list as Eps.SpaceInfoEntity[];
 	});
 
-	// 加载完成
+	// 載入完成
 	loading.value = false;
 }
 
-// 选择
+// 選擇
 function select(item: Eps.SpaceInfoEntity) {
 	const index = selection.value.findIndex(e => e.id === item.id);
 
@@ -243,29 +243,29 @@ function select(item: Eps.SpaceInfoEntity) {
 			if (selection.value.length < props.limit) {
 				selection.value.push(item);
 			} else {
-				ElMessage.warning(t('最多只能选择{limit}个文件', { limit: props.limit }));
+				ElMessage.warning(t('最多隻能選擇{limit}個檔案', { limit: props.limit }));
 			}
 		}
 	}
 }
 
-// 选择序号
+// 選擇序號
 function onIndex(id?: number) {
 	return selection.value.findIndex(e => e.id === id) + 1;
 }
 
-// 删除选中
+// 刪除選中
 function remove(item?: Eps.SpaceInfoEntity) {
-	// 已选文件 id
+	// 已選檔案 id
 	const ids = item ? [item.id] : selection.value.map(e => e.id);
 
-	ElMessageBox.confirm(t('此操作将删除文件, 是否继续?'), t('提示'), {
+	ElMessageBox.confirm(t('此操作將刪除檔案, 是否繼續?'), t('提示'), {
 		type: 'warning'
 	})
 		.then(() => {
-			ElMessage.success(t('删除成功'));
+			ElMessage.success(t('刪除成功'));
 
-			// 删除文件及选择
+			// 刪除檔案及選擇
 			ids.forEach(id => {
 				[list.value, selection.value].forEach(list => {
 					const index = list.findIndex(e => e.id === id);
@@ -273,7 +273,7 @@ function remove(item?: Eps.SpaceInfoEntity) {
 				});
 			});
 
-			// 删除请求
+			// 刪除請求
 			service.space.info
 				.delete({
 					ids
@@ -304,7 +304,7 @@ function onDrop(e: DragEvent) {
 	}
 }
 
-// 监听选择
+// 監聽選擇
 watch(
 	selection,
 	val => {

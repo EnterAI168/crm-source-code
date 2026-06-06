@@ -5,29 +5,30 @@ import { isArray, isEmpty, orderBy } from 'lodash-es';
 import { router, service } from '/@/cool';
 import { revisePath } from '../utils';
 import { config } from '/@/config';
+import { localeText } from '/@/utils/localeText';
 
-// 本地缓存
+// 本地快取
 const data = storage.info();
 
 export const useMenuStore = defineStore('menu', function () {
-	// 所有菜单
+	// 所有選單
 	const all = ref<Menu.List>([]);
 
-	// 视图路由
+	// 檢視路由
 	const routes = ref<Menu.List>([]);
 
-	// 菜单组
+	// 選單組
 	const group = ref<Menu.List>(data['base.menuGroup'] || []);
 
-	// 左侧菜单列表
+	// 左側選單列表
 	const list = ref<Menu.List>([]);
 
-	// 权限列表
+	// 權限列表
 	const perms = ref<any[]>(data['base.menuPerms'] || []);
 
-	// 设置左侧菜单
+	// 設定左側選單
 	function setMenu(i: number = 0) {
-		// 显示分组显示菜单
+		// 顯示分組顯示選單
 		if (config.app.menu.isGroup) {
 			list.value = group.value.filter(e => e.isShow)[i]?.children || [];
 		} else {
@@ -35,7 +36,7 @@ export const useMenuStore = defineStore('menu', function () {
 		}
 	}
 
-	// 设置权限
+	// 設定權限
 	function setPerms(list: Menu.List) {
 		function deep(d: any) {
 			if (typeof d == 'object') {
@@ -67,23 +68,23 @@ export const useMenuStore = defineStore('menu', function () {
 		deep(service);
 	}
 
-	// 设置视图
+	// 設定檢視
 	function setRoutes(list: Menu.List) {
-		// 获取第一个菜单路径
+		// 獲取第一個選單路徑
 		const fp = getPath(group.value);
 
-		// 查找符合路由
+		// 查詢符合路由
 		const route = list.find(e => (e.meta!.isHome = e.path == fp));
 
-		// 过滤菜单
+		// 過濾選單
 		routes.value = list.filter(e => e.type == 1);
 
 		if (route) {
-			// 移除旧路由
+			// 移除舊路由
 			router.del('home');
 			router.del('homeRedirect');
 
-			// 添加一个重定向
+			// 新增一個重定向
 			if (route.path != '/') {
 				const item = routes.value.find(e => e.name == 'homeRedirect');
 
@@ -98,30 +99,31 @@ export const useMenuStore = defineStore('menu', function () {
 				}
 			}
 
-			// 设置为首页
+			// 設定為首頁
 			route.path = '/';
 			route.name = 'home';
 		}
 	}
 
-	// 设置菜单组
+	// 設定選單組
 	function setGroup(list: Menu.List) {
 		group.value = orderBy(deepTree(list), 'orderNum');
 		storage.set('base.menuGroup', group.value);
 	}
 
-	// 获取菜单，权限信息
+	// 獲取選單，權限資訊
 	async function get() {
 		function next(res: { menus: Menu.List; perms?: any[] }) {
-			// 所有菜单
+			// 所有選單
 			all.value = res.menus;
 
-			// 菜单格式化
+			// 選單格式化
 			const list = res.menus
 				?.filter(e => e.type != 2)
 				.map(e => {
 					const path = revisePath(e.router || String(e.id));
 					const isShow = e.isShow === undefined ? true : e.isShow;
+					const label = localeText(e.name);
 
 					return {
 						...e,
@@ -129,41 +131,41 @@ export const useMenuStore = defineStore('menu', function () {
 						isShow,
 						meta: {
 							...e.meta,
-							label: e.name, // 菜单名称的唯一标识
+							label,
 							keepAlive: e.keepAlive || 0
 						},
-						name: `${e.name}-${e.id}`, // 避免重复命名之前的冲突
+						name: `${label}-${e.id}`,
 						children: []
 					};
 				});
 
-			// 设置权限
+			// 設定權限
 			setPerms(res.perms || []);
 
-			// 设置菜单组
+			// 設定選單組
 			setGroup(list);
 
-			// 设置视图路由
+			// 設定檢視路由
 			setRoutes(list);
 
-			// 设置菜单
+			// 設定選單
 			setMenu();
 
 			return list;
 		}
 
-		// 自定义菜单
+		// 自定義選單
 		if (!isEmpty(config.app.menu.list)) {
 			next({
 				menus: revDeepTree(config.app.menu.list || [])
 			});
 		} else {
-			// 动态菜单
+			// 動態選單
 			await service.base.comm.permmenu().then(next);
 		}
 	}
 
-	// 获取菜单路径
+	// 獲取選單路徑
 	function getPath(data: Menu.Item | Menu.List) {
 		const list = isArray(data) ? data : [data];
 

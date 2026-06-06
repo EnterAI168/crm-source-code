@@ -1,7 +1,7 @@
 import { Inject, Provide } from '@midwayjs/core';
 import { BaseService } from '@cool-midway/core';
 import { InjectEntityModel } from '@midwayjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { Brackets, In, Repository } from 'typeorm';
 import { BaseSysDepartmentEntity } from '../../entity/sys/department';
 import * as _ from 'lodash';
 import { BaseSysRoleDepartmentEntity } from '../../entity/sys/role_department';
@@ -29,24 +29,45 @@ export class BaseSysDepartmentService extends BaseService {
   ctx;
 
   /**
-   * 获得部门菜单
+   * 獲得部門選單
    */
   async list() {
     const isAdmin = await this.baseSysPermsService.isAdmin(
       this.ctx.admin.roleIds || []
     );
-    // 部门权限
+    // 部門權限
     const permsDepartmentArr = await this.baseSysPermsService.departmentIds(
       this.ctx.admin.userId
     );
+    const currentUser = await this.baseSysUserEntity.findOneBy({
+      id: this.ctx.admin.userId,
+    });
+    const currentDepartmentId = Number(currentUser?.departmentId || 0);
+    const allDepartments = !isAdmin
+      ? await this.baseSysDepartmentEntity.find()
+      : [];
+    const scopedDepartmentIds = _.uniq(
+      [
+        ...permsDepartmentArr,
+        ...this.collectDepartmentWithAncestors(
+          allDepartments,
+          currentDepartmentId ? [currentDepartmentId] : []
+        ),
+      ].filter(id => Number(id) > 0)
+    );
 
-    // 过滤部门权限
+    // 過濾部門權限
     const find = this.baseSysDepartmentEntity.createQueryBuilder('a');
     if (!isAdmin) {
-      find.andWhere('a.id in (:...ids)', {
-        ids: !_.isEmpty(permsDepartmentArr) ? permsDepartmentArr : [null],
-      });
-      find.orWhere('a.userId = :userId', { userId: this.ctx.admin.userId });
+      find.andWhere(
+        new Brackets(qb => {
+          qb.where('a.id in (:...ids)', {
+            ids: !_.isEmpty(scopedDepartmentIds)
+              ? scopedDepartmentIds
+              : [null],
+          }).orWhere('a.userId = :userId', { userId: this.ctx.admin.userId });
+        })
+      );
     }
     find.addOrderBy('a.orderNum', 'ASC');
     const departments: BaseSysDepartmentEntity[] = await find.getMany();
@@ -67,9 +88,28 @@ export class BaseSysDepartmentService extends BaseService {
     return departments;
   }
 
+  private collectDepartmentWithAncestors(
+    departments: BaseSysDepartmentEntity[],
+    ids: number[]
+  ) {
+    const map = new Map<number, BaseSysDepartmentEntity>();
+    departments.forEach(item => map.set(Number(item.id), item));
+
+    const result = new Set<number>();
+    ids.forEach(id => {
+      let currentId = Number(id || 0);
+      while (currentId && !result.has(currentId)) {
+        result.add(currentId);
+        currentId = Number(map.get(currentId)?.parentId || 0);
+      }
+    });
+
+    return [...result];
+  }
+
   /**
-   * 根据多个ID获得部门权限信息
-   * @param {[]} roleIds 数组
+   * 根據多個ID獲得部門權限資訊
+   * @param {[]} roleIds 陣列
    * @param isAdmin 是否超管
    */
   async getByRoleIds(roleIds: number[], isAdmin) {
@@ -96,7 +136,7 @@ export class BaseSysDepartmentService extends BaseService {
   }
 
   /**
-   * 部门排序
+   * 部門排序
    * @param params
    */
   async order(params) {
@@ -106,7 +146,7 @@ export class BaseSysDepartmentService extends BaseService {
   }
 
   /**
-   * 删除
+   * 刪除
    */
   async delete(ids: number[]) {
     const { deleteUser } = this.ctx.request.body;

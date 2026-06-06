@@ -5,7 +5,7 @@ import { ProductCategoryEntity } from '../entity/category';
 import { In, Repository } from 'typeorm';
 
 /**
- * 产品分类
+ * 產品分類
  */
 @Provide()
 export class ProductCategoryService extends BaseService {
@@ -13,12 +13,13 @@ export class ProductCategoryService extends BaseService {
   productCategoryEntity: Repository<ProductCategoryEntity>;
 
   async page(query) {
-    const { name, status } = query;
+    const { name, keyWord, status } = query || {};
+    const categoryName = name || keyWord;
     const sql = `
       SELECT a.*
       FROM product_category a
       WHERE a.isDeleted = 0
-      ${this.setSql(name, 'and a.name like ?', [`%${name}%`])}
+      ${this.setSql(categoryName, 'and a.name like ?', [`%${categoryName}%`])}
       ${this.setSql(status, 'and a.status = ?', [status])}
     `;
     return this.sqlRenderPage(sql, query);

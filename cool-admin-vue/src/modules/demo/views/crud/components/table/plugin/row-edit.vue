@@ -2,17 +2,17 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>rowEdit</el-tag>
-			<span>行编辑</span>
+			<span>行編輯</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['table/plugin/row-edit.vue']" />
 
-			<!-- 自定义表格组件 -->
-			<cl-dialog v-model="visible" title="行编辑" width="80%">
+			<!-- 自定義表格元件 -->
+			<cl-dialog v-model="visible" title="行編輯" width="80%">
 				<cl-crud ref="Crud">
-					<el-text class="mb-4" tag="p">点击姓名、手机号可以进行编辑</el-text>
+					<el-text class="mb-4" tag="p">點選姓名、手機號可以進行編輯</el-text>
 
 					<cl-row>
 						<cl-table ref="Table" />
@@ -60,14 +60,14 @@ const Table = useTable({
 			label: '姓名',
 			prop: 'name',
 			minWidth: 140,
-			// 【很重要】行编辑，默认 el-input
+			// 【很重要】行編輯，預設 el-input
 			edit: true
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			minWidth: 140,
-			// 【很重要】行编辑，开启、关闭
+			// 【很重要】行編輯，開啟、關閉
 			edit: {
 				enable: true
 			}
@@ -79,7 +79,7 @@ const Table = useTable({
 			minWidth: 140,
 			edit: {
 				enable: true,
-				// 【很重要】行编辑，组件配置
+				// 【很重要】行編輯，元件配置
 				component: {
 					name: 'cl-select',
 					props: {
@@ -90,11 +90,11 @@ const Table = useTable({
 			}
 		},
 		{
-			label: '创建时间',
+			label: '建立時間',
 			prop: 'createTime',
 			minWidth: 170,
 			sortable: 'desc',
-			// 【很重要】行编辑，组件配置
+			// 【很重要】行編輯，元件配置
 			edit: {
 				enable: true,
 				component: {
@@ -112,7 +112,7 @@ const Table = useTable({
 		}
 	],
 
-	//【很重要】行编辑插件
+	//【很重要】行編輯外掛
 	plugins: [Plugins.Table.rowEdit()]
 });
 

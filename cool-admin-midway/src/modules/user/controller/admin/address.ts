@@ -3,7 +3,7 @@ import { UserAddressEntity } from '../../entity/address';
 import { UserAddressService } from '../../service/address';
 
 /**
- * 用户-地址
+ * 使用者-地址
  */
 @CoolController({
   api: ['add', 'delete', 'update', 'info', 'list', 'page'],

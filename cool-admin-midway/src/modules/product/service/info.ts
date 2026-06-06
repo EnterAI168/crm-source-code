@@ -8,7 +8,7 @@ import { ProductSpecEntity } from '../entity/spec';
 import { In, Repository } from 'typeorm';
 
 /**
- * 产品信息
+ * 產品資訊
  */
 @Provide()
 export class ProductInfoService extends BaseService {
@@ -25,20 +25,33 @@ export class ProductInfoService extends BaseService {
   productSpecEntity: Repository<ProductSpecEntity>;
 
   async page(query) {
-    const { name, categoryId, departmentId, status } = query;
+    const {
+      name,
+      specName,
+      categoryId,
+      createTimeStartTime,
+      createTimeEndTime,
+    } = query;
     const sql = `
       SELECT
-        a.*,
-        b.name as "departmentName",
-        c.name as "categoryName"
+        a.*
       FROM product_info a
-      LEFT JOIN base_sys_department b ON a.departmentId = b.id
-      LEFT JOIN product_category c ON a.categoryId = c.id
       WHERE a.isDeleted = 0
       ${this.setSql(name, 'and a.name like ?', [`%${name}%`])}
       ${this.setSql(categoryId, 'and a.categoryId = ?', [categoryId])}
-      ${this.setSql(departmentId, 'and a.departmentId = ?', [departmentId])}
-      ${this.setSql(status, 'and a.status = ?', [status])}
+      ${this.setSql(
+        specName,
+        `and exists (
+          select 1
+          from product_spec s
+          where s.productId = a.id
+            and s.isDeleted = 0
+            and s.name like ?
+        )`,
+        [`%${specName}%`]
+      )}
+      ${this.setSql(createTimeStartTime, 'and a.createTime >= ?', [createTimeStartTime])}
+      ${this.setSql(createTimeEndTime, 'and a.createTime <= ?', [createTimeEndTime])}
     `;
     return this.sqlRenderPage(sql, query);
   }
@@ -151,7 +164,7 @@ export class ProductInfoService extends BaseService {
       return {
         id: Number.isNaN(specId) || specId <= 0 ? undefined : specId,
         productId: 0,
-        image: this.normalizeLogo(item?.image),
+        image: this.normalizeImages(item?.image),
         name: item?.name || '',
         price,
         costPrice,
@@ -233,9 +246,11 @@ export class ProductInfoService extends BaseService {
 
   private pickSpecPatch(oldRow: ProductSpecEntity, nextRow: any) {
     const patch: any = {};
+    const oldImages = this.normalizeImages(oldRow?.image);
+    const nextImages = this.normalizeImages(nextRow?.image);
 
-    if ((oldRow?.image || '') !== (nextRow?.image || '')) {
-      patch.image = nextRow?.image || '';
+    if (JSON.stringify(oldImages) !== JSON.stringify(nextImages)) {
+      patch.image = nextImages;
     }
     if ((oldRow?.name || '') !== (nextRow?.name || '')) {
       patch.name = nextRow?.name || '';

@@ -16,12 +16,12 @@ export class DemoGoodsService extends BaseService {
   ctx;
 
   /**
-   * 执行sql分页
+   * 執行sql分頁
    */
   async sqlPage(query) {
     await this.demoGoodsEntity.save({
       id: 1,
-      title: '标题',
+      title: '標題',
       price: 99.0,
       description: '商品描述',
       mainImage: 'https://cool-js.com/logo.png',
@@ -34,7 +34,7 @@ export class DemoGoodsService extends BaseService {
   }
 
   /**
-   * 执行entity分页
+   * 執行entity分頁
    */
   async entityPage(query) {
     const find = this.demoGoodsEntity.createQueryBuilder();

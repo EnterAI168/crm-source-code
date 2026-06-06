@@ -5,7 +5,7 @@ import { CoolController, BaseController } from '@cool-midway/core';
 import { RecycleDataService } from '../../service/data';
 
 /**
- * 数据回收
+ * 資料回收
  */
 @Provide()
 @CoolController({
@@ -27,7 +27,7 @@ export class AdminRecycleDataController extends BaseController {
   @Inject()
   recycleDataService: RecycleDataService;
 
-  @Post('/restore', { summary: '恢复数据' })
+  @Post('/restore', { summary: '恢復資料' })
   async restore(@Body('ids') ids: number[]) {
     await this.recycleDataService.restore(ids);
     return this.ok();

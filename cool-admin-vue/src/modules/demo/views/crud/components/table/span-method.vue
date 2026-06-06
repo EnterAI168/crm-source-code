@@ -2,15 +2,15 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>span-method</el-tag>
-			<span>合并行或列</span>
+			<span>合併行或列</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['table/span-method.vue']" />
 
-			<!-- 自定义表格组件 -->
-			<cl-dialog v-model="visible" title="合并行或列" width="80%">
+			<!-- 自定義表格元件 -->
+			<cl-dialog v-model="visible" title="合併行或列" width="80%">
 				<cl-crud ref="Crud">
 					<cl-row>
 						<cl-table ref="Table" :span-method="onSpanMethod" />
@@ -64,7 +64,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			minWidth: 140
 		},
@@ -75,7 +75,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '创建时间',
+			label: '建立時間',
 			prop: 'createTime',
 			minWidth: 170,
 			sortable: 'desc'
@@ -91,7 +91,7 @@ interface SpanMethodProps {
 }
 
 function onSpanMethod({ row, column, rowIndex, columnIndex }: SpanMethodProps) {
-	// 根据实际业务需求调整返回值 { rowspan, colspan }
+	// 根據實際業務需求調整返回值 { rowspan, colspan }
 	if (columnIndex === 0) {
 		if (rowIndex % 2 === 0) {
 			return {

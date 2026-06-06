@@ -13,24 +13,24 @@ export default defineComponent({
 	},
 
 	props: {
-		// 表单项
+		// 表單項
 		items: {
 			type: Array as PropType<ClForm.Item[]>,
 			default: () => []
 		},
-		// 标题
+		// 標題
 		title: String,
-		// 窗体大小
+		// 窗體大小
 		size: {
 			type: [Number, String],
 			default: "30%"
 		},
-		// 操作按钮
+		// 操作按鈕
 		op: {
 			type: Array,
 			default: () => ["clear", "reset", "close", "search"]
 		},
-		// 搜索钩子
+		// 搜尋鉤子
 		onSearch: Function
 	},
 
@@ -52,10 +52,10 @@ export default defineComponent({
 		// el-drawer
 		const Drawer = ref();
 
-		// 是否可见
+		// 是否可見
 		const visible = ref(false);
 
-		// 打开
+		// 開啟
 		function open() {
 			visible.value = true;
 
@@ -70,12 +70,12 @@ export default defineComponent({
 			});
 		}
 
-		// 关闭
+		// 關閉
 		function close() {
 			Drawer.value.handleClose();
 		}
 
-		// 重置数据
+		// 重置資料
 		function reset() {
 			const d: any = {};
 
@@ -93,23 +93,23 @@ export default defineComponent({
 				d[e.prop!] = undefined;
 			});
 
-			// 重置表单
+			// 重置表單
 			Form.value?.reset();
 
-			// 列表刷新
+			// 列表重新整理
 			search();
 
 			// 重置事件
 			emit("reset", d);
 		}
 
-		// 清空数据
+		// 清空資料
 		function clear() {
 			Form.value?.clear();
 			emit("clear");
 		}
 
-		// 搜素请求
+		// 搜素請求
 		function search(params?: any) {
 			const form = Form.value?.getForm();
 
@@ -131,10 +131,10 @@ export default defineComponent({
 			}
 		}
 
-		// 消息事件
+		// 訊息事件
 		mitt.on("crud.openAdvSearch", open);
 
-		// 渲染表单
+		// 渲染表單
 		function renderForm() {
 			return h(<cl-form ref={Form} inner enable-plugin={false} />, {}, slots);
 		}

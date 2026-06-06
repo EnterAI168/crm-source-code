@@ -2,7 +2,7 @@ import { CoolController, BaseController } from '@cool-midway/core';
 import { UserInfoEntity } from '../../entity/info';
 
 /**
- * 用户信息
+ * 使用者資訊
  */
 @CoolController({
   api: ['add', 'delete', 'update', 'info', 'list', 'page'],

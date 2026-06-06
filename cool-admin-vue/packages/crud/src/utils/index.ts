@@ -1,7 +1,7 @@
 import { isRef, mergeProps, toValue } from "vue";
 import { assign, flatMap, isArray, isFunction, isNumber, mergeWith } from "lodash-es";
 
-// 是否对象
+// 是否物件
 export function isObject(val: any) {
 	return val !== null && typeof val === "object";
 }
@@ -11,7 +11,7 @@ export function parsePx(val: string | number) {
 	return isNumber(val) ? `${val}px` : val;
 }
 
-// 数据设置
+// 資料設定
 export function dataset(obj: any, key: string, value: any): any {
 	const isGet = value === undefined;
 	let d = obj;
@@ -70,12 +70,12 @@ export function contains(parent: any, node: any) {
 	return parent !== node && parent && parent.contains(node);
 }
 
-// 合并配置
+// 合併配置
 export function mergeConfig(a: any, b?: any): any {
 	return b ? mergeProps(a, b) : a;
 }
 
-// 合并数据
+// 合併資料
 export function merge(d1: any, d2: any) {
 	return mergeWith(d1, d2, (_, b) => {
 		if (isArray(b)) {
@@ -84,7 +84,7 @@ export function merge(d1: any, d2: any) {
 	});
 }
 
-// 添加元素
+// 新增元素
 export function addClass(el: Element, name: string) {
 	if (el?.classList) {
 		el.classList.add(name);
@@ -98,7 +98,7 @@ export function removeClass(el: Element, name: string) {
 	}
 }
 
-// 获取值
+// 獲取值
 export function getValue<T = any>(value: T | Vue.Ref<T> | ((d: any) => T), data?: any): T {
 	if (isRef(value)) {
 		return toValue(value) as T;
@@ -111,7 +111,7 @@ export function getValue<T = any>(value: T | Vue.Ref<T> | ((d: any) => T), data?
 	}
 }
 
-// 深度查找
+// 深度查詢
 export function deepFind(value: any, list: any[], options?: { allLevels: boolean }) {
 	const { allLevels = true } = options || {};
 

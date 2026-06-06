@@ -10,7 +10,7 @@ export function useAction({
 	form: obj;
 	Form: Vue.Ref<any>;
 }) {
-	// 设置数据
+	// 設定資料
 	function set(
 		{
 			prop,
@@ -70,61 +70,61 @@ export function useAction({
 		}
 	}
 
-	// 获取表单值
+	// 獲取表單值
 	function getForm(prop: string) {
 		return prop ? form[prop] : form;
 	}
 
-	// 设置表单值
+	// 設定表單值
 	function setForm(prop: string, value: any) {
 		form[prop] = value;
 	}
 
-	// 设置配置
+	// 設定配置
 	function setConfig(path: string, value: any) {
 		set({ path }, value);
 	}
 
-	// 设置数据
+	// 設定資料
 	function setData(prop: string, value: any) {
 		set({ prop }, value);
 	}
 
-	// 设置表单项的下拉数据列表
+	// 設定表單項的下拉資料列表
 	function setOptions(prop: string, value: any[]) {
 		set({ prop, key: "options" }, value);
 	}
 
-	// 设置表单项的组件参数
+	// 設定表單項的元件參數
 	function setProps(prop: string, value: any) {
 		set({ prop, key: "props" }, value);
 	}
 
-	// 切换表单项的显示、隐藏
+	// 切換表單項的顯示、隱藏
 	function toggleItem(prop: string, value?: boolean) {
 		set({ prop, key: "hidden-toggle" }, value);
 	}
 
-	// 对部分表单项隐藏
+	// 對部分表單項隱藏
 	function hideItem(...props: string[]) {
 		props.forEach((prop) => {
 			set({ prop, key: "hidden" }, true);
 		});
 	}
 
-	// 对部分表单项显示
+	// 對部分表單項顯示
 	function showItem(...props: string[]) {
 		props.forEach((prop) => {
 			set({ prop, key: "hidden" }, false);
 		});
 	}
 
-	// 设置标题
+	// 設定標題
 	function setTitle(value: string) {
 		config.title = value;
 	}
 
-	// 是否展开表单项
+	// 是否展開表單項
 	function collapseItem(e: any) {
 		Form.value?.clearValidate(e.prop);
 		e.collapse = !e.collapse;

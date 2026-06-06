@@ -1,8 +1,8 @@
 declare namespace Menu {
 	enum Type {
-		'目录' = 0,
-		'菜单' = 1,
-		'权限' = 2
+		'目錄' = 0,
+		'選單' = 1,
+		'權限' = 2
 	}
 
 	interface Item {

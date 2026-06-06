@@ -21,7 +21,7 @@ import * as moment from 'moment';
 import * as CronJob from 'cron';
 
 /**
- * 本地任务
+ * 本地任務
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)
@@ -47,11 +47,11 @@ export class TaskLocalService extends BaseService {
   @Inject()
   coolEventManager: CoolEventManager;
 
-  // 存储所有运行的任务
+  // 儲存所有執行的任務
   private cronJobs: Map<string, CronJob.CronJob> = new Map();
 
   /**
-   * 停止任务
+   * 停止任務
    */
   async stop(id) {
     const task = await this.taskInfoEntity.findOneBy({ id: Equal(id) });
@@ -65,7 +65,7 @@ export class TaskLocalService extends BaseService {
   }
 
   /**
-   * 停止任务
+   * 停止任務
    * @param jobId
    */
   async stopByJobId(jobId) {
@@ -77,7 +77,7 @@ export class TaskLocalService extends BaseService {
   }
 
   /**
-   * 开始任务
+   * 開始任務
    */
   async start(id, type?) {
     const task = await this.taskInfoEntity.findOneBy({ id: Equal(id) });
@@ -89,7 +89,7 @@ export class TaskLocalService extends BaseService {
   }
 
   /**
-   * 手动执行一次
+   * 手動執行一次
    */
   async once(id) {
     const task = await this.taskInfoEntity.findOneBy({ id: Equal(id) });
@@ -99,22 +99,22 @@ export class TaskLocalService extends BaseService {
   }
 
   /**
-   * 检查任务是否存在
+   * 檢查任務是否存在
    */
   async exist(jobId) {
     return this.cronJobs.has(jobId);
   }
 
   /**
-   * 创建定时任务
+   * 建立定時任務
    */
   private createCronJob(task) {
     let cronTime;
     if (task.taskType === 0) {
-      // cron 类型
+      // cron 型別
       cronTime = task.cron;
     } else {
-      // 间隔类型
+      // 間隔型別
       cronTime = `*/${task.every / 1000} * * * * *`;
     }
 
@@ -134,7 +134,7 @@ export class TaskLocalService extends BaseService {
   }
 
   /**
-   * 执行任务
+   * 執行任務
    */
   private async executeJob(task) {
     await this.executor(task);
@@ -175,7 +175,7 @@ export class TaskLocalService extends BaseService {
   }
 
   /**
-   * 删除任务
+   * 刪除任務
    */
   async delete(ids) {
     let idArr;
@@ -199,7 +199,7 @@ export class TaskLocalService extends BaseService {
   }
 
   /**
-   * 记录任务执行情况
+   * 記錄任務執行情況
    */
   async record(task, status, detail?) {
     const info = await this.taskInfoEntity.findOneBy({
@@ -217,7 +217,7 @@ export class TaskLocalService extends BaseService {
   }
 
   /**
-   * 获取下次执行时间
+   * 獲取下次執行時間
    */
   async getNextRunTime(jobId) {
     const job = this.cronJobs.get(jobId);
@@ -225,7 +225,7 @@ export class TaskLocalService extends BaseService {
   }
 
   /**
-   * 更新下次执行时间
+   * 更新下次執行時間
    */
   async updateNextRunTime(jobId) {
     const nextRunTime = await this.getNextRunTime(jobId);
@@ -235,7 +235,7 @@ export class TaskLocalService extends BaseService {
   }
 
   /**
-   * 初始化任务
+   * 初始化任務
    */
   async initTask() {
     try {
@@ -256,7 +256,7 @@ export class TaskLocalService extends BaseService {
   }
 
   /**
-   * 调用service
+   * 呼叫service
    */
   async invokeService(serviceStr) {
     if (serviceStr) {
@@ -292,7 +292,7 @@ export class TaskLocalService extends BaseService {
   }
 
   /**
-   * 获取任务详情
+   * 獲取任務詳情
    */
   async info(id: any): Promise<any> {
     const info = await this.taskInfoEntity.findOneBy({ id });
@@ -303,10 +303,10 @@ export class TaskLocalService extends BaseService {
   }
 
   /**
-   * 执行器
+   * 執行器
    */
   async executor(task: any): Promise<void> {
-    // 如果不是开始时间之后的 则不执行
+    // 如果不是開始時間之後的 則不執行
     if (task.startDate && moment(task.startDate).isAfter(moment())) {
       return;
     }
@@ -326,7 +326,7 @@ export class TaskLocalService extends BaseService {
         })
         .execute();
 
-      // 如果更新失败（affected === 0），说明其他实例正在执行
+      // 如果更新失敗（affected === 0），說明其他例項正在執行
       if (result.affected === 0) {
         return;
       }
@@ -336,7 +336,7 @@ export class TaskLocalService extends BaseService {
     } catch (error) {
       await this.record(task, 0, error.message);
     } finally {
-      // 释放锁
+      // 釋放鎖
       await this.taskInfoEntity.update(
         { id: task.id },
         { lockExpireTime: null }

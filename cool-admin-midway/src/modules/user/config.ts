@@ -2,32 +2,32 @@ import { ModuleConfig } from '@cool-midway/core';
 import { UserMiddleware } from './middleware/app';
 
 /**
- * 模块配置
+ * 模組配置
  */
 export default () => {
   return {
-    // 模块名称
-    name: '用户模块',
-    // 模块描述
-    description: 'APP、小程序、公众号等用户',
-    // 中间件，只对本模块有效
+    // 模組名稱
+    name: '使用者模組',
+    // 模組描述
+    description: 'APP、小程式、公眾號等使用者',
+    // 中介軟體，只對本模組有效
     middlewares: [],
-    // 中间件，全局有效
+    // 中介軟體，全域性有效
     globalMiddlewares: [UserMiddleware],
-    // 模块加载顺序，默认为0，值越大越优先加载
+    // 模組載入順序，預設為0，值越大越優先載入
     order: 0,
-    // 短信
+    // 簡訊
     sms: {
-      // 验证码有效期，单位秒
+      // 驗證碼有效期，單位秒
       timeout: 60 * 3,
     },
     // jwt
     jwt: {
-      // token 过期时间，单位秒
+      // token 過期時間，單位秒
       expire: 60 * 60 * 24,
-      // 刷新token 过期时间，单位秒
+      // 重新整理token 過期時間，單位秒
       refreshExpire: 60 * 60 * 24 * 30,
-      // jwt 秘钥
+      // jwt 秘鑰
       secret: 'e8bb80fe-8a81-4ef6-b338-ebef25f63bdbx',
     },
   } as ModuleConfig;

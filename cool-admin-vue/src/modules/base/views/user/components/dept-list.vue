@@ -1,7 +1,7 @@
 <template>
 	<div class="dept-tree">
 		<div class="dept-tree__header">
-			<el-text>{{ t('组织架构') }}</el-text>
+			<el-text>{{ t('組織架構') }}</el-text>
 
 			<div class="dept-tree__op">
 				<div class="btns" v-if="isDrag">
@@ -16,13 +16,13 @@
 
 				<template v-else>
 					<div class="item" @click="refresh()">
-						<el-tooltip :content="t('刷新')">
+						<el-tooltip :content="t('重新整理')">
 							<cl-svg name="refresh" />
 						</el-tooltip>
 					</div>
 
 					<div class="item" v-if="drag && !browser.isMini" @click="isDrag = true">
-						<el-tooltip :content="t('拖动排序')">
+						<el-tooltip :content="t('拖動排序')">
 							<cl-svg name="sort" />
 						</el-tooltip>
 					</div>
@@ -110,26 +110,26 @@ const Form = useForm();
 const { ViewGroup } = useViewGroup();
 const { t } = useI18n();
 
-// 树形列表
+// 樹形列表
 const list = ref<Eps.BaseSysDepartmentEntity[]>([]);
 
-// 加载中
+// 載入中
 const loading = ref(false);
 
-// 是否能拖动
+// 是否能拖動
 const isDrag = ref(false);
 
-// 允许托的规则
+// 允許託的規則
 function allowDrag({ data }: any) {
 	return data.parentId;
 }
 
-// 允许放的规则
+// 允許放的規則
 function allowDrop(_: any, dropNode: any) {
 	return dropNode.data.parentId;
 }
 
-// 刷新
+// 重新整理
 async function refresh() {
 	loading.value = true;
 	isDrag.value = false;
@@ -145,7 +145,7 @@ async function refresh() {
 	loading.value = false;
 }
 
-// 获取 ids
+// 獲取 ids
 function rowClick(item?: Eps.BaseSysDepartmentEntity) {
 	if (!item) {
 		item = list.value[0];
@@ -155,29 +155,29 @@ function rowClick(item?: Eps.BaseSysDepartmentEntity) {
 		const ids = item.children ? revDeepTree(item.children).map(e => e.id) : [];
 		ids.unshift(item.id);
 
-		// 选择
+		// 選擇
 		ViewGroup.value?.select(item);
 
 		nextTick(() => {
-			// 刷新列表
+			// 重新整理列表
 			emit('refresh', { page: 1, departmentIds: ids });
 		});
 	}
 }
 
-// 编辑部门
+// 編輯部門
 function rowEdit(item: Eps.BaseSysDepartmentEntity) {
 	const method = item.id ? 'update' : 'add';
 
 	Form.value?.open({
-		title: t('编辑部门'),
+		title: t('編輯部門'),
 		width: '550px',
 		props: {
 			labelWidth: '100px'
 		},
 		items: [
 			{
-				label: t('部门名称'),
+				label: t('部門名稱'),
 				prop: 'name',
 				component: {
 					name: 'el-input'
@@ -185,7 +185,7 @@ function rowEdit(item: Eps.BaseSysDepartmentEntity) {
 				required: true
 			},
 			{
-				label: t('上级部门'),
+				label: t('上級部門'),
 				prop: 'parentName',
 				component: {
 					name: 'el-input',
@@ -219,7 +219,7 @@ function rowEdit(item: Eps.BaseSysDepartmentEntity) {
 					orderNum: data.orderNum
 				})
 					.then(() => {
-						ElMessage.success(t('新增部门 “{name}” 成功', { name: data.name }));
+						ElMessage.success(t('新增部門 “{name}” 成功', { name: data.name }));
 						close();
 						refresh();
 					})
@@ -232,7 +232,7 @@ function rowEdit(item: Eps.BaseSysDepartmentEntity) {
 	});
 }
 
-// 删除部门
+// 刪除部門
 function rowDel(item: Eps.BaseSysDepartmentEntity) {
 	async function del(f: boolean) {
 		await service.base.sys.department
@@ -241,20 +241,20 @@ function rowDel(item: Eps.BaseSysDepartmentEntity) {
 				deleteUser: f
 			})
 			.then(() => {
-				// 删除当前
+				// 刪除當前
 				if (ViewGroup.value?.selected?.id == item.id) {
 					rowClick();
 				}
 
 				if (f) {
-					ElMessage.success(t('删除成功'));
+					ElMessage.success(t('刪除成功'));
 				} else {
 					ElMessageBox.confirm(
-						t('“{name}” 部门的用户已成功转移到 “{parentName}” 部门。', {
+						t('“{name}” 部門的使用者已成功轉移到 “{parentName}” 部門。', {
 							name: item.name,
 							parentName: item.parentName
 						}),
-						t('删除成功')
+						t('刪除成功')
 					);
 				}
 			});
@@ -263,12 +263,12 @@ function rowDel(item: Eps.BaseSysDepartmentEntity) {
 	}
 
 	ElMessageBox.confirm(
-		t('此操作将会删除 “{name}” 部门的所有用户，是否确认？', { name: item.name }),
+		t('此操作將會刪除 “{name}” 部門的所有使用者，是否確認？', { name: item.name }),
 		t('提示'),
 		{
 			type: 'warning',
-			confirmButtonText: t('直接删除'),
-			cancelButtonText: t('保留用户'),
+			confirmButtonText: t('直接刪除'),
+			cancelButtonText: t('保留使用者'),
 			distinguishCancelAndClose: true
 		}
 	)
@@ -282,10 +282,10 @@ function rowDel(item: Eps.BaseSysDepartmentEntity) {
 		});
 }
 
-// 部门排序
+// 部門排序
 function treeOrder(f: boolean) {
 	if (f) {
-		ElMessageBox.confirm(t('部门架构已发生改变，是否保存？'), t('提示'), {
+		ElMessageBox.confirm(t('部門架構已發生改變，是否儲存？'), t('提示'), {
 			type: 'warning'
 		})
 			.then(async () => {
@@ -330,13 +330,13 @@ function treeOrder(f: boolean) {
 	}
 }
 
-// 右键菜单
+// 右鍵選單
 function onContextMenu(e: any, d?: any, n?: any) {
 	if (!d) {
 		d = list.value[0] || {};
 	}
 
-	// 权限
+	// 權限
 	const perm = service.base.sys.department.permission;
 
 	ContextMenu.open(e, {
@@ -354,7 +354,7 @@ function onContextMenu(e: any, d?: any, n?: any) {
 				}
 			},
 			{
-				label: t('编辑'),
+				label: t('編輯'),
 				hidden: !checkPerm(perm.update),
 				callback(done) {
 					rowEdit(d);
@@ -362,7 +362,7 @@ function onContextMenu(e: any, d?: any, n?: any) {
 				}
 			},
 			{
-				label: t('删除'),
+				label: t('刪除'),
 				hidden: !d.parentId || !checkPerm(perm.delete),
 				callback(done) {
 					rowDel(d);
@@ -370,7 +370,7 @@ function onContextMenu(e: any, d?: any, n?: any) {
 				}
 			},
 			{
-				label: t('新增成员'),
+				label: t('新增成員'),
 				hidden: !checkPerm(perm.add),
 				callback(done) {
 					emit('user-add', d);
@@ -383,6 +383,16 @@ function onContextMenu(e: any, d?: any, n?: any) {
 
 onMounted(function () {
 	refresh();
+});
+
+defineExpose({
+	refresh,
+	rowClick,
+	rowEdit,
+	rowDel,
+	getList() {
+		return list.value;
+	}
 });
 </script>
 

@@ -1,7 +1,7 @@
 import { BaseService } from '/@/cool/service/base';
 
 /**
- * 客户列表 API（已分配业务员）
+ * 客戶列表 API（已分配業務員）
  */
 export default class CustomerListService extends BaseService {
 	namespace = 'admin/crmCustomerList';
@@ -18,13 +18,13 @@ export default class CustomerListService extends BaseService {
 		return this.request({ url: '/cancelVip', method: 'POST', data });
 	}
 
-	/** 业务员选项（用于列表筛选，需与公池分配业务员相同权限） */
+	/** 業務員選項（用於列表篩選，需與公池分配業務員相同權限） */
 	async salesmenOptions(): Promise<any[]> {
 		const data = await this.request({ url: '/salesmenOptions', method: 'POST' });
 		return Array.isArray(data) ? data : [];
 	}
 
-	/** 客户列表导入（老板模板含业务员列；业务员导入归本人） */
+	/** 客戶列表匯入（行業預設空、VIP 預設否、業務員預設當前匯入人） */
 	async importData(data: { list: any[] }) {
 		return this.request({ url: '/importData', method: 'POST', data });
 	}

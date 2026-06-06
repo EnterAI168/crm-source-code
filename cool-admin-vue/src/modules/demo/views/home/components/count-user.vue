@@ -2,7 +2,7 @@
 	<div class="count-sales">
 		<div class="card">
 			<div class="card__header">
-				<span class="label">{{ $t('总用户数') }}</span>
+				<span class="label">{{ $t('總使用者數') }}</span>
 				<cl-svg name="team" class="icon" />
 			</div>
 
@@ -19,7 +19,7 @@
 			</div>
 
 			<div class="card__footer">
-				<span class="mr-2">{{ $t('日增用户数') }}</span>
+				<span class="mr-2">{{ $t('日增使用者數') }}</span>
 				<span>69</span>
 			</div>
 		</div>

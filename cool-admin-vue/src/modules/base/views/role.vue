@@ -5,7 +5,7 @@
 			<cl-add-btn />
 			<cl-multi-delete-btn />
 			<cl-flex1 />
-			<cl-search-key :placeholder="$t('搜索名称')" />
+			<cl-search-key :placeholder="$t('搜尋名稱')" />
 		</cl-row>
 
 		<cl-row>
@@ -29,7 +29,7 @@
 								fontSize: '12px'
 							}"
 						>
-							{{ t('是否关联上下级') }}
+							{{ t('是否關聯上下級') }}
 						</span>
 					</el-row>
 
@@ -69,7 +69,7 @@ const Upsert = useUpsert({
 	items: [
 		{
 			prop: 'name',
-			label: t('名称'),
+			label: t('名稱'),
 			span: 12,
 			required: true,
 			component: {
@@ -78,7 +78,7 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'label',
-			label: t('标识'),
+			label: t('標識'),
 			span: 12,
 			required: true,
 			component: {
@@ -87,7 +87,7 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'remark',
-			label: t('备注'),
+			label: t('備註'),
 			span: 24,
 			component: {
 				name: 'el-input',
@@ -98,7 +98,7 @@ const Upsert = useUpsert({
 			}
 		},
 		{
-			label: t('功能权限'),
+			label: t('功能權限'),
 			prop: 'menuIdList',
 			value: [],
 			component: {
@@ -106,7 +106,7 @@ const Upsert = useUpsert({
 			}
 		},
 		{
-			label: t('数据权限'),
+			label: t('資料權限'),
 			prop: 'relevance',
 			component: {
 				name: 'slot-relevance'
@@ -131,29 +131,29 @@ const Table = useTable({
 		},
 		{
 			prop: 'name',
-			label: t('名称'),
+			label: t('名稱'),
 			minWidth: 150
 		},
 		{
 			prop: 'label',
-			label: t('标识'),
+			label: t('標識'),
 			minWidth: 120
 		},
 		{
 			prop: 'remark',
-			label: t('备注'),
+			label: t('備註'),
 			showOverflowTooltip: true,
 			minWidth: 150
 		},
 		{
 			prop: 'createTime',
-			label: t('创建时间'),
+			label: t('建立時間'),
 			sortable: 'desc',
 			minWidth: 170
 		},
 		{
 			prop: 'updateTime',
-			label: t('更新时间'),
+			label: t('更新時間'),
 			sortable: 'custom',
 			minWidth: 170
 		},

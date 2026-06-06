@@ -7,7 +7,7 @@ import { reactive } from 'vue';
 import { useRefs } from '/@/cool';
 
 /**
- * 行编辑
+ * 行編輯
  * @returns
  */
 export function rowEdit() {
@@ -19,16 +19,16 @@ export function rowEdit() {
 		// 配置
 		const { columns } = exposed.config as ClTable.Config;
 
-		// 可编辑列
+		// 可編輯列
 		const list = columns.filter(e => e.edit?.enable === true || e.edit === true);
 
 		// 操作列
 		const op = columns.find(e => e.type === 'op');
 
-		// 编辑信息
+		// 編輯資訊
 		const edit = reactive({});
 
-		// 列点击
+		// 列點選
 		exposed.config.on.onCellClick = (
 			row: any,
 			column: any,
@@ -44,14 +44,14 @@ export function rowEdit() {
 					[`show_${column.property}`]: true
 				};
 
-				// 延迟
+				// 延遲
 				setTimeout(() => {
 					refs[`${row.id}_${column.property}`]?.focus();
 				}, 300);
 			}
 		};
 
-		// 设置值的格式化
+		// 設定值的格式化
 		list.forEach(e => {
 			e._formatter = e.formatter;
 
@@ -72,7 +72,7 @@ export function rowEdit() {
 							ref={setRefs(id)}
 							v-model={row[e.prop]}
 							clearable
-							placeholder={t('请输入')}
+							placeholder={t('請輸入')}
 						/>
 					);
 				} else {
@@ -86,14 +86,14 @@ export function rowEdit() {
 				op._buttons = op.buttons || ['edit', 'delete'];
 			}
 
-			// 操作按钮
+			// 操作按鈕
 			op.buttons = ({ scope }) => {
 				const ed = edit[scope.row.id];
 
 				if (ed) {
 					return [
 						{
-							label: t('保存'),
+							label: t('儲存'),
 							type: 'success',
 							props: {
 								loading: ed.loading

@@ -2,41 +2,41 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>crud</el-tag>
-			<span>内嵌CRUD</span>
+			<span>內嵌CRUD</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['form/crud.vue']" />
 
-			<!-- 自定义表单组件 -->
+			<!-- 自定義表單元件 -->
 			<cl-form ref="Form">
 				<template #slot-crud>
 					<cl-crud ref="Crud" border>
 						<cl-row>
-							<!-- 刷新按钮 -->
+							<!-- 重新整理按鈕 -->
 							<cl-refresh-btn />
-							<!-- 新增按钮 -->
+							<!-- 新增按鈕 -->
 							<cl-add-btn />
-							<!-- 删除按钮 -->
+							<!-- 刪除按鈕 -->
 							<cl-multi-delete-btn />
 							<cl-flex1 />
-							<!-- 关键字搜索 -->
-							<cl-search-key placeholder="搜索姓名、手机号" />
+							<!-- 關鍵字搜尋 -->
+							<cl-search-key placeholder="搜尋姓名、手機號" />
 						</cl-row>
 
 						<cl-row>
-							<!-- 数据表格 -->
+							<!-- 資料表格 -->
 							<cl-table ref="Table" />
 						</cl-row>
 
 						<cl-row>
 							<cl-flex1 />
-							<!-- 分页控件 -->
+							<!-- 分頁控制元件 -->
 							<cl-pagination />
 						</cl-row>
 
-						<!-- 新增、编辑 -->
+						<!-- 新增、編輯 -->
 						<cl-upsert ref="Upsert" />
 					</cl-crud>
 				</template>
@@ -63,7 +63,7 @@ const Upsert = useUpsert({
 			}
 		},
 		{
-			label: '创建时间',
+			label: '建立時間',
 			prop: 'createTime',
 			component: {
 				name: 'el-date-picker'
@@ -85,7 +85,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			minWidth: 140
 		},
@@ -111,7 +111,7 @@ const Form = useForm();
 
 function open() {
 	Form.value?.open({
-		title: '内嵌CRUD',
+		title: '內嵌CRUD',
 		props: {
 			labelPosition: 'top'
 		},
@@ -126,16 +126,16 @@ function open() {
 				component: {
 					name: 'el-input',
 					props: {
-						placeholder: '请填写姓名'
+						placeholder: '請填寫姓名'
 					}
 				},
 				rules: {
 					required: true,
-					message: '姓名不能为空'
+					message: '姓名不能為空'
 				}
 			},
 			{
-				label: '内嵌 cl-crud',
+				label: '內嵌 cl-crud',
 				component: {
 					name: 'slot-crud'
 				}

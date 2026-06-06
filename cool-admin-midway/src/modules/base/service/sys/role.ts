@@ -1,20 +1,24 @@
 import { Inject, Provide } from '@midwayjs/core';
 import { BaseService } from '@cool-midway/core';
 import { InjectEntityModel } from '@midwayjs/typeorm';
-import { Repository } from 'typeorm';
+import { Brackets, In, Repository } from 'typeorm';
 import { BaseSysRoleEntity } from '../../entity/sys/role';
 import { BaseSysUserRoleEntity } from '../../entity/sys/user_role';
 import * as _ from 'lodash';
 import { BaseSysRoleMenuEntity } from '../../entity/sys/role_menu';
 import { BaseSysRoleDepartmentEntity } from '../../entity/sys/role_department';
+import { BaseSysMenuEntity } from '../../entity/sys/menu';
 import { BaseSysPermsService } from './perms';
-import { Brackets } from 'typeorm';
 
 /**
  * 角色
  */
 @Provide()
 export class BaseSysRoleService extends BaseService {
+  private readonly INTERNAL_ROLE_LABEL = 'office_clerk';
+
+  private readonly INTERNAL_MANAGER_ROLE_LABEL = 'office_clerk_manager';
+
   @InjectEntityModel(BaseSysRoleEntity)
   baseSysRoleEntity: Repository<BaseSysRoleEntity>;
 
@@ -23,6 +27,9 @@ export class BaseSysRoleService extends BaseService {
 
   @InjectEntityModel(BaseSysRoleMenuEntity)
   baseSysRoleMenuEntity: Repository<BaseSysRoleMenuEntity>;
+
+  @InjectEntityModel(BaseSysMenuEntity)
+  baseSysMenuEntity: Repository<BaseSysMenuEntity>;
 
   @InjectEntityModel(BaseSysRoleDepartmentEntity)
   baseSysRoleDepartmentEntity: Repository<BaseSysRoleDepartmentEntity>;
@@ -34,7 +41,7 @@ export class BaseSysRoleService extends BaseService {
   ctx;
 
   /**
-   * 根据用户ID获得所有用户角色
+   * 根據使用者ID獲得所有使用者角色
    * @param userId
    */
   async getByUser(userId: number): Promise<number[]> {
@@ -58,20 +65,22 @@ export class BaseSysRoleService extends BaseService {
   }
 
   /**
-   * 更新权限
+   * 更新權限
    * @param roleId
    * @param menuIdList
    * @param departmentIds
    */
   async updatePerms(roleId, menuIdList?, departmentIds = []) {
-    // 更新菜单权限
+    const normalizedMenuIds = await this.normalizeMenuIds(menuIdList || []);
+
+    // 更新選單權限
     await this.baseSysRoleMenuEntity.delete({ roleId });
     await Promise.all(
-      menuIdList.map(async e => {
+      normalizedMenuIds.map(async e => {
         return await this.baseSysRoleMenuEntity.save({ roleId, menuId: e });
       })
     );
-    // 更新部门权限
+    // 更新部門權限
     await this.baseSysRoleDepartmentEntity.delete({ roleId });
     await Promise.all(
       departmentIds.map(async e => {
@@ -81,15 +90,51 @@ export class BaseSysRoleService extends BaseService {
         });
       })
     );
-    // 刷新权限
+    // 重新整理權限
     const userRoles = await this.baseSysUserRoleEntity.findBy({ roleId });
     for (const userRole of userRoles) {
       await this.baseSysPermsService.refreshPerms(userRole.userId);
     }
   }
 
+  private async normalizeMenuIds(menuIdList: number[]) {
+    const ids = _.uniq(
+      (Array.isArray(menuIdList) ? menuIdList : [])
+        .map(id => Number(id))
+        .filter(id => Number.isFinite(id) && id > 0)
+    );
+
+    if (_.isEmpty(ids)) {
+      return [];
+    }
+
+    const menus = await this.baseSysMenuEntity.find();
+    const menuMap = new Map(menus.map(item => [Number(item.id), item]));
+    const normalized = new Set<number>();
+
+    ids.forEach(id => {
+      const menu = menuMap.get(id);
+      if (!menu || Number(menu.type) === 0) {
+        return;
+      }
+
+      normalized.add(id);
+      let parentId = Number(menu.parentId || 0);
+      while (parentId) {
+        const parent = menuMap.get(parentId);
+        if (!parent) {
+          break;
+        }
+        normalized.add(parentId);
+        parentId = Number(parent.parentId || 0);
+      }
+    });
+
+    return [...normalized];
+  }
+
   /**
-   * 角色信息
+   * 角色資訊
    * @param id
    */
   async info(id) {
@@ -117,19 +162,39 @@ export class BaseSysRoleService extends BaseService {
   }
 
   async list() {
+    const roleIds: number[] = this.ctx.admin.roleIds || [];
+    const scopedRoleIds = roleIds.length ? roleIds : [null];
     const isAdmin = await this.baseSysPermsService.isAdmin(
-      this.ctx.admin.roleIds || []
+      roleIds
+    );
+    const currentRoles = !_.isEmpty(roleIds)
+      ? await this.baseSysRoleEntity.findBy({ id: In(roleIds) })
+      : [];
+    const isOfficeClerkManager = currentRoles.some(
+      role => role.label === this.INTERNAL_MANAGER_ROLE_LABEL
     );
     return this.baseSysRoleEntity
       .createQueryBuilder('a')
       .where(
         new Brackets(qb => {
-          qb.where('a.id !=:id', { id: 1 }); // 超级管理员的角色不展示
+          qb.where('a.id !=:id', { id: 1 }); // 超級管理員的角色不展示
           // 如果不是超管，只能看到自己新建的或者自己有的角色
-          if (!isAdmin) {
+          if (!isAdmin && isOfficeClerkManager) {
+            qb.andWhere(
+              '(a.userId=:userId or a.id in (:...roleId) or a.label in (:...officeRoleLabels))',
+              {
+                userId: this.ctx.admin.userId,
+                roleId: scopedRoleIds,
+                officeRoleLabels: [
+                  this.INTERNAL_ROLE_LABEL,
+                  this.INTERNAL_MANAGER_ROLE_LABEL,
+                ],
+              }
+            );
+          } else if (!isAdmin) {
             qb.andWhere('(a.userId=:userId or a.id in (:...roleId))', {
               userId: this.ctx.admin.userId,
-              roleId: this.ctx.admin.roleIds,
+              roleId: scopedRoleIds,
             });
           }
         })

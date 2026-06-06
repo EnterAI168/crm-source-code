@@ -1,6 +1,6 @@
 <template>
 	<div class="cl-menu-file">
-		<el-tooltip :content="$t('自定义输入')">
+		<el-tooltip :content="$t('自定義輸入')">
 			<div
 				class="cl-menu-file__icon"
 				:class="{
@@ -15,7 +15,7 @@
 		<template v-if="isEdit">
 			<el-input
 				v-model="text"
-				:placeholder="$t('请输入')"
+				:placeholder="$t('請輸入')"
 				@change="onTextChange"
 				:ref="setRefs('input')"
 			/>
@@ -53,7 +53,7 @@ const emit = defineEmits(['update:modelValue', 'change']);
 
 const { refs, setRefs } = useCool();
 
-// 扫描文件
+// 掃描檔案
 function findFiles() {
 	const files = import.meta.glob(['/src/modules/*/{views,pages}/**/*', '!**/components']);
 	const list: string[] = [];
@@ -67,32 +67,32 @@ function findFiles() {
 	return deepPaths(list);
 }
 
-// 路径
+// 路徑
 const path = ref();
 
 // 文本
 const text = ref();
 
-// 是否编辑
+// 是否編輯
 const isEdit = ref(false);
 
-// 数据列表
+// 資料列表
 const data = ref(findFiles());
 
-// 路径值改变
+// 路徑值改變
 function onPathChange(arr: any) {
 	const v = 'modules/' + (arr || []).join('/');
 	emit('update:modelValue', v);
 	emit('change', v);
 }
 
-// 文本值改变
+// 文本值改變
 function onTextChange(v: string) {
 	emit('update:modelValue', v);
 	emit('change', v);
 }
 
-// 切换
+// 切換
 function toggle() {
 	isEdit.value = !isEdit.value;
 

@@ -6,10 +6,10 @@
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['table/dict.vue']" />
 
-			<!-- 自定义表格组件 -->
+			<!-- 自定義表格元件 -->
 			<cl-dialog v-model="visible" title="字典匹配" width="80%">
 				<cl-crud ref="Crud">
 					<cl-row>
@@ -63,7 +63,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			minWidth: 140
 		},
@@ -72,36 +72,36 @@ const Table = useTable({
 			prop: 'occupation',
 
 			//【很重要】字典匹配
-			// 使用字典模块的 get 方法绑定，菜单地址 /dict/list
+			// 使用字典模組的 get 方法繫結，選單地址 /dict/list
 			dict: dict.get('occupation'),
 
-			// 是否使用不同颜色区分
+			// 是否使用不同顏色區分
 			dictColor: true,
 
 			minWidth: 140
 		},
 		{
-			label: '等级',
+			label: '等級',
 			prop: 'occupation',
 
-			//【很重要】动态匹配列表的情况，使用 computed
+			//【很重要】動態匹配列表的情況，使用 computed
 			dict: computed(() => options.occupation),
 
 			minWidth: 140
 		},
 		{
-			label: '状态',
+			label: '狀態',
 			prop: 'status',
 
-			// 自定义匹配列表
+			// 自定義匹配列表
 			dict: [
 				{
-					label: '启用',
+					label: '啟用',
 					value: 1,
 					type: 'success'
 				},
 				{
-					label: '禁用',
+					label: '停用',
 					value: 0,
 					type: 'danger'
 				}
@@ -110,7 +110,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '创建时间',
+			label: '建立時間',
 			prop: 'createTime',
 			minWidth: 170,
 			sortable: 'desc'
@@ -123,7 +123,7 @@ const visible = ref(false);
 function open() {
 	visible.value = true;
 
-	// 模拟接口获取数据
+	// 模擬介面獲取資料
 	setTimeout(() => {
 		options.occupation = [
 			{

@@ -2,15 +2,15 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>event</el-tag>
-			<span>事件监听</span>
+			<span>事件監聽</span>
 		</div>
 
 		<div class="c">
-			<el-button @click="open">预览</el-button>
+			<el-button @click="open">預覽</el-button>
 			<demo-code :files="['crud/event.vue']" />
 
-			<!-- 自定义表格组件 -->
-			<cl-dialog v-model="visible" title="事件监听" width="80%">
+			<!-- 自定義表格元件 -->
+			<cl-dialog v-model="visible" title="事件監聽" width="80%">
 				<cl-crud ref="Crud">
 					<cl-row>
 						<cl-refresh-btn />
@@ -24,9 +24,9 @@
 
 					<cl-row>
 						<cl-table ref="Table">
-							<!-- 自定义按钮 -->
+							<!-- 自定義按鈕 -->
 							<template #slot-btn="{ scope }">
-								<el-button @click="onEvent(scope.row)">自定义事件</el-button>
+								<el-button @click="onEvent(scope.row)">自定義事件</el-button>
 							</template>
 						</cl-table>
 					</cl-row>
@@ -36,7 +36,7 @@
 						<cl-pagination />
 					</cl-row>
 
-					<!-- 新增、编辑 -->
+					<!-- 新增、編輯 -->
 					<cl-upsert ref="Upsert" />
 				</cl-crud>
 			</cl-dialog>
@@ -64,18 +64,18 @@ const Crud = useCrud(
 		// 配置 service
 		service: 'test',
 
-		//【很重要】监听刷新事件，每次调用 Crud.value.refresh() 会触发
+		//【很重要】監聽重新整理事件，每次呼叫 Crud.value.refresh() 會觸發
 		onRefresh(params, { next }) {
-			// 默认使用 next(params)，也可以自己对数据进行处理
+			// 預設使用 next(params)，也可以自己對資料進行處理
 			next({
 				...params,
 				status: 1
 			});
 		},
 
-		// 监听删除事件，点击删除按钮触发
+		// 監聽刪除事件，點選刪除按鈕觸發
 		onDelete(selection, { next }) {
-			// 传入 ids，批量删除多个数据
+			// 傳入 ids，批次刪除多個資料
 			next({
 				ids: selection.map(e => e.id)
 			});
@@ -101,7 +101,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			minWidth: 140
 		},
@@ -112,7 +112,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '创建时间',
+			label: '建立時間',
 			prop: 'createTime',
 			minWidth: 170,
 			sortable: 'desc'
@@ -136,7 +136,7 @@ const Upsert = useUpsert({
 			}
 		},
 		{
-			label: '手机号',
+			label: '手機號',
 			prop: 'phone',
 			component: {
 				name: 'el-input'
@@ -157,20 +157,20 @@ const Upsert = useUpsert({
 	]
 });
 
-// 调用 Crud 方法
+// 呼叫 Crud 方法
 function onEvent(row: any) {
-	ElMessage.info('自定义打开新增');
+	ElMessage.info('自定義開啟新增');
 
-	// 打开新增表单
+	// 開啟新增表單
 	Crud.value?.rowAdd();
 
-	// 打开编辑表单
+	// 開啟編輯表單
 	// Crud.value?.rowEdit(row);
 
-	// 打开删除提示框
+	// 開啟刪除提示框
 	// Crud.value?.rowDelete(row);
 
-	// 获取已请求的参数
+	// 獲取已請求的參數
 	// Crud.value?.getParams();
 }
 

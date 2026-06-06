@@ -11,13 +11,13 @@ export function useTable(props: any) {
 	// 配置
 	const config = reactive<ClTable.Config>(mergeConfig(props, inject("useTable__options") || {}));
 
-	// 列表项动态处理
+	// 列表項動態處理
 	config.columns = (config.columns || []).map((e) => getValue(e));
 
-	// 自动高度
+	// 自動高度
 	config.autoHeight = config.autoHeight ?? style.table.autoHeight;
 
-	// 右键菜单
+	// 右鍵選單
 	config.contextMenu = config.contextMenu ?? style.table.contextMenu;
 
 	// 事件
@@ -25,7 +25,7 @@ export function useTable(props: any) {
 		config.on = {};
 	}
 
-	// 参数
+	// 參數
 	if (!config.props) {
 		config.props = {};
 	}

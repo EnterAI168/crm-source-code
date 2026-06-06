@@ -2,17 +2,17 @@ import { CoolController, BaseController } from '@cool-midway/core';
 import { DemoI18nService } from '../../service/i18n';
 
 /**
- * 国际化
+ * 國際化
  */
 @CoolController({
   serviceApis: [
     {
       method: 'en',
-      summary: '翻译成英文',
+      summary: '翻譯成英文',
     },
     {
       method: 'tw',
-      summary: '翻译成繁体',
+      summary: '翻譯成繁體',
     },
   ],
   service: DemoI18nService,

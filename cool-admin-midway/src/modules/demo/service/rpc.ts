@@ -22,7 +22,7 @@ export class DemoRpcService extends BaseRpcService {
   rpc: CoolRpc;
 
   /**
-   * 远程调用
+   * 遠端呼叫
    * @returns
    */
   async call() {
@@ -32,7 +32,7 @@ export class DemoRpcService extends BaseRpcService {
   }
 
   /**
-   * 集群事件
+   * 叢集事件
    */
   async event() {
     this.rpc.event('test', { a: 1 });
@@ -52,16 +52,16 @@ export class DemoRpcService extends BaseRpcService {
 
   @CoolRpcTransaction()
   async transaction(params, rpcTransactionId?, queryRunner?: QueryRunner) {
-    console.log('获得的参数', params);
+    console.log('獲得的參數', params);
     const data = {
-      title: '商品标题',
+      title: '商品標題',
       pic: 'https://xxx',
       price: 99.0,
       type: 1,
     };
     await queryRunner.manager.save(DemoGoodsEntity, data);
 
-    // 将事务id传给调用的远程服务方法
+    // 將事務id傳給呼叫的遠端服務方法
     await this.rpc.call('goods', 'demoGoodsService', 'transaction', {
       rpcTransactionId,
       ...params,

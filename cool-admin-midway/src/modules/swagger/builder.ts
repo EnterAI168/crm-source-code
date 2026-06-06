@@ -3,7 +3,7 @@ import { Config, Inject, Provide, Scope, ScopeEnum } from '@midwayjs/core';
 import * as _ from 'lodash';
 
 /**
- * 构建文档
+ * 構建檔案
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)
@@ -29,7 +29,7 @@ export class SwaggerBuilder {
   }
 
   /**
-   * 构建文档
+   * 構建檔案
    */
   async build() {
     const epsData = {
@@ -41,7 +41,7 @@ export class SwaggerBuilder {
   }
 
   /**
-   * Epss转换为Swagger
+   * Epss轉換為Swagger
    * @param dataJson
    * @returns
    */
@@ -59,7 +59,7 @@ export class SwaggerBuilder {
           };
         }),
     };
-    // 添加组件
+    // 新增元件
     function addComponentSchemas(data) {
       if (_.isEmpty(data.name)) return;
       const schema = {
@@ -83,7 +83,7 @@ export class SwaggerBuilder {
       swagger.components.schemas[data.name] = schema;
       return data.name;
     }
-    // 转换类型
+    // 轉換型別
     function mapTypeToSwagger(type) {
       const typeMapping = {
         string: 'string',
@@ -93,7 +93,7 @@ export class SwaggerBuilder {
       };
       return typeMapping[type] || 'string';
     }
-    // 添加请求体
+    // 新增請求體
     function addRequest(path, schemas, data) {
       if (path == '/info' || path == '/list' || path == '/page') {
         if (path == '/info') {
@@ -110,7 +110,7 @@ export class SwaggerBuilder {
           ];
         } else {
           data.requestBody = {
-            description: '动态请求体',
+            description: '動態請求體',
             required: true,
             content: {
               'application/json': {
@@ -121,12 +121,12 @@ export class SwaggerBuilder {
                       ? {
                           page: {
                             type: 'integer',
-                            description: '第几页',
+                            description: '第幾頁',
                             default: 1,
                           },
                           size: {
                             type: 'integer',
-                            description: '每页大小',
+                            description: '每頁大小',
                             default: 20,
                           },
                         }
@@ -138,7 +138,7 @@ export class SwaggerBuilder {
         }
         data.responses = {
           '200': {
-            description: '成功响应',
+            description: '成功響應',
             content: {
               'application/json': {
                 schema: {
@@ -146,11 +146,11 @@ export class SwaggerBuilder {
                   properties: {
                     code: {
                       type: 'integer',
-                      description: '状态码',
+                      description: '狀態碼',
                     },
                     message: {
                       type: 'string',
-                      description: '响应消息',
+                      description: '響應訊息',
                     },
                     data: {
                       $ref: `#/components/schemas/${schemas}`,
@@ -176,7 +176,7 @@ export class SwaggerBuilder {
         };
         data.responses = {
           '200': {
-            description: '成功响应',
+            description: '成功響應',
             content: {
               'application/json': {
                 example: {
@@ -202,7 +202,7 @@ export class SwaggerBuilder {
                 properties: {
                   ids: {
                     type: 'array',
-                    description: 'ID数组',
+                    description: 'ID陣列',
                     items: {
                       type: 'integer',
                     },
@@ -214,7 +214,7 @@ export class SwaggerBuilder {
         };
         data.responses = {
           '200': {
-            description: '成功响应',
+            description: '成功響應',
             content: {
               'application/json': {
                 example: {
@@ -227,7 +227,7 @@ export class SwaggerBuilder {
         };
       }
     }
-    // 处理每个模块下的API接口
+    // 處理每個模組下的API介面
     function processModuleApis(moduleApis, moduleName) {
       moduleApis.forEach(module => {
         const schemas = addComponentSchemas({
@@ -260,7 +260,7 @@ export class SwaggerBuilder {
               requestBody:
                 method == 'post'
                   ? {
-                      description: '请求体',
+                      description: '請求體',
                       required: true,
                       content: {
                         'application/json': {
@@ -293,7 +293,7 @@ export class SwaggerBuilder {
       });
     }
 
-    // 遍历app和admin中的所有模块
+    // 遍歷app和admin中的所有模組
     Object.keys(dataJson.app).forEach(moduleKey => {
       if (Array.isArray(dataJson.app[moduleKey])) {
         processModuleApis(

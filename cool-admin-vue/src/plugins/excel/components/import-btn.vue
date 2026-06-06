@@ -1,6 +1,6 @@
 <template>
 	<el-button :icon="icon" :disabled="disabled" :type="type" @click="open">
-		{{ $t('导入') }}
+		{{ $t('匯入') }}
 	</el-button>
 
 	<cl-form ref="Form">
@@ -9,7 +9,7 @@
 				<div class="tips" v-if="template">
 					<span>{{ tips }}</span>
 					<el-button type="primary" text bg @click="download">{{
-						$t('下载模版')
+						$t('下載模版')
 					}}</el-button>
 				</div>
 
@@ -30,13 +30,13 @@
 		<template #slot-list>
 			<div v-if="list.length" class="data-table">
 				<div class="head">
-					<el-button type="success" @click="clear">{{ $t('重新上传') }}</el-button>
+					<el-button type="success" @click="clear">{{ $t('重新上傳') }}</el-button>
 					<el-button
 						type="danger"
 						:disabled="table.selection.length == 0"
 						@click="table.del()"
 					>
-						{{ $t('批量删除') }}
+						{{ $t('批次刪除') }}
 					</el-button>
 				</div>
 
@@ -60,7 +60,7 @@
 						/>
 
 						<el-table-column
-							:label="$t('序号')"
+							:label="$t('序號')"
 							type="index"
 							width="80px"
 							align="center"
@@ -103,7 +103,7 @@
 									type="danger"
 									@click.stop="table.del(scope.$index)"
 								>
-									{{ $t('删除') }}
+									{{ $t('刪除') }}
 								</el-button>
 							</template>
 						</el-table-column>
@@ -171,19 +171,19 @@ const emit = defineEmits(['change']);
 const Form = useForm();
 const { t } = useI18n();
 
-// 提示信息
+// 提示資訊
 const tips = computed(() => {
-	return props.tips || t('请按照模版填写信息');
+	return props.tips || t('請按照模版填寫資訊');
 });
 
-// 上传信息
+// 上傳資訊
 const upload = reactive({
 	filename: '',
 	file: null as File | null,
 	list: [] as any[]
 });
 
-// 分页信息
+// 分頁資訊
 const pagination = reactive({
 	size: 20,
 	page: 1,
@@ -192,15 +192,15 @@ const pagination = reactive({
 	}
 });
 
-// 数据表格
+// 資料表格
 const table = reactive({
-	// 表头
+	// 表頭
 	header: [] as string[],
 
-	// 选中列表
+	// 選中列表
 	selection: [] as any[],
 
-	// 删除行
+	// 刪除行
 	del(index?: number) {
 		if (index !== undefined) {
 			upload.list.splice(index, 1);
@@ -211,18 +211,18 @@ const table = reactive({
 		}
 	},
 
-	// 序号
+	// 序號
 	onIndex(index: number) {
 		return index + 1 + (pagination.page - 1) * pagination.size;
 	},
 
-	// 选中
+	// 選中
 	onSelectionChange(arr: any[]) {
 		table.selection = arr.map(e => e._index);
 	}
 });
 
-// 数据列表
+// 資料列表
 const list = computed(() => {
 	return upload.list.filter((_, i) => {
 		return (
@@ -240,12 +240,12 @@ function clear() {
 	table.selection = [];
 }
 
-// 打开
+// 開啟
 function open() {
 	clear();
 
 	Form.value?.open({
-		title: t('导入'),
+		title: t('匯入'),
 		width: computed(() => (upload.filename ? '80%' : '800px')),
 		dialog: {
 			'close-on-press-escape': false
@@ -271,7 +271,7 @@ function open() {
 			submit(_, { done, close }) {
 				if (!upload.filename) {
 					done();
-					return ElMessage.error(t('请选择文件'));
+					return ElMessage.error(t('請選擇檔案'));
 				}
 
 				if (props.onSubmit) {
@@ -288,7 +288,7 @@ function open() {
 	});
 }
 
-// 上传
+// 上傳
 function onUpload(raw: File, _: any, { next }: any) {
 	const reader = new FileReader();
 	const ext = extname(raw.name);
@@ -354,7 +354,7 @@ function onUpload(raw: File, _: any, { next }: any) {
 	return false;
 }
 
-// 下载模版
+// 下載模版
 function download() {
 	const link = document.createElement('a');
 	link.setAttribute('href', props.template);
