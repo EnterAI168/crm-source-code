@@ -35,6 +35,15 @@ export default class QuoteInvoiceService extends BaseService {
 		});
 	}
 
+	async downloadPdf(data: { id: number }) {
+		return this.request({
+			url: '/downloadPdf',
+			method: 'POST',
+			data,
+			responseType: 'blob'
+		});
+	}
+
 	async send(data: { id: number }) {
 		return this.request({
 			url: '/send',

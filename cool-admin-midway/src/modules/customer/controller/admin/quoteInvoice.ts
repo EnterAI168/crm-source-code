@@ -1,4 +1,5 @@
 import { Body, Inject, Post, Provide } from '@midwayjs/core';
+import { Context } from '@midwayjs/koa';
 import { BaseController, CoolController } from '@cool-midway/core';
 import { CrmQuoteInvoiceEntity } from '../../entity/quoteInvoice';
 import { CrmQuoteInvoiceService } from '../../service/quoteInvoice';
@@ -12,6 +13,9 @@ import { CrmQuoteInvoiceService } from '../../service/quoteInvoice';
 export class AdminCrmQuoteInvoiceController extends BaseController {
   @Inject()
   crmQuoteInvoiceService: CrmQuoteInvoiceService;
+
+  @Inject()
+  ctx: Context;
 
   @Post('/page')
   async pageQuery(@Body() body: any) {
@@ -36,6 +40,18 @@ export class AdminCrmQuoteInvoiceController extends BaseController {
   @Post('/send')
   async send(@Body() body: any) {
     return this.ok(await this.crmQuoteInvoiceService.send(body));
+  }
+
+  @Post('/downloadPdf')
+  async downloadPdf(@Body() body: any) {
+    const file = await this.crmQuoteInvoiceService.downloadPdf(body);
+    const fileName = encodeURIComponent(file.filename || '發票.pdf');
+    this.ctx.set('Content-Type', file.contentType || 'application/pdf');
+    this.ctx.set(
+      'Content-Disposition',
+      `attachment; filename="${fileName}"; filename*=UTF-8''${fileName}`
+    );
+    this.ctx.body = file.content;
   }
 
   @Post('/handleScheduled')

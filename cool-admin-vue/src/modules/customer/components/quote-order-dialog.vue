@@ -536,7 +536,7 @@
 					<el-col :span="12">
 						<el-form-item label="合約回傳">
 							<div class="crm-quote-upload">
-								<template v-if="!isFieldLocked">
+								<template v-if="!isQuoteBaseLocked">
 									<div
 										v-if="quoteForm.contractFile"
 										class="crm-quote-contract-file"
@@ -577,7 +577,7 @@
 			<div class="crm-quote-section">
 				<div class="crm-quote-section__head">
 					<div class="crm-quote-section__title">報價單條款</div>
-					<el-button v-if="!isFieldLocked" type="primary" link @click="addQuoteTermSection">
+					<el-button v-if="!isQuoteBaseLocked" type="primary" link @click="addQuoteTermSection">
 						新增分段
 					</el-button>
 				</div>
@@ -591,11 +591,11 @@
 							<el-form-item label="分段型別" class="crm-quote-term-title">
 								<el-input
 									v-model="section.title"
-									:disabled="isFieldLocked"
+									:disabled="isQuoteBaseLocked"
 									placeholder="請輸入分段型別，如：付款方式"
 								/>
 							</el-form-item>
-							<div v-if="!isFieldLocked" class="crm-quote-term-actions">
+							<div v-if="!isQuoteBaseLocked" class="crm-quote-term-actions">
 								<el-button type="primary" link @click="addQuoteTermItem(section)">
 									新增條款
 								</el-button>
@@ -621,12 +621,12 @@
 										v-model="row.text"
 										type="textarea"
 										:rows="2"
-										:disabled="isFieldLocked"
+										:disabled="isQuoteBaseLocked"
 										placeholder="請輸入條款內容"
 									/>
 								</template>
 							</el-table-column>
-							<el-table-column v-if="!isFieldLocked" label="操作" width="90" fixed="right">
+							<el-table-column v-if="!isQuoteBaseLocked" label="操作" width="90" fixed="right">
 								<template #default="{ $index }">
 									<el-button type="danger" link @click="removeQuoteTermItem(section, $index)">
 										刪除
@@ -1789,9 +1789,6 @@ async function submitDialog() {
 		if (isContractReturned.value) {
 			await quoteService.update({
 				id: currentQuoteId.value,
-				contractFile: quoteForm.contractFile || undefined,
-				contractFileName: String(quoteForm.contractFileName || '').trim() || undefined,
-				quoteTerms: quoteTermSectionsToPayload(),
 				stages: quoteStageRows.value.map((item, index) => ({
 					stageNo: index + 1,
 					stageName: item.stageName || '',

@@ -355,6 +355,10 @@ export class BaseAuthorityMiddleware
                 ],
                 'crmQuoteInvoice/audit': ['crm/quoteInvoice/audit'],
                 'crmQuoteInvoice/preview': ['crm/quoteInvoice/preview'],
+                'crmQuoteInvoice/downloadPdf': [
+                  'crm/quoteInvoice/preview',
+                  'crm/quoteOrder/invoice',
+                ],
                 'crmQuoteInvoice/send': ['crm/quoteInvoice/send'],
                 'crmQuoteInvoice/handleScheduled': ['crm/quoteInvoice/audit'],
                 'crmPerformance/page': ['crm/performance/page'],

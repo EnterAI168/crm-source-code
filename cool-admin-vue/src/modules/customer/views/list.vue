@@ -171,14 +171,18 @@
 		destroy-on-close
 		append-to-body
 		class="crm-quote-view-dialog"
+		@opened="scheduleQuoteViewScrollBarUpdate"
+		@closed="cleanupQuoteViewScroll"
 	>
-		<div class="crm-quote-view-table-scroll">
+		<div ref="quoteViewTableWrapRef" class="crm-quote-view-table-scroll">
 			<el-table
 				v-loading="quoteViewLoading"
 				:data="quoteViewList"
 				border
 				stripe
 				:fit="false"
+				scrollbar-always-on
+				native-scrollbar
 				class="crm-quote-view-table"
 			>
 				<el-table-column type="index" label="序號" width="72" />
@@ -235,46 +239,6 @@
 						<span v-else class="crm-quote-view-empty">-</span>
 					</template>
 				</el-table-column>
-				<el-table-column label="發票" width="330" align="center">
-					<template #default="{ row }">
-						<div
-							v-if="hasQuoteViewInvoiceActions(row)"
-							class="crm-quote-view-inline-actions"
-						>
-							<el-button
-								v-if="canInvoicePerm"
-								type="primary"
-								plain
-								size="small"
-								:disabled="!row.permissions?.canInvoice"
-								@click="openQuoteViewInvoice(row)"
-							>
-								申請開票
-							</el-button>
-							<el-button
-								v-if="canInvoicePerm && canSendQuotePerm"
-								type="primary"
-								plain
-								size="small"
-								:disabled="!row.permissions?.canSendQuote"
-								@click="openQuoteViewSend(row)"
-							>
-								郵件發送
-							</el-button>
-							<el-button
-								v-if="canInvoicePerm"
-								type="primary"
-								plain
-								size="small"
-								:disabled="!canDownloadQuoteViewInvoice(row)"
-								@click="downloadQuoteViewInvoice(row)"
-							>
-								下載發票
-							</el-button>
-						</div>
-						<span v-else class="crm-quote-view-empty">-</span>
-					</template>
-				</el-table-column>
 				<el-table-column label="操作" width="360" fixed="right" align="center">
 					<template #default="{ row }">
 						<div class="crm-quote-view-inline-actions">
@@ -321,6 +285,17 @@
 					</template>
 				</el-table-column>
 			</el-table>
+			<div
+				v-if="quoteViewScrollWidth > 0"
+				ref="quoteViewXScrollRef"
+				class="crm-quote-view-x-scroll"
+				@scroll="onQuoteViewXScroll"
+			>
+				<div
+					class="crm-quote-view-x-scroll__inner"
+					:style="{ width: `${quoteViewScrollWidth}px` }"
+				></div>
+			</div>
 		</div>
 
 		<template #footer>
@@ -543,7 +518,7 @@
 					{{ getQuoteReceiptStageStatusLabel(row) }}
 				</template>
 			</el-table-column>
-			<el-table-column label="操作" width="120" fixed="right" align="center">
+			<el-table-column label="操作" width="220" fixed="right" align="center">
 				<template #default="{ row }">
 					<el-button
 						type="primary"
@@ -595,8 +570,8 @@
 			</el-table-column>
 			<el-table-column prop="invoiceApplyTime" label="申請時間" width="180" />
 			<el-table-column prop="invoiceVoidTime" label="作廢時間" width="180" />
-			<el-table-column label="操作" width="120" fixed="right" align="center">
-				<template #default="{ row }">
+			<el-table-column label="操作" width="220" fixed="right" align="center">
+				<template #default="{ row, $index }">
 					<el-button
 						type="primary"
 						link
@@ -608,6 +583,15 @@
 						@click="applyQuoteViewInvoiceRow(row, $index)"
 					>
 						{{ Number(row.invoiceStatus) === 1 ? '已申請' : '申請開票' }}
+					</el-button>
+					<el-button
+						type="primary"
+						link
+						:disabled="!canDownloadQuoteViewInvoicePdf(row)"
+						:loading="quoteViewInvoiceDownloadingId === getQuoteViewInvoiceRecordId(row)"
+						@click="downloadQuoteViewInvoicePdf(row)"
+					>
+						下載發票
 					</el-button>
 				</template>
 			</el-table-column>
@@ -629,6 +613,7 @@ import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'elem
 import * as XLSX from 'xlsx';
 import CustomerListService from '../service/list';
 import QuoteOrderService from '../service/quote';
+import QuoteInvoiceService from '../service/invoice';
 import CustomerFollowupService from '../service/followup';
 import QuoteOrderDialog from '../components/quote-order-dialog.vue';
 import { useCrmIndustryDict } from '../utils/industryDict';
@@ -642,6 +627,7 @@ import {
 
 const customerList = new CustomerListService();
 const quoteService = new QuoteOrderService();
+const quoteInvoiceService = new QuoteInvoiceService();
 const followupService = new CustomerFollowupService();
 
 const { options: industryOptions, tableDict: industryTableDict } = useCrmIndustryDict();
@@ -695,6 +681,12 @@ const quoteViewVisible = ref(false);
 const quoteViewLoading = ref(false);
 const quoteViewCustomer = ref<Record<string, any> | null>(null);
 const quoteViewList = ref<any[]>([]);
+const quoteViewTableWrapRef = ref<HTMLElement | null>(null);
+const quoteViewXScrollRef = ref<HTMLElement | null>(null);
+const quoteViewScrollWidth = ref(0);
+let quoteViewResizeObserver: ResizeObserver | null = null;
+let quoteViewScrollTarget: HTMLElement | null = null;
+let isSyncingQuoteViewScroll = false;
 
 const quoteFollowDialogVisible = ref(false);
 const quoteFollowCurrentRow = ref<Record<string, any> | null>(null);
@@ -745,6 +737,7 @@ const quoteViewReceiptStageRows = ref<any[]>([]);
 const quoteViewInvoiceVisible = ref(false);
 const quoteViewInvoiceLoading = ref(false);
 const quoteViewInvoiceSubmitting = ref(false);
+const quoteViewInvoiceDownloadingId = ref(0);
 const quoteViewInvoiceCurrentRow = ref<Record<string, any> | null>(null);
 const quoteViewInvoiceStageRows = ref<any[]>([]);
 
@@ -1088,6 +1081,7 @@ async function submitAddQuoteFollow() {
 async function loadQuoteViewList() {
 	if (!quoteViewCustomer.value?.id) {
 		quoteViewList.value = [];
+		scheduleQuoteViewScrollBarUpdate();
 		return;
 	}
 
@@ -1103,6 +1097,7 @@ async function loadQuoteViewList() {
 		ElMessage.error(error?.message || '載入報價單列表失敗');
 	} finally {
 		quoteViewLoading.value = false;
+		scheduleQuoteViewScrollBarUpdate();
 	}
 }
 
@@ -1331,6 +1326,34 @@ function getQuoteViewInvoiceApplyDisabledReason(row: any, index: number) {
 		.some((item: any) => Number(item.invoiceStatus) !== 3);
 
 	return previousUnapproved ? '上一張發票審核通過後才能申請下一張票' : '';
+}
+
+function getQuoteViewInvoiceRecordId(row: any) {
+	return Number(row?.invoiceRecord?.id || row?.invoiceId || row?.invoiceRecordId || 0);
+}
+
+function canDownloadQuoteViewInvoicePdf(row: any) {
+	return Number(row?.invoiceStatus) === 3 && getQuoteViewInvoiceRecordId(row) > 0;
+}
+
+async function downloadQuoteViewInvoicePdf(row: any) {
+	const id = getQuoteViewInvoiceRecordId(row);
+	if (!canDownloadQuoteViewInvoicePdf(row) || quoteViewInvoiceDownloadingId.value) {
+		ElMessage.warning('只有審核通過的發票可以下載');
+		return;
+	}
+
+	quoteViewInvoiceDownloadingId.value = id;
+	try {
+		const blob = await quoteInvoiceService.downloadPdf({ id });
+		const quoteName = quoteViewInvoiceCurrentRow.value?.quoteName || '發票';
+		const stageName = row?.stageName || `階段${row?.stageNo || ''}`;
+		downloadBlob(blob as Blob, `${quoteName}-${stageName}-發票.pdf`);
+	} catch (error: any) {
+		ElMessage.error(error?.message || error?.data?.message || '下載發票失敗');
+	} finally {
+		quoteViewInvoiceDownloadingId.value = 0;
+	}
 }
 
 async function applyQuoteViewInvoiceRow(row: any, index = quoteViewInvoiceStageRows.value.indexOf(row)) {
@@ -1660,6 +1683,105 @@ function onCustomerListWheel(event: WheelEvent) {
 	syncCustomerListScrollFromTable();
 }
 
+function getQuoteViewScrollTarget() {
+	return (
+		quoteViewTableWrapRef.value?.querySelector<HTMLElement>(
+			'.el-table__body-wrapper .el-scrollbar__wrap'
+		) ||
+		quoteViewTableWrapRef.value?.querySelector<HTMLElement>('.el-scrollbar__wrap') ||
+		null
+	);
+}
+
+function bindQuoteViewScrollTarget(target: HTMLElement | null) {
+	if (quoteViewScrollTarget === target) return;
+	if (quoteViewScrollTarget) {
+		quoteViewScrollTarget.removeEventListener('scroll', syncQuoteViewScrollFromTable);
+	}
+	quoteViewScrollTarget = target;
+	if (quoteViewScrollTarget) {
+		quoteViewScrollTarget.addEventListener('scroll', syncQuoteViewScrollFromTable);
+	}
+	observeQuoteViewScrollSize(quoteViewScrollTarget);
+}
+
+function observeQuoteViewScrollSize(target: HTMLElement | null) {
+	quoteViewResizeObserver?.disconnect();
+	quoteViewResizeObserver = null;
+
+	if (typeof ResizeObserver === 'undefined') return;
+
+	const root = quoteViewTableWrapRef.value;
+	if (!root && !target) return;
+
+	quoteViewResizeObserver = new ResizeObserver(() => scheduleQuoteViewScrollBarUpdate());
+	if (root) {
+		quoteViewResizeObserver.observe(root);
+	}
+	if (target) {
+		quoteViewResizeObserver.observe(target);
+	}
+}
+
+function scheduleQuoteViewScrollBarUpdate() {
+	[0, 80, 240].forEach(delay => {
+		window.setTimeout(updateQuoteViewScrollBar, delay);
+	});
+}
+
+async function updateQuoteViewScrollBar() {
+	await nextTick();
+	const target = getQuoteViewScrollTarget();
+	bindQuoteViewScrollTarget(target);
+
+	if (!target) {
+		quoteViewScrollWidth.value = 0;
+		return;
+	}
+
+	const max = Math.max(0, target.scrollWidth - target.clientWidth);
+	quoteViewScrollWidth.value = max > 0 ? target.scrollWidth : 0;
+	if (target.scrollLeft > max) {
+		target.scrollLeft = max;
+	}
+	syncQuoteViewScrollFromTable();
+}
+
+function syncQuoteViewScrollFromTable() {
+	if (isSyncingQuoteViewScroll) return;
+	const scroll = quoteViewXScrollRef.value;
+	const target = quoteViewScrollTarget || getQuoteViewScrollTarget();
+	if (!scroll || !target) return;
+	isSyncingQuoteViewScroll = true;
+	scroll.scrollLeft = target.scrollLeft;
+	requestAnimationFrame(() => {
+		isSyncingQuoteViewScroll = false;
+	});
+}
+
+function onQuoteViewXScroll(event: Event) {
+	if (isSyncingQuoteViewScroll) return;
+	const scroll = event.currentTarget as HTMLElement;
+	const target = quoteViewScrollTarget || getQuoteViewScrollTarget();
+	if (!target) return;
+	isSyncingQuoteViewScroll = true;
+	target.scrollLeft = scroll.scrollLeft;
+	requestAnimationFrame(() => {
+		isSyncingQuoteViewScroll = false;
+	});
+}
+
+function cleanupQuoteViewScroll() {
+	quoteViewResizeObserver?.disconnect();
+	quoteViewResizeObserver = null;
+	if (quoteViewScrollTarget) {
+		quoteViewScrollTarget.removeEventListener('scroll', syncQuoteViewScrollFromTable);
+	}
+	quoteViewScrollTarget = null;
+	quoteViewScrollWidth.value = 0;
+	isSyncingQuoteViewScroll = false;
+}
+
 async function onMoveToPool(row: { id: number }) {
 	try {
 		await ElMessageBox.confirm(
@@ -1976,11 +2098,14 @@ onMounted(async () => {
 		customerListResizeObserver.observe(customerListTableWrapRef.value);
 	}
 	window.addEventListener('resize', scheduleCustomerListScrollBarUpdate);
+	window.addEventListener('resize', scheduleQuoteViewScrollBarUpdate);
 });
 
 onBeforeUnmount(() => {
 	customerListResizeObserver?.disconnect();
+	cleanupQuoteViewScroll();
 	window.removeEventListener('resize', scheduleCustomerListScrollBarUpdate);
+	window.removeEventListener('resize', scheduleQuoteViewScrollBarUpdate);
 	if (customerListScrollTarget) {
 		customerListScrollTarget.removeEventListener('scroll', syncCustomerListScrollFromTable);
 	}
@@ -2087,7 +2212,7 @@ onBeforeUnmount(() => {
 .crm-quote-view-table-scroll {
 	width: 100%;
 	margin-bottom: 8px;
-	overflow: hidden;
+	overflow: visible;
 }
 
 .crm-quote-view-table {
@@ -2097,6 +2222,22 @@ onBeforeUnmount(() => {
 .crm-quote-view-table-scroll :deep(.el-table) {
 	width: 100% !important;
 	max-width: none;
+}
+
+:deep(.crm-quote-view-table .el-scrollbar__bar.is-horizontal) {
+	display: none;
+}
+
+.crm-quote-view-x-scroll {
+	width: 100%;
+	height: 16px;
+	margin-top: 2px;
+	overflow-x: auto;
+	overflow-y: hidden;
+}
+
+.crm-quote-view-x-scroll__inner {
+	height: 1px;
 }
 
 .crm-quote-view-inline-actions {

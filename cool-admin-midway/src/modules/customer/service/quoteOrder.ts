@@ -340,39 +340,14 @@ export class CrmQuoteOrderService extends BaseService {
     this.ensureCanEdit(oldRow, scope);
 
     if (Number(oldRow.contractStatus || 0) === 1) {
+      this.ensureContractReturnedUpdatePayload(param);
       const stages = this.normalizeStages(
         param?.stages || [],
         this.toMoney(oldRow.finalAmount)
       );
-      const payload: Partial<CrmQuoteOrderEntity> = {
-        ...oldRow,
-        isDeleted: 0,
-      };
-      const hasContractField =
-        Object.prototype.hasOwnProperty.call(param || {}, 'contractFile') ||
-        Object.prototype.hasOwnProperty.call(param || {}, 'contractFileName');
-
-      if (hasContractField) {
-        const contractFile = String(param?.contractFile || '').trim();
-        if (!contractFile) {
-          throw new CoolCommException('璇峰厛涓婁紶鍚堝悓鏂囦歡');
-        }
-        payload.contractStatus = 1;
-        payload.contractFile = contractFile;
-        payload.contractFileName =
-          String(param?.contractFileName || '').trim() ||
-          this.inferFileName(contractFile);
-        payload.contractUploadUserId = scope.userId || null;
-        payload.contractUploadTime = this.now();
-        payload.caseMeetingFlag = 1;
-      }
-
-      if (Object.prototype.hasOwnProperty.call(param || {}, 'quoteTerms')) {
-        payload.quoteTerms = await this.resolveQuoteTermsForSave(param, oldRow);
-      }
-
-      await this.crmQuoteOrderEntity.save(payload);
+      await this.ensurePaymentStagesEditableAfterContractReturned(id);
       await this.replaceStages(id, stages);
+      await this.refreshOrderReceiptAndInvoiceStatus(id);
       await this.saveQuoteHistory(id);
       return;
     }
@@ -1495,8 +1470,8 @@ export class CrmQuoteOrderService extends BaseService {
       quoteType: order.quoteType,
       salesmanId: order.salesmanId,
       currentAssigneeId: null,
-      status: 1,
-      auditStatus: 0,
+      status: 2,
+      auditStatus: 1,
       auditUserId: null,
       auditTime: null,
       auditRemark: null,
@@ -1549,6 +1524,7 @@ export class CrmQuoteOrderService extends BaseService {
         isDeleted: 0,
       }))
     );
+    await this.syncDepartmentAudits(saved.id, copiedItems);
     await this.saveQuoteHistory(saved.id);
 
     return {
@@ -2126,6 +2102,47 @@ export class CrmQuoteOrderService extends BaseService {
       { isDeleted: 1 }
     );
     await this.saveStages(quoteOrderId, stages);
+  }
+
+  private ensureContractReturnedUpdatePayload(param: any) {
+    const allowedKeys = ['id', 'stages'];
+    const extraKeys = Object.keys(param || {}).filter(
+      key => !allowedKeys.includes(key) && param[key] !== undefined
+    );
+    if (extraKeys.length > 0) {
+      throw new CoolCommException('合約已回傳後僅允許修改付款階段');
+    }
+  }
+
+  private async ensurePaymentStagesEditableAfterContractReturned(
+    quoteOrderId: number
+  ) {
+    const rows = await this.nativeQuery(
+      `
+      SELECT
+        SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS pendingCount,
+        SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) AS issuedCount
+      FROM crm_quote_invoice
+      WHERE quoteOrderId = ?
+        AND isDeleted = 0
+        AND status IN (1, 2)
+        AND IFNULL(ecpayInvalidStatus, 0) <> 2
+        AND voidTime IS NULL
+    `,
+      [quoteOrderId]
+    );
+    const pendingCount = Number(rows?.[0]?.pendingCount || 0);
+    const issuedCount = Number(rows?.[0]?.issuedCount || 0);
+    if (pendingCount > 0) {
+      throw new CoolCommException(
+        '尚有待審核的發票申請，請先處理後再修改付款階段'
+      );
+    }
+    if (issuedCount > 0) {
+      throw new CoolCommException(
+        '合約已回傳後如需修改付款階段，請先將已開立的發票全部作廢'
+      );
+    }
   }
 
   private async saveQuoteHistory(quoteOrderId: number) {
@@ -2860,14 +2877,7 @@ export class CrmQuoteOrderService extends BaseService {
     }
 
     if (Number(order.contractStatus || 0) === 1) {
-      return [
-        'stages',
-        'remark',
-        'contractFile',
-        'contractFileName',
-        'contractRemark',
-        'quoteTerms',
-      ];
+      return ['stages'];
     }
 
     return [
@@ -2910,11 +2920,16 @@ export class CrmQuoteOrderService extends BaseService {
       return false;
     }
 
-    if ([6, 7].includes(this.getBusinessStatus(order))) {
+    const businessStatus = this.getBusinessStatus(order);
+    if (businessStatus === 7) {
       return false;
     }
 
-    return Number(order.contractStatus || 0) !== 1;
+    if (Number(order.contractStatus || 0) === 1) {
+      return true;
+    }
+
+    return businessStatus !== 6;
   }
 
   private canDeleteOrder(order: any, scope: QuoteScope) {

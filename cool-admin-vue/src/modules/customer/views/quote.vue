@@ -221,12 +221,19 @@
 		</div>
 	</el-dialog>
 
-	<el-dialog v-model="invoiceVisible" title="發票" width="1260px">
+	<el-dialog v-model="invoiceVisible" title="發票" width="1360px">
 		<div class="quote-invoice-tip">
 			發票財務審核通過後，系統會在開票日期當天中午12點通過郵箱發給客戶；上一張發票審核通過後才能申請下一張。
 		</div>
 
-		<el-table :data="invoiceStageRows" border size="small" class="quote-invoice-table">
+		<div class="quote-invoice-table-wrap">
+		<el-table
+			:data="invoiceStageRows"
+			border
+			size="small"
+			class="quote-invoice-table"
+			style="min-width: 1320px"
+		>
 			<el-table-column prop="stageNo" label="付款階段" width="110" align="center" />
 
 			<el-table-column prop="stageName" label="階段名稱" min-width="160" align="center" />
@@ -253,28 +260,43 @@
 				}}</template>
 			</el-table-column>
 
-			<el-table-column label="操作" width="210" fixed="right" align="center">
+			<el-table-column label="操作" width="340" align="center">
 				<template #default="{ row, $index }">
-					<el-button
-						type="primary"
-						:loading="invoiceSubmitting"
-						:disabled="invoiceSubmitting || !!getInvoiceApplyDisabledReason(row, $index)"
-						@click="applyInvoiceRow(row, $index)"
-					>
-						{{ Number(row.invoiceStatus) === 1 ? '已申請' : '申請開票' }}
-					</el-button>
+					<div class="quote-invoice-actions">
+						<el-button
+							type="primary"
+							:loading="invoiceSubmitting"
+							:disabled="invoiceSubmitting || !!getInvoiceApplyDisabledReason(row, $index)"
+							@click="applyInvoiceRow(row, $index)"
+						>
+							{{ Number(row.invoiceStatus) === 1 ? '已申請' : '申請開票' }}
+						</el-button>
 
-					<el-button
-						type="danger"
-						:disabled="Number(row.invoiceStatus) !== 3"
-						:loading="invoiceSubmitting"
-						@click="voidInvoiceRow(row)"
-					>
-						發票作廢
-					</el-button>
+						<el-button
+							type="danger"
+							:disabled="Number(row.invoiceStatus) !== 3"
+							:loading="invoiceSubmitting"
+							@click="voidInvoiceRow(row)"
+						>
+							發票作廢
+						</el-button>
+
+						<el-button
+							type="primary"
+							:disabled="!canDownloadInvoicePdf(row)"
+							:loading="
+								getInvoiceRecordId(row) > 0 &&
+								invoiceDownloadingId === getInvoiceRecordId(row)
+							"
+							@click="downloadInvoicePdf(row)"
+						>
+							下載發票
+						</el-button>
+					</div>
 				</template>
 			</el-table-column>
 		</el-table>
+		</div>
 
 		<el-empty v-if="invoiceStageRows.length === 0" description="暫無可開票回款" />
 	</el-dialog>
@@ -518,6 +540,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { checkPerm } from '/$/base';
 
 import QuoteOrderService from '../service/quote';
+import QuoteInvoiceService from '../service/invoice';
 
 import QuoteOrderDialog from '../components/quote-order-dialog.vue';
 
@@ -531,6 +554,7 @@ const route = useRoute();
 const router = useRouter();
 
 const quoteService = new QuoteOrderService();
+const invoiceService = new QuoteInvoiceService();
 
 const canAdd = computed(() => checkPerm('crm:quoteOrder:add'));
 
@@ -632,6 +656,7 @@ const departmentAssignFormVisible = ref(false);
 const receiptStageRows = ref<any[]>([]);
 
 const invoiceStageRows = ref<any[]>([]);
+const invoiceDownloadingId = ref(0);
 
 const historyRows = ref<any[]>([]);
 
@@ -1573,6 +1598,34 @@ function getInvoiceApplyDisabledReason(row: any, index: number) {
 	return previousUnapproved ? '上一張發票審核通過後才能申請下一張票' : '';
 }
 
+function getInvoiceRecordId(row: any) {
+	return Number(row?.invoiceRecord?.id || row?.invoiceId || row?.invoiceRecordId || 0);
+}
+
+function canDownloadInvoicePdf(row: any) {
+	return Number(row?.invoiceStatus) === 3 && getInvoiceRecordId(row) > 0;
+}
+
+async function downloadInvoicePdf(row: any) {
+	const id = getInvoiceRecordId(row);
+	if (!canDownloadInvoicePdf(row) || invoiceDownloadingId.value) {
+		ElMessage.warning('只有審核通過的發票可以下載');
+		return;
+	}
+
+	invoiceDownloadingId.value = id;
+	try {
+		const blob = await invoiceService.downloadPdf({ id });
+		const quoteName = currentInvoiceQuoteName.value || '發票';
+		const stageName = row?.stageName || `階段${row?.stageNo || ''}`;
+		downloadBlob(blob as Blob, `${quoteName}-${stageName}-發票.pdf`);
+	} catch (error: any) {
+		ElMessage.error(error?.message || error?.data?.message || '下載發票失敗');
+	} finally {
+		invoiceDownloadingId.value = 0;
+	}
+}
+
 async function applyInvoiceRow(row: any, index = invoiceStageRows.value.indexOf(row)) {
 	if (!currentInvoiceOrderId.value || !row?.id || invoiceSubmitting.value) {
 		return;
@@ -2196,6 +2249,12 @@ onBeforeUnmount(() => {
 	line-height: 1.6;
 }
 
+.quote-invoice-table-wrap {
+	width: 100%;
+	overflow-x: auto;
+	overflow-y: hidden;
+}
+
 :deep(.quote-invoice-table .el-table__header th),
 :deep(.quote-history-table .el-table__header th) {
 	background: #b9e3f2;
@@ -2214,6 +2273,18 @@ onBeforeUnmount(() => {
 	line-height: 1.5;
 	color: var(--el-text-color-regular);
 	word-break: break-word;
+}
+
+.quote-invoice-actions {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	white-space: nowrap;
+}
+
+.quote-invoice-actions :deep(.el-button + .el-button) {
+	margin-left: 0;
 }
 
 .quote-contract-file-name {

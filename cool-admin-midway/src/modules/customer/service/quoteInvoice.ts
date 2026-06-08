@@ -14,6 +14,7 @@ import { CrmMailService } from './mail';
 import { CrmEcpayInvoiceService } from './ecpayInvoice';
 import * as moment from 'moment';
 import axios from 'axios';
+import * as fs from 'fs';
 
 interface InvoicePdfText {
   text: string;
@@ -43,8 +44,16 @@ interface InvoicePdfImage {
   imageHeight: number;
 }
 
+interface InvoicePdfEmbeddedFont {
+  data: Buffer;
+  baseFont: string;
+  lookupGlyphId: (codePoint: number) => number;
+}
+
 @Provide()
 export class CrmQuoteInvoiceService extends BaseService {
+  private invoicePdfEmbeddedFontCache: InvoicePdfEmbeddedFont | null | undefined;
+
   @InjectEntityModel(CrmQuoteInvoiceEntity)
   crmQuoteInvoiceEntity: Repository<CrmQuoteInvoiceEntity>;
 
@@ -222,6 +231,24 @@ export class CrmQuoteInvoiceService extends BaseService {
       }
     );
     return result;
+  }
+
+  async downloadPdf(param: any) {
+    const id = Number(param?.id || 0);
+    const row = await this.crmQuoteInvoiceEntity.findOneBy({
+      id,
+      isDeleted: 0,
+    });
+    if (!row) {
+      throw new CoolCommException('發票記錄不存在');
+    }
+    if (Number(row.status) !== 2) {
+      throw new CoolCommException('只有審核通過的發票可以下載');
+    }
+    if (Number(row.ecpayInvalidStatus) === 2 || row.voidTime) {
+      throw new CoolCommException('已作廢發票不可下載');
+    }
+    return this.buildInvoicePdfAttachment(row);
   }
 
   async handleScheduledInvoices() {
@@ -663,13 +690,15 @@ export class CrmQuoteInvoiceService extends BaseService {
     addText(`地　　址：${preview.address || '-'}`, left, 606, 10, {
       maxWidth: 245,
     });
-    addText('格　　式：', 449, 660, 10);
-    addText(String(preview.formatNo || '-'), 509, 660, 10, {
+    const rightMetaLabelX = 428;
+    const rightMetaValueX = 513;
+    addText('格　　式：', rightMetaLabelX, 660, 10);
+    addText(String(preview.formatNo || '-'), rightMetaValueX, 660, 10, {
       align: 'right',
       font: 'latin',
     });
-    addText('隨 機 碼：', 449, 642, 10);
-    addText(String(preview.randomNo || '-'), 509, 642, 10, {
+    addText('隨 機 碼：', rightMetaLabelX, 642, 10);
+    addText(String(preview.randomNo || '-'), rightMetaValueX, 642, 10, {
       align: 'right',
       font: 'latin',
     });
@@ -755,7 +784,14 @@ export class CrmQuoteInvoiceService extends BaseService {
       });
     }
 
-    return this.createInvoicePdf(pageWidth, pageHeight, texts, lines, images);
+    return this.createInvoicePdf(
+      pageWidth,
+      pageHeight,
+      texts,
+      lines,
+      images,
+      this.loadInvoicePdfEmbeddedFont()
+    );
   }
 
   private createInvoicePdf(
@@ -763,39 +799,89 @@ export class CrmQuoteInvoiceService extends BaseService {
     pageHeight: number,
     texts: InvoicePdfText[],
     lines: InvoicePdfLine[],
-    images: InvoicePdfImage[] = []
+    images: InvoicePdfImage[] = [],
+    embeddedFont?: InvoicePdfEmbeddedFont | null
   ) {
     const objects: string[] = [];
     objects[1] = '<< /Type /Catalog /Pages 2 0 R >>';
-    objects[2] = '<< /Type /Pages /Kids [5 0 R] /Count 1 >>';
-    objects[3] = [
-      '<< /Type /Font',
-      '/Subtype /Type0',
-      '/BaseFont /MSung-Light',
-      '/Encoding /UniCNS-UCS2-H',
-      '/DescendantFonts [<< /Type /Font',
-      '/Subtype /CIDFontType0',
-      '/BaseFont /MSung-Light',
-      '/CIDSystemInfo << /Registry (Adobe) /Ordering (CNS1) /Supplement 5 >>',
-      '/FontDescriptor << /Type /FontDescriptor /FontName /MSung-Light /Flags 6 /FontBBox [0 -200 1000 900] /ItalicAngle 0 /Ascent 880 /Descent -120 /CapHeight 700 /StemV 80 >>',
-      '>>]',
-      '>>',
-    ].join(' ');
-    objects[4] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>';
+    const pageObjectId = embeddedFont ? 8 : 5;
+    const contentObjectId = embeddedFont ? 9 : 6;
+    const imageStartObjectId = embeddedFont ? 10 : 7;
+    objects[2] = `<< /Type /Pages /Kids [${pageObjectId} 0 R] /Count 1 >>`;
+    if (embeddedFont) {
+      objects[3] = [
+        '<< /Type /Font',
+        '/Subtype /Type0',
+        `/BaseFont /${embeddedFont.baseFont}`,
+        '/Encoding /Identity-H',
+        '/DescendantFonts [4 0 R]',
+        '>>',
+      ].join(' ');
+      objects[4] = [
+        '<< /Type /Font',
+        '/Subtype /CIDFontType2',
+        `/BaseFont /${embeddedFont.baseFont}`,
+        '/CIDSystemInfo << /Registry (Adobe) /Ordering (Identity) /Supplement 0 >>',
+        '/FontDescriptor 5 0 R',
+        '/CIDToGIDMap /Identity',
+        '/DW 1000',
+        '>>',
+      ].join(' ');
+      objects[5] = [
+        '<< /Type /FontDescriptor',
+        `/FontName /${embeddedFont.baseFont}`,
+        '/Flags 4',
+        '/FontBBox [0 -250 1000 1000]',
+        '/ItalicAngle 0',
+        '/Ascent 880',
+        '/Descent -120',
+        '/CapHeight 700',
+        '/StemV 80',
+        '/FontFile2 6 0 R',
+        '>>',
+      ].join(' ');
+      objects[6] = [
+        `<< /Length ${embeddedFont.data.length} /Length1 ${embeddedFont.data.length} >>`,
+        'stream',
+        embeddedFont.data.toString('binary'),
+        'endstream',
+      ].join('\n');
+      objects[7] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>';
+    } else {
+      objects[3] = [
+        '<< /Type /Font',
+        '/Subtype /Type0',
+        '/BaseFont /MSung-Light',
+        '/Encoding /UniCNS-UCS2-H',
+        '/DescendantFonts [<< /Type /Font',
+        '/Subtype /CIDFontType0',
+        '/BaseFont /MSung-Light',
+        '/CIDSystemInfo << /Registry (Adobe) /Ordering (CNS1) /Supplement 5 >>',
+        '/FontDescriptor << /Type /FontDescriptor /FontName /MSung-Light /Flags 6 /FontBBox [0 -200 1000 900] /ItalicAngle 0 /Ascent 880 /Descent -120 /CapHeight 700 /StemV 80 >>',
+        '>>]',
+        '>>',
+      ].join(' ');
+      objects[4] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>';
+    }
     const imageResource =
       images.length > 0
         ? `/XObject << ${images
-            .map((_, index) => `/Im${index + 1} ${7 + index} 0 R`)
+            .map((_, index) => `/Im${index + 1} ${imageStartObjectId + index} 0 R`)
             .join(' ')} >> `
         : '';
-    objects[5] =
+    objects[pageObjectId] =
       `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] ` +
-      `/Resources << /Font << /F1 3 0 R /F2 4 0 R >> ${imageResource}>> /Contents 6 0 R >>`;
-    const stream = this.createInvoicePdfStream(texts, lines, images);
-    objects[6] =
+      `/Resources << /Font << /F1 3 0 R /F2 ${embeddedFont ? 7 : 4} 0 R >> ${imageResource}>> /Contents ${contentObjectId} 0 R >>`;
+    const stream = this.createInvoicePdfStream(
+      texts,
+      lines,
+      images,
+      embeddedFont || null
+    );
+    objects[contentObjectId] =
       `<< /Length ${Buffer.byteLength(stream, 'utf8')} >>\nstream\n${stream}endstream`;
     images.forEach((image, index) => {
-      objects[7 + index] = [
+      objects[imageStartObjectId + index] = [
         `<< /Type /XObject /Subtype /Image /Width ${image.imageWidth} /Height ${image.imageHeight}`,
         '/ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode',
         `/Length ${image.data.length} >>`,
@@ -834,7 +920,8 @@ export class CrmQuoteInvoiceService extends BaseService {
   private createInvoicePdfStream(
     texts: InvoicePdfText[],
     lines: InvoicePdfLine[],
-    images: InvoicePdfImage[] = []
+    images: InvoicePdfImage[] = [],
+    embeddedFont?: InvoicePdfEmbeddedFont | null
   ) {
     const lineStream = lines
       .map(
@@ -855,7 +942,11 @@ export class CrmQuoteInvoiceService extends BaseService {
               : item.x;
         const fontName = font === 'latin' ? 'F2' : 'F1';
         const textHex =
-          font === 'latin' ? this.toLatinHex(item.text) : this.toUtf16BeHex(item.text);
+          font === 'latin'
+            ? this.toLatinHex(item.text)
+            : embeddedFont
+              ? this.toEmbeddedFontHex(item.text, embeddedFont)
+              : this.toUtf16BeHex(item.text);
         return `BT /${fontName} ${item.size || 10} Tf 1 0 0 1 ${x.toFixed(2)} ${item.y.toFixed(2)} Tm <${textHex}> Tj ET\n`;
       })
       .join('');
@@ -981,6 +1072,160 @@ export class CrmQuoteInvoiceService extends BaseService {
       return String(text || '').length * size * 0.52;
     }
     return this.getPdfTextUnits(text) * size;
+  }
+
+  private loadInvoicePdfEmbeddedFont() {
+    if (this.invoicePdfEmbeddedFontCache !== undefined) {
+      return this.invoicePdfEmbeddedFontCache;
+    }
+    const candidates = [
+      'C:\\Windows\\Fonts\\NotoSansSC-VF.ttf',
+      'C:\\Windows\\Fonts\\NotoSerifSC-VF.ttf',
+    ];
+    for (const filePath of candidates) {
+      try {
+        if (!fs.existsSync(filePath)) {
+          continue;
+        }
+        const data = fs.readFileSync(filePath);
+        const lookupGlyphId = this.createTtfGlyphLookup(data);
+        if (lookupGlyphId) {
+          this.invoicePdfEmbeddedFontCache = {
+            data,
+            baseFont: filePath.includes('Serif') ? 'NotoSerifSC' : 'NotoSansSC',
+            lookupGlyphId,
+          };
+          return this.invoicePdfEmbeddedFontCache;
+        }
+      } catch (e) {
+        this.invoicePdfEmbeddedFontCache = null;
+      }
+    }
+    this.invoicePdfEmbeddedFontCache = null;
+    return this.invoicePdfEmbeddedFontCache;
+  }
+
+  private createTtfGlyphLookup(data: Buffer) {
+    const cmapOffset = this.getTtfTableOffset(data, 'cmap');
+    if (!cmapOffset) {
+      return null;
+    }
+    const subtableOffsets: Array<{ format: number; offset: number; priority: number }> = [];
+    const tableCount = data.readUInt16BE(cmapOffset + 2);
+    for (let index = 0; index < tableCount; index++) {
+      const recordOffset = cmapOffset + 4 + index * 8;
+      const platformId = data.readUInt16BE(recordOffset);
+      const encodingId = data.readUInt16BE(recordOffset + 2);
+      const offset = cmapOffset + data.readUInt32BE(recordOffset + 4);
+      const format = data.readUInt16BE(offset);
+      const priority =
+        format === 12 && platformId === 3 && encodingId === 10
+          ? 1
+          : format === 12
+            ? 2
+            : format === 4 && platformId === 3
+              ? 3
+              : format === 4
+                ? 4
+                : 99;
+      if (priority < 99) {
+        subtableOffsets.push({ format, offset, priority });
+      }
+    }
+    subtableOffsets.sort((a, b) => a.priority - b.priority);
+    for (const item of subtableOffsets) {
+      const lookup =
+        item.format === 12
+          ? this.createTtfFormat12Lookup(data, item.offset)
+          : this.createTtfFormat4Lookup(data, item.offset);
+      if (lookup) {
+        return lookup;
+      }
+    }
+    return null;
+  }
+
+  private getTtfTableOffset(data: Buffer, tag: string) {
+    const numTables = data.readUInt16BE(4);
+    for (let index = 0; index < numTables; index++) {
+      const recordOffset = 12 + index * 16;
+      if (data.toString('ascii', recordOffset, recordOffset + 4) === tag) {
+        return data.readUInt32BE(recordOffset + 8);
+      }
+    }
+    return 0;
+  }
+
+  private createTtfFormat12Lookup(data: Buffer, offset: number) {
+    const groupCount = data.readUInt32BE(offset + 12);
+    const groups: Array<{ start: number; end: number; glyph: number }> = [];
+    for (let index = 0; index < groupCount; index++) {
+      const groupOffset = offset + 16 + index * 12;
+      groups.push({
+        start: data.readUInt32BE(groupOffset),
+        end: data.readUInt32BE(groupOffset + 4),
+        glyph: data.readUInt32BE(groupOffset + 8),
+      });
+    }
+    return (codePoint: number) => {
+      let low = 0;
+      let high = groups.length - 1;
+      while (low <= high) {
+        const mid = Math.floor((low + high) / 2);
+        const group = groups[mid];
+        if (codePoint < group.start) {
+          high = mid - 1;
+        } else if (codePoint > group.end) {
+          low = mid + 1;
+        } else {
+          return group.glyph + codePoint - group.start;
+        }
+      }
+      return 0;
+    };
+  }
+
+  private createTtfFormat4Lookup(data: Buffer, offset: number) {
+    const segCount = data.readUInt16BE(offset + 6) / 2;
+    const endCodeOffset = offset + 14;
+    const startCodeOffset = endCodeOffset + segCount * 2 + 2;
+    const idDeltaOffset = startCodeOffset + segCount * 2;
+    const idRangeOffsetOffset = idDeltaOffset + segCount * 2;
+    return (codePoint: number) => {
+      if (codePoint > 0xffff) {
+        return 0;
+      }
+      for (let index = 0; index < segCount; index++) {
+        const endCode = data.readUInt16BE(endCodeOffset + index * 2);
+        const startCode = data.readUInt16BE(startCodeOffset + index * 2);
+        if (codePoint < startCode || codePoint > endCode) {
+          continue;
+        }
+        const idDelta = data.readInt16BE(idDeltaOffset + index * 2);
+        const idRangeOffset = data.readUInt16BE(idRangeOffsetOffset + index * 2);
+        if (idRangeOffset === 0) {
+          return (codePoint + idDelta) & 0xffff;
+        }
+        const glyphIndexOffset =
+          idRangeOffsetOffset + index * 2 + idRangeOffset + (codePoint - startCode) * 2;
+        if (glyphIndexOffset + 2 > data.length) {
+          return 0;
+        }
+        const glyphIndex = data.readUInt16BE(glyphIndexOffset);
+        return glyphIndex === 0 ? 0 : (glyphIndex + idDelta) & 0xffff;
+      }
+      return 0;
+    };
+  }
+
+  private toEmbeddedFontHex(text: string, font: InvoicePdfEmbeddedFont) {
+    const bytes: number[] = [];
+    for (const char of Array.from(String(text || ''))) {
+      const codePoint = char.codePointAt(0) || 0;
+      const glyphId = font.lookupGlyphId(codePoint) || font.lookupGlyphId(63) || 0;
+      bytes.push((glyphId >> 8) & 0xff, glyphId & 0xff);
+    }
+    return Buffer.from(bytes).toString('hex').toUpperCase();
   }
 
   private toLatinHex(text: string) {
