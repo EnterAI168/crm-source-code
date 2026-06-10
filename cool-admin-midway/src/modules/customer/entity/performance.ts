@@ -33,7 +33,7 @@ export class CrmPerformanceEntity extends BaseEntity {
   periodEnd: string;
 
   @Column({
-    comment: '本月開票金額',
+    comment: '本月審核通過金額',
     type: 'decimal',
     precision: 12,
     scale: 2,

@@ -31,4 +31,12 @@ export class BaseSysParamController extends BaseController {
   async htmlByKey(@Query('key') key: string) {
     this.ctx.body = await this.baseSysParamService.htmlByKey(key);
   }
+
+  /**
+   * 根據配置參數key取得參數值
+   */
+  @Get('/data', { summary: '取得參數值' })
+  async dataByKey(@Query('key') key: string) {
+    return this.ok(await this.baseSysParamService.dataByKey(key));
+  }
 }

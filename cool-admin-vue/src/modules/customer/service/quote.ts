@@ -1,5 +1,7 @@
 import { BaseService } from '/@/cool/service/base';
 
+const paramService = new BaseService('admin/base/sys/param');
+
 export default class QuoteOrderService extends BaseService {
 	namespace = 'admin/crmQuoteOrder';
 
@@ -27,6 +29,15 @@ export default class QuoteOrderService extends BaseService {
 		return Array.isArray(data) ? data : [];
 	}
 
+	async quoteDiscountRate(): Promise<any> {
+		const data = await paramService.request({
+			url: '/data',
+			method: 'GET',
+			params: { key: 'quote_discount_rate' }
+		});
+		return data;
+	}
+
 	async submitAudit(data: { id: number }) {
 		return this.request({
 			url: '/submitAudit',
@@ -38,6 +49,14 @@ export default class QuoteOrderService extends BaseService {
 	async audit(data: { id: number; auditStatus: number; auditRemark?: string }) {
 		return this.request({
 			url: '/audit',
+			method: 'POST',
+			data
+		});
+	}
+
+	async auditDiscount(data: { id: number; discountAuditStatus: number; remark?: string }) {
+		return this.request({
+			url: '/auditDiscount',
 			method: 'POST',
 			data
 		});

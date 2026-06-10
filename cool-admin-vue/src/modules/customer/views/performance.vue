@@ -48,7 +48,7 @@
 					<el-table-column label="業績期間" min-width="260" align="center">
 						<template #default="{ row }">{{ row.periodStart }} —— {{ row.periodEnd }}</template>
 					</el-table-column>
-					<el-table-column label="本月開票" width="130" align="center">
+					<el-table-column label="本月審核通過" width="140" align="center">
 						<template #default="{ row }">{{ toMoney(row.invoiceAmount) }}</template>
 					</el-table-column>
 					<el-table-column label="預計獎金" width="130" align="center">
@@ -116,10 +116,11 @@
 
 		<el-dialog v-model="detailVisible" :title="detailTitle" width="92%" class="performance-detail-dialog">
 			<div v-if="detailType !== 'internal'" class="detail-head">
-				<span>{{ detailType === 'expected' ? '本月開票金額' : '本月回款金額' }}：{{ toMoney(detailData.amountTotal) }}</span>
+				<span>{{ detailType === 'expected' ? '本月審核通過金額' : '本月回款金額' }}：{{ toMoney(detailData.amountTotal) }}</span>
 				<span>獎金總和：{{ toMoney(detailData.bonusTotal) }}</span>
 				<span>是否加碼：{{ Number(detailData.hasTierAdd) === 1 ? '是' : '否' }}</span>
 				<span v-if="Number(detailData.hasTierAdd) === 1">加碼比例：{{ toPercent(detailData.tierAddRate) }}</span>
+				<span v-if="toNumber(detailData.tierBonus) > 0">級距計算業績：{{ toMoney(detailData.tierBonusAmount) }}</span>
 				<span v-if="toNumber(detailData.tierBonus) > 0">級距獎金：{{ toMoney(detailData.tierBonus) }}</span>
 				<span v-if="toNumber(detailData.contractDeductionTotal) < 0">合約逾期扣款：{{ toMoney(detailData.contractDeductionTotal) }}</span>
 				<span v-if="toNumber(detailData.caseMeetingDeductionTotal) < 0">案情會議扣款：{{ toMoney(detailData.caseMeetingDeductionTotal) }}</span>
@@ -185,7 +186,9 @@
 					<el-table-column label="金額" width="130" align="center">
 						<template #default="{ row }">{{ toMoney(row.sourceAmount) }}</template>
 					</el-table-column>
-					<el-table-column prop="invoiceDate" label="時間開票日期" min-width="190" align="center" />
+					<el-table-column :label="detailType === 'expected' ? '內勤審核通過時間' : '開票日期'" min-width="190" align="center">
+						<template #default="{ row }">{{ detailType === 'expected' ? row.auditTime || '----' : row.invoiceDate || '----' }}</template>
+					</el-table-column>
 					<el-table-column label="付款憑證" width="120" align="center">
 						<template #default="{ row }">
 							<span v-if="!row.receiptVoucher">----</span>

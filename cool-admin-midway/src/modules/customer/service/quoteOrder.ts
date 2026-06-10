@@ -28,6 +28,7 @@ import { pUploadPath } from '../../../comm/path';
 interface QuoteScope {
   userId: number;
   roleLabels: string[];
+  hasDiscountAuditPerm: boolean;
   departmentIds: number[];
   departmentUserIds: number[];
   isBoss: boolean;
@@ -91,6 +92,14 @@ export class CrmQuoteOrderService extends BaseService {
     companySealUrl: '',
   };
 
+  private readonly VIP_MAX_DISCOUNT_RATE = 15;
+
+  private readonly VIP_DISCOUNT_AUDIT_REASON =
+    '優惠比例超過VIP最大額度15%，需要老板審批，審批是否扣除獎金';
+
+  private readonly DEFAULT_DISCOUNT_AUDIT_REASON =
+    '優惠比例超過預設閾值，需要老板審批，審批是否扣除獎金';
+
   @InjectEntityModel(CrmQuoteOrderEntity)
   crmQuoteOrderEntity: Repository<CrmQuoteOrderEntity>;
 
@@ -149,7 +158,14 @@ export class CrmQuoteOrderService extends BaseService {
 
   async page(query: any) {
     const scope = await this.getScope();
-    const { customerId, quoteNo, quoteName, status, quoteType } = query || {};
+    const {
+      customerId,
+      quoteNo,
+      quoteName,
+      status,
+      quoteType,
+      discountAuditFilter,
+    } = query || {};
 
     const restrictSql = this.buildPageScopeSql(scope);
     const businessStatusSql = this.getBusinessStatusSql();
@@ -165,6 +181,7 @@ export class CrmQuoteOrderService extends BaseService {
         c.contactName AS customerContactName,
         c.mobile AS customerMobile,
         c.email AS customerEmail,
+        c.isVip AS customerIsVip,
         u.name AS salesmanName,
         u2.name AS currentAssigneeName
       FROM crm_quote_order a
@@ -180,6 +197,7 @@ export class CrmQuoteOrderService extends BaseService {
           Number(status),
         ])}
         ${this.setSql(quoteType, 'and a.quoteType = ?', [Number(quoteType)])}
+        ${this.buildDiscountAuditFilterSql(discountAuditFilter)}
       ORDER BY a.createTime DESC
     `;
 
@@ -279,10 +297,9 @@ export class CrmQuoteOrderService extends BaseService {
     const contractFile = String(param?.contractFile || '').trim();
     const hasContract = !!contractFile;
     const discountRate = this.toRatePercent(param?.discountRate);
-    const discountDeductionAmount = this.calcDiscountDeductionAmount(
-      itemSummary.finalAmount,
-      discountRate
-    );
+    const scope = await this.getScope();
+    const discountAudit = await this.resolveDiscountAudit(customer, discountRate);
+    const discountDeductionAmount = 0;
     const commission = this.toMoney(param?.commission || 0);
     const quoteTerms = await this.resolveQuoteTermsForSave(param);
 
@@ -293,8 +310,8 @@ export class CrmQuoteOrderService extends BaseService {
       quoteType: this.normalizeQuoteType(param?.quoteType),
       salesmanId,
       currentAssigneeId: null,
-      status: 2,
-      auditStatus: 1,
+      status: discountAudit.required ? 1 : 2,
+      auditStatus: discountAudit.required ? 0 : 1,
       assignStatus: 0,
       contractStatus: hasContract ? 1 : 0,
       invoiceStatus: 0,
@@ -309,6 +326,11 @@ export class CrmQuoteOrderService extends BaseService {
       discountDeductionAmount,
       discountRate,
       commission,
+      discountAuditStatus: discountAudit.required ? 1 : 0,
+      discountAuditReason: discountAudit.reason || null,
+      discountAuditUserId: null,
+      discountAuditTime: null,
+      discountAuditRemark: null,
       execRemark: String(param?.execRemark || '').trim() || null,
       priceRemark: String(param?.priceRemark || '').trim() || null,
       quoteTerms,
@@ -330,10 +352,12 @@ export class CrmQuoteOrderService extends BaseService {
     return {
       id: saved.id,
       quoteNo: saved.quoteNo,
+      discountAuditRequired: discountAudit.required,
+      discountAuditReason: discountAudit.reason || '',
     };
   }
 
-  async update(param: any) {
+  async update(param: any): Promise<any> {
     const scope = await this.getScope();
     const id = Number(param?.id || 0);
     const oldRow = await this.getOrderById(id, scope);
@@ -446,10 +470,14 @@ export class CrmQuoteOrderService extends BaseService {
     }
 
     if (hasDiscountDeductionField || hasDiscountRateField) {
-      payload.discountDeductionAmount = this.calcDiscountDeductionAmount(
-        itemSummary.finalAmount,
-        payload.discountRate ?? oldRow.discountRate
-      );
+      payload.discountDeductionAmount =
+        Number(oldRow.discountAuditStatus || 0) === 3
+          ? this.calcDiscountDeductionAmount(
+              itemSummary.finalAmount,
+              payload.discountRate ?? oldRow.discountRate,
+              await this.getDiscountDeductionBaseRate(oldRow)
+            )
+          : 0;
     }
 
     if (hasCommissionField) {
@@ -468,6 +496,43 @@ export class CrmQuoteOrderService extends BaseService {
       payload.quoteTerms = await this.resolveQuoteTermsForSave(param, oldRow);
     }
 
+    const nextDiscountRate = this.toRatePercent(
+      payload.discountRate ?? oldRow.discountRate
+    );
+    const discountAudit = await this.resolveDiscountAudit(
+      customer,
+      nextDiscountRate
+    );
+    if (discountAudit.required) {
+      Object.assign(payload, {
+        status: 1,
+        auditStatus: 0,
+        assignStatus: 0,
+        currentAssigneeId: null,
+        auditUserId: null,
+        auditTime: null,
+        auditRemark: null,
+        assignUserId: null,
+        assignTime: null,
+        assignRemark: null,
+        discountDeductionAmount: 0,
+        discountAuditStatus: 1,
+        discountAuditReason: discountAudit.reason || null,
+        discountAuditUserId: null,
+        discountAuditTime: null,
+        discountAuditRemark: null,
+      });
+    } else if ([1, 4].includes(Number(oldRow.discountAuditStatus || 0))) {
+      Object.assign(payload, {
+        discountDeductionAmount: 0,
+        discountAuditStatus: 0,
+        discountAuditReason: null,
+        discountAuditUserId: null,
+        discountAuditTime: null,
+        discountAuditRemark: null,
+      });
+    }
+
     await this.crmQuoteOrderEntity.save(payload);
 
     await this.replaceItems(id, items);
@@ -476,6 +541,12 @@ export class CrmQuoteOrderService extends BaseService {
       resetExisting: shouldResubmitDepartmentAudit,
     });
     await this.saveQuoteHistory(id);
+
+    return {
+      id,
+      discountAuditRequired: discountAudit.required,
+      discountAuditReason: discountAudit.reason || '',
+    };
   }
 
   async delete(ids: number[] | number) {
@@ -639,6 +710,7 @@ export class CrmQuoteOrderService extends BaseService {
   async submitAudit(param: any) {
     const scope = await this.getScope();
     const order = await this.getOrderById(Number(param?.id || 0), scope);
+    this.ensureDiscountAuditPassed(order);
     this.ensureCanSubmitAudit(order, scope);
     const items = await this.crmQuoteOrderItemEntity.find({
       where: { quoteOrderId: order.id, isDeleted: 0 },
@@ -715,6 +787,62 @@ export class CrmQuoteOrderService extends BaseService {
       id: order.id,
       status: 3,
       auditStatus: 3,
+    };
+  }
+
+  async auditDiscount(param: any) {
+    const scope = await this.getScope();
+    const order = await this.getOrderById(Number(param?.id || 0), scope);
+    if (!this.canDiscountAudit(order, scope)) {
+      throw new CoolCommException('當前報價單不允許優惠審批');
+    }
+
+    const discountAuditStatus = Number(param?.discountAuditStatus);
+    if (![2, 3, 4].includes(discountAuditStatus)) {
+      throw new CoolCommException('請選擇優惠審批結果');
+    }
+
+    const payload: Partial<CrmQuoteOrderEntity> = {
+      discountAuditStatus,
+      discountAuditUserId: scope.userId,
+      discountAuditTime: this.now(),
+      discountAuditRemark: String(param?.remark || '').trim() || null,
+    };
+
+    if ([2, 3].includes(discountAuditStatus)) {
+      payload.status = 2;
+      payload.auditStatus = 1;
+      payload.assignStatus = 0;
+      payload.currentAssigneeId = null;
+      payload.auditUserId = null;
+      payload.auditTime = null;
+      payload.auditRemark = null;
+      payload.assignUserId = null;
+      payload.assignTime = null;
+      payload.assignRemark = null;
+      payload.discountDeductionAmount =
+        discountAuditStatus === 3
+          ? this.calcDiscountDeductionAmount(
+              await this.getQuoteOrderItemsAmount(order.id),
+              order.discountRate,
+              await this.getDiscountDeductionBaseRate(order)
+            )
+          : 0;
+    } else {
+      payload.status = 1;
+      payload.auditStatus = 0;
+      payload.assignStatus = 0;
+      payload.currentAssigneeId = null;
+      payload.discountDeductionAmount = 0;
+    }
+
+    await this.crmQuoteOrderEntity.update({ id: order.id }, payload);
+
+    return {
+      id: order.id,
+      discountAuditStatus,
+      status: payload.status,
+      auditStatus: payload.auditStatus,
     };
   }
 
@@ -1462,6 +1590,14 @@ export class CrmQuoteOrderService extends BaseService {
       sortNum: index + 1,
       isDeleted: 0,
     }));
+    const customer = await this.crmCustomerInfoEntity.findOneBy({
+      id: Number(order.customerId || 0),
+      isDeleted: 0,
+    });
+    const discountRate = this.toRatePercent(order.discountRate);
+    const discountAudit = customer
+      ? await this.resolveDiscountAudit(customer, discountRate)
+      : { required: false, reason: '' };
 
     const saved = await this.crmQuoteOrderEntity.save({
       quoteNo,
@@ -1470,8 +1606,8 @@ export class CrmQuoteOrderService extends BaseService {
       quoteType: order.quoteType,
       salesmanId: order.salesmanId,
       currentAssigneeId: null,
-      status: 2,
-      auditStatus: 1,
+      status: discountAudit.required ? 1 : 2,
+      auditStatus: discountAudit.required ? 0 : 1,
       auditUserId: null,
       auditTime: null,
       auditRemark: null,
@@ -1489,6 +1625,14 @@ export class CrmQuoteOrderService extends BaseService {
       costAmount: order.costAmount,
       grossProfitAmount: order.grossProfitAmount,
       grossProfitRate: order.grossProfitRate,
+      discountDeductionAmount: 0,
+      discountRate,
+      commission: order.commission,
+      discountAuditStatus: discountAudit.required ? 1 : 0,
+      discountAuditReason: discountAudit.reason || null,
+      discountAuditUserId: null,
+      discountAuditTime: null,
+      discountAuditRemark: null,
       sendType: 0,
       sendEmail: null,
       sendUserId: null,
@@ -1798,9 +1942,13 @@ export class CrmQuoteOrderService extends BaseService {
     const hasAssigneeAccess =
       currentScope.isOfficeClerk &&
       (await this.hasOrderAssigneeAccess(row.id, currentScope));
+    const hasDiscountAuditAccess =
+      currentScope.hasDiscountAuditPerm &&
+      Number(row.discountAuditStatus || 0) === 1;
     if (
       currentScope.isOfficeClerkManager &&
       !currentScope.isBoss &&
+      !hasDiscountAuditAccess &&
       !hasDepartmentAccess &&
       !currentScope.departmentUserIds.includes(
         Number(row.currentAssigneeId || 0)
@@ -1811,6 +1959,7 @@ export class CrmQuoteOrderService extends BaseService {
     if (
       currentScope.isOfficeClerk &&
       Number(row.salesmanId || 0) !== Number(currentScope.userId || 0) &&
+      !hasDiscountAuditAccess &&
       !hasAssigneeAccess &&
       Number(row.currentAssigneeId || 0) !== Number(currentScope.userId || 0)
     ) {
@@ -1819,6 +1968,7 @@ export class CrmQuoteOrderService extends BaseService {
     if (
       !this.canAccessOrder(row, currentScope) &&
       !hasDepartmentAccess &&
+      !hasDiscountAuditAccess &&
       !hasAssigneeAccess
     ) {
       throw new CoolCommException('????');
@@ -1839,6 +1989,7 @@ export class CrmQuoteOrderService extends BaseService {
         c.contactName AS customerContactName,
         c.mobile AS customerMobile,
         c.email AS customerEmail,
+        c.isVip AS customerIsVip,
         u.name AS salesmanName,
           u2.name AS currentAssigneeName,
           u3.name AS auditUserName,
@@ -1918,13 +2069,14 @@ export class CrmQuoteOrderService extends BaseService {
         item?.actualPrice ?? spec?.price ?? product.price
       );
       const costPrice = this.toMoney(spec?.costPrice ?? product.costPrice);
-      const minActualPrice = this.getMinActualPrice(costPrice);
+      const presetPrice = this.toMoney(spec?.price ?? product.price);
+      const minActualPrice = this.getMinActualPrice(presetPrice);
       if (actualPrice <= 0) {
         throw new CoolCommException(`第${index + 1}條產品報價價格必須大於0`);
       }
-      if (minActualPrice > 0 && actualPrice < minActualPrice) {
+      if (minActualPrice > 0 && actualPrice <= minActualPrice) {
         throw new CoolCommException(
-          `第${index + 1}條產品報價價格不可低於最低報價 ${this.formatMoney(minActualPrice)}`
+          `第${index + 1}條產品報價價格必須高於預設價格85%`
         );
       }
       const quantity = Math.max(
@@ -2441,19 +2593,82 @@ export class CrmQuoteOrderService extends BaseService {
     return this.toNumber(Math.min(100, num));
   }
 
-  private calcDiscountDeductionAmount(amount: any, discountRate: any) {
+  private calcDiscountDeductionAmount(
+    amount: any,
+    discountRate: any,
+    baseRate = this.VIP_MAX_DISCOUNT_RATE
+  ) {
     return this.toMoney(
       this.toMoney(amount) *
-        (Math.max(0, this.toRatePercent(discountRate) - 15) / 100)
+        (Math.max(0, this.toRatePercent(discountRate) - baseRate) / 100)
     );
   }
 
-  private getMinActualPrice(costPrice: any) {
-    const cost = this.toMoney(costPrice);
-    if (cost <= 0) {
+  private async getQuoteDiscountThreshold() {
+    const value = await this.baseSysParamService.dataByKey('quote_discount_rate');
+    return this.toRatePercent(value);
+  }
+
+  private async resolveDiscountAudit(
+    customer: any,
+    discountRate: any
+  ) {
+    const rate = this.toRatePercent(discountRate);
+    if (Number(customer?.isVip || 0) === 1) {
+      const required = rate > this.VIP_MAX_DISCOUNT_RATE;
+      return {
+        required,
+        reason: required ? this.VIP_DISCOUNT_AUDIT_REASON : '',
+        thresholdRate: this.VIP_MAX_DISCOUNT_RATE,
+      };
+    }
+
+    const thresholdRate = await this.getQuoteDiscountThreshold();
+    const required = thresholdRate > 0 && rate > thresholdRate;
+    return {
+      required,
+      reason: required ? this.DEFAULT_DISCOUNT_AUDIT_REASON : '',
+      thresholdRate,
+    };
+  }
+
+  private async getDiscountDeductionBaseRate(order: any) {
+    const reason = String(order?.discountAuditReason || '');
+    if (reason.includes('VIP')) {
+      return this.VIP_MAX_DISCOUNT_RATE;
+    }
+
+    const customer = await this.crmCustomerInfoEntity.findOneBy({
+      id: Number(order?.customerId || 0),
+      isDeleted: 0,
+    });
+    if (Number(customer?.isVip || 0) === 1) {
+      return this.VIP_MAX_DISCOUNT_RATE;
+    }
+
+    const thresholdRate = await this.getQuoteDiscountThreshold();
+    return thresholdRate > 0 ? thresholdRate : this.VIP_MAX_DISCOUNT_RATE;
+  }
+
+  private async getQuoteOrderItemsAmount(quoteOrderId: number) {
+    const rows = await this.nativeQuery(
+      `
+      SELECT COALESCE(SUM(subtotalAmount), 0) AS amount
+      FROM crm_quote_order_item
+      WHERE quoteOrderId = ?
+        AND isDeleted = 0
+    `,
+      [quoteOrderId]
+    );
+    return this.toMoney(rows?.[0]?.amount || 0);
+  }
+
+  private getMinActualPrice(presetPrice: any) {
+    const price = this.toMoney(presetPrice);
+    if (price <= 0) {
       return 0;
     }
-    return this.toMoney(cost / 0.85);
+    return this.toMoney(price * 0.85);
   }
 
   private normalizeDate(value: any) {
@@ -2560,6 +2775,8 @@ export class CrmQuoteOrderService extends BaseService {
         WHEN a.auditStatus = 2 THEN 4
         WHEN a.auditStatus = 3 THEN 3
         WHEN a.auditStatus = 1 THEN 2
+        WHEN a.discountAuditStatus = 1 THEN 2
+        WHEN a.discountAuditStatus = 4 THEN 3
         ELSE 1
       END
     `;
@@ -2598,6 +2815,14 @@ export class CrmQuoteOrderService extends BaseService {
       return 2;
     }
 
+    if (Number(order?.discountAuditStatus || 0) === 1) {
+      return 2;
+    }
+
+    if (Number(order?.discountAuditStatus || 0) === 4) {
+      return 3;
+    }
+
     return 1;
   }
 
@@ -2630,6 +2855,11 @@ export class CrmQuoteOrderService extends BaseService {
     const isBoss =
       this.ctx.admin?.username === 'admin' ||
       roleLabels.some(label => this.SUPER_ROLE_LABELS.includes(label));
+    const hasDiscountAuditPerm = await this.hasRolePerm(
+      roleIds,
+      'crm:quoteOrder:auditDiscount',
+      this.ctx.admin?.username === 'admin'
+    );
     const isFinance =
       roleLabels.some(label => this.FINANCE_ROLE_LABELS.includes(label)) ||
       roleNames.some(name =>
@@ -2663,6 +2893,7 @@ export class CrmQuoteOrderService extends BaseService {
     return {
       userId,
       roleLabels,
+      hasDiscountAuditPerm,
       departmentIds,
       departmentUserIds,
       isBoss,
@@ -2671,6 +2902,38 @@ export class CrmQuoteOrderService extends BaseService {
       isOfficeClerk,
       isSalesperson,
     };
+  }
+
+  private async hasRolePerm(
+    roleIds: number[],
+    perm: string,
+    isAdmin = false
+  ) {
+    if (isAdmin) {
+      return true;
+    }
+
+    if (!roleIds.length) {
+      return false;
+    }
+
+    const rows = await this.nativeQuery(
+      `
+      SELECT DISTINCT m.perms
+      FROM base_sys_menu m
+      INNER JOIN base_sys_role_menu rm ON rm.menuId = m.id
+      WHERE rm.roleId IN (?)
+        AND m.perms IS NOT NULL
+      `,
+      [roleIds]
+    );
+
+    return (rows || []).some(row =>
+      String(row?.perms || '')
+        .split(',')
+        .map(item => item.trim())
+        .includes(perm)
+    );
   }
 
   private buildPageScopeSql(scope: QuoteScope) {
@@ -2683,6 +2946,7 @@ export class CrmQuoteOrderService extends BaseService {
         sql: this.setSql(
           true,
           `and (
+            ${scope.hasDiscountAuditPerm ? 'a.discountAuditStatus = 1 or' : ''}
             exists (
               select 1
               from crm_quote_order_department_audit da
@@ -2710,6 +2974,7 @@ export class CrmQuoteOrderService extends BaseService {
         sql: this.setSql(
           true,
           `and (
+            ${scope.hasDiscountAuditPerm ? 'a.discountAuditStatus = 1 or' : ''}
             a.currentAssigneeId = ?
             or exists (
               select 1
@@ -2726,7 +2991,14 @@ export class CrmQuoteOrderService extends BaseService {
     }
 
     return {
-      sql: this.setSql(true, 'and a.salesmanId = ?', [scope.userId]),
+      sql: this.setSql(
+        true,
+        `and (
+          ${scope.hasDiscountAuditPerm ? 'a.discountAuditStatus = 1 or' : ''}
+          a.salesmanId = ?
+        )`,
+        [scope.userId]
+      ),
       params: {},
     };
   }
@@ -2828,6 +3100,7 @@ export class CrmQuoteOrderService extends BaseService {
       canEdit: this.canEditOrder(order, scope),
       canDelete: this.canDeleteOrder(order, scope),
       canSubmitAudit: this.canSubmitAudit(order, scope),
+      canDiscountAudit: this.canDiscountAudit(order, scope),
       canAudit: this.canAuditOrder(order, scope),
       canAssign: this.canAssignOrder(order, scope),
       canSendQuote: this.canSendQuote(order, scope),
@@ -2899,6 +3172,13 @@ export class CrmQuoteOrderService extends BaseService {
     }
 
     if (
+      scope.hasDiscountAuditPerm &&
+      Number(order.discountAuditStatus || 0) === 1
+    ) {
+      return true;
+    }
+
+    if (
       scope.isOfficeClerk &&
       Number(order.currentAssigneeId || 0) === Number(scope.userId || 0)
     ) {
@@ -2906,6 +3186,17 @@ export class CrmQuoteOrderService extends BaseService {
     }
 
     return Number(order.salesmanId || 0) === Number(scope.userId || 0);
+  }
+
+  private buildDiscountAuditFilterSql(value: any) {
+    const filter = String(value || 'all');
+    if (filter === 'pending') {
+      return 'and a.discountAuditStatus = 1';
+    }
+    if (filter === 'none') {
+      return 'and COALESCE(a.discountAuditStatus, 0) = 0';
+    }
+    return '';
   }
 
   private canSalesOperate(order: any, scope: QuoteScope) {
@@ -2939,8 +3230,19 @@ export class CrmQuoteOrderService extends BaseService {
     );
   }
 
+  private isDiscountAuditPassed(order: any) {
+    return [0, 2, 3].includes(Number(order.discountAuditStatus || 0));
+  }
+
+  private canDiscountAudit(order: any, scope: QuoteScope) {
+    return (
+      scope.hasDiscountAuditPerm && Number(order.discountAuditStatus || 0) === 1
+    );
+  }
+
   private canSubmitAudit(order: any, scope: QuoteScope) {
     return (
+      this.isDiscountAuditPassed(order) &&
       this.canSalesOperate(order, scope) &&
       [1, 3].includes(Number(order.status || 0))
     );
@@ -2948,6 +3250,7 @@ export class CrmQuoteOrderService extends BaseService {
 
   private canAuditOrder(order: any, scope: QuoteScope) {
     return (
+      this.isDiscountAuditPassed(order) &&
       scope.isOfficeClerkManager &&
       Number(order.status || 0) === 2 &&
       Number(order.auditStatus || 0) === 1
@@ -2956,6 +3259,7 @@ export class CrmQuoteOrderService extends BaseService {
 
   private canAssignOrder(order: any, scope: QuoteScope) {
     return (
+      this.isDiscountAuditPassed(order) &&
       scope.isOfficeClerkManager &&
       Number(order.status || 0) === 4 &&
       Number(order.auditStatus || 0) === 2 &&
@@ -2965,6 +3269,7 @@ export class CrmQuoteOrderService extends BaseService {
 
   private canSendQuote(order: any, scope: QuoteScope) {
     return (
+      this.isDiscountAuditPassed(order) &&
       this.canSalesOperate(order, scope) &&
       [4, 5, 6].includes(Number(order.status || 0)) &&
       Number(order.auditStatus || 0) === 2
@@ -2973,6 +3278,7 @@ export class CrmQuoteOrderService extends BaseService {
 
   private canUploadContract(order: any, scope: QuoteScope) {
     return (
+      this.isDiscountAuditPassed(order) &&
       this.canAccessOrder(order, scope) &&
       ![6, 7].includes(this.getBusinessStatus(order)) &&
       Number(order.contractStatus || 0) !== 1
@@ -2980,11 +3286,11 @@ export class CrmQuoteOrderService extends BaseService {
   }
 
   private canHandleReceipt(order: any, scope: QuoteScope) {
-    return this.canAccessOrder(order, scope);
+    return this.isDiscountAuditPassed(order) && this.canAccessOrder(order, scope);
   }
 
   private canHandleInvoice(order: any, scope: QuoteScope) {
-    return this.canAccessOrder(order, scope);
+    return this.isDiscountAuditPassed(order) && this.canAccessOrder(order, scope);
   }
 
   private ensureCanEdit(order: any, scope: QuoteScope) {
@@ -2996,6 +3302,18 @@ export class CrmQuoteOrderService extends BaseService {
   private ensureCanSubmitAudit(order: any, scope: QuoteScope) {
     if (!this.canSubmitAudit(order, scope)) {
       throw new CoolCommException('褰撳墠鐘舵€佷笉鍏佽鎻愪氦瀹℃牳');
+    }
+  }
+
+  private ensureDiscountAuditPassed(order: any) {
+    const status = Number(order?.discountAuditStatus || 0);
+    if (status === 1) {
+      throw new CoolCommException(
+        order?.discountAuditReason || '優惠比例需要老板審批'
+      );
+    }
+    if (status === 4) {
+      throw new CoolCommException('優惠審批未通過，請重新填寫優惠比例');
     }
   }
 

@@ -52,6 +52,8 @@ type EcpayJsonMode = 'node' | 'php';
 
 @Provide()
 export class CrmEcpayInvoiceService extends BaseService {
+  private readonly ECPAY_B2B_ISSUE_AMOUNT_META_KEY = '__crmIssueAmount';
+
   async diagnose(configValue: any): Promise<any> {
     const config = this.normalizeConfig(configValue);
     if (!config.enabled) {
@@ -102,10 +104,11 @@ export class CrmEcpayInvoiceService extends BaseService {
       customerEmail: options.customerEmail,
     });
 
+    const issueData = this.buildB2bIssueData(config, options);
     const result = await this.postAesJson(config, {
       actionName: '開票',
       endpoint: config.endpoint,
-      data: this.buildB2bIssueData(config, options),
+      data: issueData,
     });
     const decrypted = result.data;
     if (Number(decrypted.RtnCode) !== 1) {
@@ -113,7 +116,14 @@ export class CrmEcpayInvoiceService extends BaseService {
         `綠界發票開票失敗：${decrypted.RtnMsg || decrypted.RtnCode || '業務錯誤'}`
       );
     }
-    return decrypted;
+    return {
+      ...decrypted,
+      [this.ECPAY_B2B_ISSUE_AMOUNT_META_KEY]: {
+        salesAmount: issueData.SalesAmount,
+        taxAmount: issueData.TaxAmount,
+        totalAmount: issueData.TotalAmount,
+      },
+    };
   }
 
   async invalidB2bInvoice(
@@ -227,7 +237,8 @@ export class CrmEcpayInvoiceService extends BaseService {
   }
 
   private buildB2bIssueData(config: EcpayInvoiceConfig, options: IssueInvoiceOptions) {
-    const totalAmount = this.toMoney(options.amount);
+    const amount = this.resolveB2bIssueAmount(options.amount, config.taxType);
+    const totalAmount = amount.totalAmount;
     if (!Number.isFinite(totalAmount) || totalAmount <= 0) {
       throw new CoolCommException('發票金額必須大於0，無法開立綠界發票');
     }
@@ -243,10 +254,8 @@ export class CrmEcpayInvoiceService extends BaseService {
     if (!this.isValidTaiwanBusinessNumber(customerIdentifier)) {
       throw new CoolCommException('B2B發票需填寫8位有效買方統一編號，無法開立綠界發票');
     }
-    const dutyRate = this.resolveDutyRate(config.taxType);
-    const salesAmount =
-      dutyRate > 0 ? this.toMoney(totalAmount / (1 + dutyRate)) : totalAmount;
-    const taxAmount = this.toMoney(totalAmount - salesAmount);
+    const salesAmount = amount.salesAmount;
+    const taxAmount = amount.taxAmount;
     const customerAddr = String(options.customerAddr || '').trim().slice(0, 100);
     const itemName = String(options.itemName || '').trim() || 'CRM服務費用';
     const data: any = {
@@ -462,6 +471,19 @@ export class CrmEcpayInvoiceService extends BaseService {
     return value === '1' ? 0.05 : 0;
   }
 
+  private resolveB2bIssueAmount(value: any, taxType: string) {
+    const totalAmount = this.toIntegerMoney(value);
+    const dutyRate = this.resolveDutyRate(taxType);
+    const salesAmount =
+      dutyRate > 0 ? this.toIntegerMoney(totalAmount / (1 + dutyRate)) : totalAmount;
+    const taxAmount = totalAmount - salesAmount;
+    return {
+      salesAmount,
+      taxAmount,
+      totalAmount,
+    };
+  }
+
   private normalizeRelateNumber(value: string) {
     const relateNumber = String(value || '')
       .replace(/[^a-zA-Z0-9]/g, '')
@@ -675,5 +697,13 @@ export class CrmEcpayInvoiceService extends BaseService {
       return 0;
     }
     return Number(num.toFixed(2));
+  }
+
+  private toIntegerMoney(value: any) {
+    const num = Number(value || 0);
+    if (!Number.isFinite(num)) {
+      return 0;
+    }
+    return Math.round(num);
   }
 }

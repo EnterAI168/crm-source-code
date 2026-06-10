@@ -28,6 +28,7 @@ interface EligibleUser {
   departmentId?: number;
   level?: string;
   salary?: number;
+  withholdingSalary?: number;
   remark?: string;
   roleType: 'sales' | 'internal';
 }
@@ -966,13 +967,7 @@ export class CrmPerformanceService extends BaseService {
       const sourceAmount = this.toUntaxedAmount(rawSourceAmount, ctx.dutyRate);
       const stageMetrics = this.calcSalesStageMetrics(stage, profile, sourceAmount, ctx);
       const discountDeductionAmount = this.toMoney(
-        Math.max(
-          this.toMoney(stage.discountDeductionAmount),
-          this.toMoney(
-            profile.totalAmount *
-              (Math.max(0, this.toNumber(stage.discountRate) - 15) / 100)
-          )
-        )
+        stage.discountDeductionAmount
       );
       return {
         ...stage,
@@ -1061,14 +1056,18 @@ export class CrmPerformanceService extends BaseService {
       };
     });
 
-    const tierBonus = this.resolveTierBonus(
-      monthlyMainAmount +
-        rows.reduce(
-          (sum, item) => sum + this.toMoney(item.secondaryPerformance) / 2,
-          0
-        ),
-      ctx
-    );
+    const previousTierRange = this.getPreviousMonthRange(month);
+    const previousTierBonusAmount =
+      roleType === 'sales'
+        ? await this.calcSalesTierBonusAmount(
+            userId,
+            roleType,
+            previousTierRange,
+            type,
+            ctx
+          )
+        : 0;
+    const tierBonus = this.resolveTierBonus(previousTierBonusAmount, ctx);
     const contractDeductionRows =
       roleType === 'sales'
         ? await this.crmContractReminderService.overdueDeductionRows(
@@ -1119,6 +1118,7 @@ export class CrmPerformanceService extends BaseService {
       ),
       bonusTotal,
       tierBonus,
+      tierBonusAmount: previousTierBonusAmount,
       contractDeductionTotal,
       caseMeetingDeductionTotal,
       hasTierAdd: hasTierAdd ? 1 : 0,
@@ -1133,11 +1133,15 @@ export class CrmPerformanceService extends BaseService {
     range: { start: string; end: string },
     type: DetailType
   ) {
-    const dateField = type === 'actual' ? 's.receiptTime' : 's.invoiceDate';
+    const dateField = type === 'actual' ? 's.receiptTime' : 'q.auditTime';
     const amountWhere =
       type === 'actual'
         ? 'AND s.receiptStatus = 1 AND s.receiptAmount > 0'
-        : '';
+        : `
+        AND q.auditStatus = 2
+        AND q.auditTime IS NOT NULL
+        AND q.auditTime <> ''
+        `;
     const internalJoin =
       roleType === 'internal'
         ? `
@@ -1170,6 +1174,7 @@ export class CrmPerformanceService extends BaseService {
         q.finalAmount,
         q.discountDeductionAmount,
         q.discountRate,
+        q.auditTime,
         q.salesmanId,
         u.departmentId
       FROM crm_quote_order_stage s
@@ -1188,6 +1193,31 @@ export class CrmPerformanceService extends BaseService {
         ? [userId, userId, range.start, range.end]
         : [userId, userId, range.start, range.end]
     );
+  }
+
+  private async calcSalesTierBonusAmount(
+    userId: number,
+    roleType: string,
+    range: { start: string; end: string },
+    type: DetailType,
+    ctx: BonusContext
+  ) {
+    const sourceRows = await this.fetchStageRows(userId, roleType, range, type);
+    const quoteIds: number[] = Array.from(
+      new Set<number>(sourceRows.map(item => Number(item.quoteOrderId)))
+    );
+    const itemMap = await this.getQuoteItemProfiles(quoteIds, ctx);
+    const rows = sourceRows.map(stage => {
+      const profile =
+        itemMap.get(Number(stage.quoteOrderId)) || this.emptyProfile();
+      const rawSourceAmount =
+        type === 'actual'
+          ? this.toMoney(stage.receiptAmount || stage.amount)
+          : this.toMoney(stage.amount);
+      const sourceAmount = this.toUntaxedAmount(rawSourceAmount, ctx.dutyRate);
+      return this.calcSalesStageMetrics(stage, profile, sourceAmount, ctx);
+    });
+    return this.calcSalesTierBonusAmountByRows(rows);
   }
 
   private async calcInternalUserMonth(
@@ -1994,6 +2024,7 @@ export class CrmPerformanceService extends BaseService {
         u.email,
         u.departmentId,
         u.salary,
+        u.withholdingSalary,
         u.level,
         u.remark,
         GROUP_CONCAT(r.label) AS roleLabels
@@ -2016,6 +2047,7 @@ export class CrmPerformanceService extends BaseService {
         email: row.email,
         departmentId: row.departmentId,
         salary: this.toMoney(row.salary),
+        withholdingSalary: this.toMoney(row.withholdingSalary),
         level: row.level,
         remark: row.remark,
         roleType: labels.includes(SALESMAN_ROLE_LABEL) ? 'sales' : 'internal',
@@ -2224,6 +2256,23 @@ export class CrmPerformanceService extends BaseService {
     return { start, end };
   }
 
+  private getPreviousMonthRange(month: string) {
+    const previous = moment(`${month}-01`).subtract(1, 'month').format('YYYY-MM');
+    return this.getMonthRange(previous);
+  }
+
+  private calcSalesTierBonusAmountByRows(rows: any[]) {
+    return this.toMoney(
+      rows.reduce(
+        (sum, item) =>
+          sum +
+          this.toMoney(item.mainPerformance) +
+          this.toMoney(item.secondaryPerformance) / 2,
+        0
+      )
+    );
+  }
+
   private normalizeMonth(value: any) {
     const text = String(value || '').trim();
     if (/^\d{4}-\d{2}$/.test(text)) {
@@ -2303,34 +2352,7 @@ export class CrmPerformanceService extends BaseService {
     const months = this.getYearMonths(year);
     const monthlyRows = await Promise.all(
       months.map(async month => {
-        const result = await this.calcUserMonth(
-          user.id,
-          user.roleType,
-          month,
-          'expected'
-        );
-        const groups = Array.isArray(result.groups) ? result.groups : [];
-        const newCaseAmount = this.toMoney(
-          groups
-            .filter(group => !this.isRenewalQuote(group.quoteType))
-            .reduce((sum, group) => sum + this.toMoney(group.amountTotal), 0)
-        );
-        const renewalAmount = this.toMoney(
-          groups
-            .filter(group => this.isRenewalQuote(group.quoteType))
-            .reduce((sum, group) => sum + this.toMoney(group.amountTotal), 0)
-        );
-        return {
-          month,
-          amountTotal: this.toMoney(result.amountTotal),
-          bonusTotal: this.toMoney(result.bonusTotal),
-          mainAmount: this.toMoney(result.mainAmount),
-          secondaryAmount: this.toMoney(result.secondaryAmount),
-          tierBonus: this.toMoney(result.tierBonus),
-          newCaseAmount,
-          renewalAmount,
-          quoteCount: groups.length,
-        };
+        return await this.calcAnnualInvoiceMonth(user, month, ctx);
       })
     );
     const amountTotal = this.toMoney(
@@ -2348,7 +2370,7 @@ export class CrmPerformanceService extends BaseService {
     const averageAmount = this.toMoney(amountTotal / 12);
     const renewalRate =
       amountTotal > 0 ? this.toMoney((renewalAmount / amountTotal) * 100) : 0;
-    const salary = this.toMoney(user.salary);
+    const salary = this.toMoney(user.withholdingSalary ?? user.salary);
     const rule =
       user.roleType === 'sales'
         ? this.resolveSalesAnnualRule(averageAmount, newCaseAmount, user, ctx)
@@ -2386,6 +2408,246 @@ export class CrmPerformanceService extends BaseService {
       isQualified: rule.annualFactor > 0 || rule.midYearFactor > 0 ? 1 : 0,
       months: withDetail ? monthlyRows : undefined,
     };
+  }
+
+  private async calcAnnualInvoiceMonth(
+    user: EligibleUser,
+    month: string,
+    ctx: BonusContext
+  ) {
+    const result =
+      user.roleType === 'internal'
+        ? await this.calcInternalAnnualInvoiceMonth(user, month, ctx)
+        : await this.calcSalesAnnualInvoiceMonth(user, month, ctx);
+    const groups = Array.isArray(result.groups) ? result.groups : [];
+    const newCaseAmount = this.toMoney(
+      groups
+        .filter(group => !this.isRenewalQuote(group.quoteType))
+        .reduce((sum, group) => sum + this.toMoney(group.amountTotal), 0)
+    );
+    const renewalAmount = this.toMoney(
+      groups
+        .filter(group => this.isRenewalQuote(group.quoteType))
+        .reduce((sum, group) => sum + this.toMoney(group.amountTotal), 0)
+    );
+    return {
+      month,
+      amountTotal: this.toMoney(result.amountTotal),
+      bonusTotal: this.toMoney(result.bonusTotal),
+      mainAmount: this.toMoney(result.mainAmount),
+      secondaryAmount: this.toMoney(result.secondaryAmount),
+      tierBonus: this.toMoney(result.tierBonus),
+      newCaseAmount,
+      renewalAmount,
+      quoteCount: groups.length,
+    };
+  }
+
+  private async calcSalesAnnualInvoiceMonth(
+    user: EligibleUser,
+    month: string,
+    ctx: BonusContext
+  ) {
+    const range = this.getMonthRange(month);
+    const rows = await this.fetchSalesAnnualInvoiceRows(user.id, range);
+    const quoteIds: number[] = Array.from(
+      new Set<number>(rows.map(item => Number(item.quoteOrderId)))
+    );
+    const itemMap = await this.getQuoteItemProfiles(quoteIds, ctx);
+    const detailRows = rows.map(row => {
+      const profile =
+        itemMap.get(Number(row.quoteOrderId)) || this.emptyProfile();
+      const sourceAmount = this.toMoney(row.sourceAmount);
+      return {
+        ...row,
+        sourceAmount,
+        bonusBaseAmount: sourceAmount,
+        mainProductRatio: profile.mainRatio,
+        secondaryProductRatio: profile.secondaryRatio,
+        bonusAmount: 0,
+        ...this.calcSalesStageMetrics(row, profile, sourceAmount, ctx),
+      };
+    });
+
+    return this.buildAnnualInvoiceMonthResult(detailRows);
+  }
+
+  private async calcInternalAnnualInvoiceMonth(
+    user: EligibleUser,
+    month: string,
+    ctx: BonusContext
+  ) {
+    const range = this.getMonthRange(month);
+    const userEntity = await this.baseSysUserEntity.findOneBy({ id: user.id });
+    const departmentType = await this.resolveInternalDepartmentType(userEntity);
+    const rows = await this.fetchInternalAnnualInvoiceRows(user.id, range, ctx);
+    const accountingRows = this.filterInternalRowsByDepartmentRule(
+      rows,
+      departmentType,
+      ctx
+    ).map(row => ({
+      ...row,
+      bonusAmount: 0,
+    }));
+
+    return this.buildAnnualInvoiceMonthResult(accountingRows);
+  }
+
+  private buildAnnualInvoiceMonthResult(rows: any[]) {
+    const groups = this.groupDetailRows(rows);
+    return {
+      amountTotal: this.toMoney(
+        rows.reduce((sum, item) => sum + this.toMoney(item.sourceAmount), 0)
+      ),
+      bonusTotal: 0,
+      mainAmount: this.toMoney(
+        rows.reduce((sum, item) => sum + this.toMoney(item.mainPerformance), 0)
+      ),
+      secondaryAmount: this.toMoney(
+        rows.reduce(
+          (sum, item) => sum + this.toMoney(item.secondaryPerformance),
+          0
+        )
+      ),
+      tierBonus: 0,
+      groups,
+    };
+  }
+
+  private async fetchSalesAnnualInvoiceRows(
+    userId: number,
+    range: { start: string; end: string }
+  ) {
+    return await this.nativeQuery(
+      `
+      SELECT
+        i.id AS invoiceId,
+        i.quoteOrderId,
+        i.quoteStageId AS stageId,
+        i.stageNo,
+        i.stageName,
+        i.ratio,
+        i.amount AS sourceAmount,
+        i.auditTime,
+        q.quoteNo,
+        q.quoteName,
+        q.quoteType
+      FROM crm_quote_invoice i
+      INNER JOIN crm_quote_order q ON q.id = i.quoteOrderId
+      WHERE i.isDeleted = 0
+        AND i.status = 2
+        AND IFNULL(i.ecpayInvalidStatus, 0) <> 2
+        AND i.voidTime IS NULL
+        AND i.auditTime IS NOT NULL
+        AND i.auditTime <> ''
+        AND i.auditTime >= ?
+        AND i.auditTime <= ?
+        AND q.isDeleted = 0
+        AND q.salesmanId = ?
+      ORDER BY i.auditTime ASC, i.id ASC
+      `,
+      [range.start, range.end, userId]
+    );
+  }
+
+  private async fetchInternalAnnualInvoiceRows(
+    userId: number,
+    range: { start: string; end: string },
+    ctx: BonusContext
+  ) {
+    const rows = await this.nativeQuery(
+      `
+      SELECT
+        i.id AS invoiceId,
+        i.quoteOrderId,
+        qi.id AS itemId,
+        qi.sortNum AS stageNo,
+        qi.productName,
+        qi.specName,
+        qi.subtotalAmount,
+        qi.grossProfitAmount,
+        qi.departmentId,
+        q.quoteNo,
+        q.quoteName,
+        q.quoteType,
+        i.auditTime,
+        i.amount AS invoiceAmount,
+        qt.totalAmount AS quoteItemAmount
+      FROM crm_quote_invoice i
+      INNER JOIN crm_quote_order q ON q.id = i.quoteOrderId
+      INNER JOIN crm_quote_order_item qi ON qi.quoteOrderId = q.id
+      INNER JOIN base_sys_user u ON u.id = ?
+      INNER JOIN crm_quote_order_department_audit da
+        ON da.quoteOrderId = q.id
+       AND da.departmentId = qi.departmentId
+       AND da.isDeleted = 0
+       AND da.auditStatus = 2
+      LEFT JOIN (
+        SELECT quoteOrderId, COALESCE(SUM(subtotalAmount), 0) AS totalAmount
+        FROM crm_quote_order_item
+        WHERE isDeleted = 0
+        GROUP BY quoteOrderId
+      ) qt ON qt.quoteOrderId = q.id
+      WHERE i.isDeleted = 0
+        AND i.status = 2
+        AND IFNULL(i.ecpayInvalidStatus, 0) <> 2
+        AND i.voidTime IS NULL
+        AND i.auditTime IS NOT NULL
+        AND i.auditTime <> ''
+        AND i.auditTime >= ?
+        AND i.auditTime <= ?
+        AND qi.isDeleted = 0
+        AND q.isDeleted = 0
+        AND da.assignStatus = 2
+        AND da.costStatus = 1
+        AND da.assigneeId = ?
+        AND da.costUserId = ?
+        AND qi.departmentId = u.departmentId
+      ORDER BY i.auditTime ASC, i.id ASC, qi.sortNum ASC, qi.id ASC
+      `,
+      [userId, range.start, range.end, userId, userId]
+    );
+
+    return rows.map(row => {
+      const totalAmount = this.toMoney(row.quoteItemAmount);
+      const itemAmount = this.toMoney(row.subtotalAmount);
+      const itemRatio = totalAmount > 0 ? itemAmount / totalAmount : 0;
+      const sourceAmount = this.toMoney(this.toMoney(row.invoiceAmount) * itemRatio);
+      const grossRate =
+        itemAmount > 0
+          ? (this.toMoney(row.grossProfitAmount) / itemAmount) * 100
+          : 0;
+      const isMain = grossRate >= ctx.mainMarginThreshold;
+      const grossProfitAmount = this.toMoney(
+        this.toMoney(row.grossProfitAmount) * itemRatio
+      );
+      return {
+        stageId: `${row.invoiceId}-${row.itemId}`,
+        quoteOrderId: row.quoteOrderId,
+        stageNo: row.stageNo,
+        stageName: `${row.productName || ''}${
+          row.specName ? ` / ${row.specName}` : ''
+        }`,
+        ratio: itemRatio,
+        amount: sourceAmount,
+        sourceAmount,
+        grossProfitAmount,
+        invoiceDate: row.auditTime,
+        receiptTime: row.auditTime,
+        receiptAmount: sourceAmount,
+        receiptVoucher: '',
+        quoteNo: row.quoteNo,
+        quoteName: row.quoteName,
+        quoteType: row.quoteType,
+        grossRate,
+        mainProductRatio: isMain ? 1 : 0,
+        secondaryProductRatio: isMain ? 0 : 1,
+        mainPerformance: isMain ? sourceAmount : 0,
+        secondaryPerformance: isMain ? 0 : sourceAmount,
+        secondaryGrossProfit: isMain ? 0 : grossProfitAmount,
+        isOneTimePayment: 0,
+      };
+    });
   }
 
   private resolveSalesAnnualRule(
@@ -2490,7 +2752,7 @@ export class CrmPerformanceService extends BaseService {
   ): Promise<boolean> {
     const members = await this.nativeQuery(
       `
-      SELECT u.id
+      SELECT u.id, u.name
       FROM base_sys_user u
       INNER JOIN base_sys_user_role ur ON ur.userId = u.id
       INNER JOIN base_sys_role r ON r.id = ur.roleId
@@ -2504,16 +2766,14 @@ export class CrmPerformanceService extends BaseService {
     if (!members || members.length === 0) return false;
     const months = this.getYearMonths(year);
     for (const member of members) {
+      const memberUser: EligibleUser = {
+        id: Number(member.id),
+        name: String(member.name || ''),
+        roleType: 'internal',
+      };
       const monthlyRows = await Promise.all(
         months.map(async month => {
-          const result = await this.calcUserMonth(member.id, 'internal', month, 'expected');
-          const groups = Array.isArray(result.groups) ? result.groups : [];
-          const renewalAmount = this.toMoney(
-            groups
-              .filter(g => this.isRenewalQuote(g.quoteType))
-              .reduce((sum, g) => sum + this.toMoney(g.amountTotal), 0)
-          );
-          return { amountTotal: this.toMoney(result.amountTotal), renewalAmount };
+          return await this.calcAnnualInvoiceMonth(memberUser, month, ctx);
         })
       );
       const amountTotal = this.toMoney(

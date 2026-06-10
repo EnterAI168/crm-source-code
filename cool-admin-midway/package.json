@@ -75,7 +75,10 @@
     "menu:finance-management": "node scripts/move-finance-menu.mjs",
     "menu:performance-management": "node scripts/move-performance-menu.mjs",
     "menu:remittance-management": "node scripts/move-remittance-menu.mjs",
-    "param:invoice-company-seal": "node scripts/append-invoice-company-seal-param.mjs"
+    "param:invoice-company-seal": "node scripts/append-invoice-company-seal-param.mjs",
+    "param:quote-discount-rate": "node scripts/append-quote-discount-rate-param.mjs",
+    "param:employee-withholding-rate": "node scripts/append-employee-withholding-rate-param.mjs",
+    "user:withholding-salary": "node scripts/add-user-withholding-salary.mjs"
   },
   "bin": "./bootstrap.js",
   "pkg": {

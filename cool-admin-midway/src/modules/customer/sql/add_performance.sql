@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS `crm_performance` (
   `roleType` varchar(32) NOT NULL COMMENT '考核角色 sales-業務 internal-內勤',
   `periodStart` varchar(30) NOT NULL COMMENT '考核開始時間',
   `periodEnd` varchar(30) NOT NULL COMMENT '考核結束時間',
-  `invoiceAmount` decimal(12,2) NOT NULL DEFAULT 0 COMMENT '本月開票金額',
+  `invoiceAmount` decimal(12,2) NOT NULL DEFAULT 0 COMMENT '本月審核通過金額',
   `expectedBonus` decimal(12,2) NOT NULL DEFAULT 0 COMMENT '預計獎金',
   `receiptAmount` decimal(12,2) NOT NULL DEFAULT 0 COMMENT '本月回款金額',
   `actualBonus` decimal(12,2) NOT NULL DEFAULT 0 COMMENT '實際獎金',

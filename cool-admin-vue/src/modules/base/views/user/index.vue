@@ -129,6 +129,10 @@
 					/>
 				</el-select>
 			</template>
+
+			<template #slot-withholding-salary>
+				<el-input :model-value="currentWithholdingSalary" disabled />
+			</template>
 		</cl-upsert>
 	</cl-crud>
 </template>
@@ -140,6 +144,7 @@ defineOptions({
 
 import { useTable, useUpsert, useCrud } from '@cool-vue/crud';
 import { useCool } from '/@/cool';
+import { BaseService } from '/@/cool/service/base';
 import { Plugins } from '/#/crud';
 import { ElMessage } from 'element-plus';
 import { computed, h, onMounted, ref } from 'vue';
@@ -157,9 +162,11 @@ const roleSelectDisabled = ref(false);
 const levelOptions = ref<{ label: string; value: string }[]>([]);
 const levelSelectDisabled = ref(false);
 const showLevel = ref(false);
+const employeeWithholdingRate = ref(0);
 
 let roleLoading: Promise<void> | null = null;
 let departmentLoading: Promise<void> | null = null;
+let withholdingRateLoading: Promise<void> | null = null;
 
 const INTERNAL_ROLE_LABEL = 'office_clerk';
 const INTERNAL_MANAGER_ROLE_LABEL = 'office_clerk_manager';
@@ -188,6 +195,14 @@ const isUpsertReadonly = computed(() => Upsert.value?.mode === 'info');
 const currentDepartmentId = computed(() => Upsert.value?.getForm('departmentId'));
 const currentRoleId = computed(() => normalizeSingleRoleId(Upsert.value?.getForm('roleIdList')));
 const currentLevelValue = computed(() => Upsert.value?.getForm('level'));
+const currentWithholdingSalary = computed(() => {
+	const storedValue = Upsert.value?.getForm('withholdingSalary');
+	const salary = Upsert.value?.getForm('salary');
+	if (salary !== undefined && salary !== null && salary !== '') {
+		return toMoney(calcWithholdingSalary(salary));
+	}
+	return toMoney(storedValue);
+});
 const loginPhoneDisplayValue = computed(
 	() => loginPhoneValue.value || Upsert.value?.getForm('phone') || Upsert.value?.getForm('username') || ''
 );
@@ -224,6 +239,7 @@ const Table = useTable({
 			formatter: (row: any) => row?.level || '--'
 		},
 		{ prop: 'salary', label: '月工資', width: 140 },
+		{ prop: 'withholdingSalary', label: '扣繳工資', width: 140 },
 		{ type: 'op', width: 220, buttons: ['info', 'edit', 'delete'] }
 	]
 });
@@ -304,6 +320,12 @@ const Upsert = useUpsert({
 			}
 		},
 		{
+			prop: 'withholdingSalary',
+			label: '扣繳工資',
+			span: 12,
+			component: { name: 'slot-withholding-salary' }
+		},
+		{
 			prop: 'level',
 			label: '員工等級',
 			span: 12,
@@ -365,15 +387,17 @@ const Upsert = useUpsert({
 		});
 	},
 	async onOpen() {
-		await Promise.all([ensureRolesLoaded(), ensureDepartmentsLoaded()]);
+		await Promise.all([ensureRolesLoaded(), ensureDepartmentsLoaded(), ensureWithholdingRateLoaded()]);
 		loginPhoneValue.value = '';
 		Upsert.value?.setForm('username', '');
 		Upsert.value?.setForm('phone', '');
 		Upsert.value?.setForm('departmentId', undefined);
+		Upsert.value?.setForm('salary', undefined);
+		Upsert.value?.setForm('withholdingSalary', 0);
 		resetRoleState();
 	},
 	async onOpened(data) {
-		await Promise.all([ensureRolesLoaded(), ensureDepartmentsLoaded()]);
+		await Promise.all([ensureRolesLoaded(), ensureDepartmentsLoaded(), ensureWithholdingRateLoaded()]);
 		let detail = data;
 		if (data?.id) {
 			detail = await service.base.sys.user.info({ id: data.id });
@@ -387,6 +411,7 @@ const Upsert = useUpsert({
 		Upsert.value?.setForm('username', loginPhone);
 		Upsert.value?.setForm('phone', loginPhone);
 		Upsert.value?.setForm('departmentId', departmentId);
+		Upsert.value?.setForm('withholdingSalary', detail?.withholdingSalary ?? calcWithholdingSalary(detail?.salary));
 		applyDepartmentRoleRule(departmentId, roleId, detail?.level);
 	},
 	plugins: [Plugins.Form.setFocus('name')]
@@ -396,6 +421,20 @@ function normalizeSingleRoleId(value: any) {
 	const roleId = Array.isArray(value) ? value[0] : value;
 	const id = Number(roleId);
 	return Number.isNaN(id) ? undefined : id;
+}
+
+function toMoney(value: any) {
+	const num = Number(value ?? 0);
+	return Number.isFinite(num) ? num.toFixed(2) : '0.00';
+}
+
+function calcWithholdingSalary(salary: any) {
+	const rawSalary = Number(salary || 0);
+	if (!Number.isFinite(rawSalary) || rawSalary <= 0) {
+		return 0;
+	}
+	const rate = Math.min(Math.max(Number(employeeWithholdingRate.value || 0), 0), 100);
+	return Number((rawSalary - rawSalary * (rate / 100)).toFixed(2));
 }
 
 function toRoleOptions(list: any[]) {
@@ -615,6 +654,27 @@ function ensureDepartmentsLoaded() {
 		});
 
 	return departmentLoading;
+}
+
+function ensureWithholdingRateLoaded() {
+	if (withholdingRateLoading) return withholdingRateLoading;
+
+	const paramService = new BaseService('admin/base/sys/param');
+	withholdingRateLoading = paramService
+		.request({
+			url: '/data',
+			method: 'GET',
+			params: { key: 'employee_withholding_rate' }
+		})
+		.then(res => {
+			const rate = Number(res || 0);
+			employeeWithholdingRate.value = Number.isFinite(rate) ? Math.min(Math.max(rate, 0), 100) : 0;
+		})
+		.finally(() => {
+			withholdingRateLoading = null;
+		});
+
+	return withholdingRateLoading;
 }
 
 function findDepartmentNode(id?: number, list: any[] = departmentTree.value): any {

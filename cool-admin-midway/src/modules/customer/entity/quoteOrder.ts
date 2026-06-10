@@ -133,6 +133,25 @@ export class CrmQuoteOrderEntity extends BaseEntity {
   })
   commission: number;
 
+  @Column({
+    comment: '優惠審批狀態 0-無需審批 1-待老板審批 2-直接同意 3-同意扣除超出獎金 4-不同意',
+    default: 0,
+    type: 'tinyint',
+  })
+  discountAuditStatus: number;
+
+  @Column({ comment: '優惠審批原因', nullable: true, length: 255 })
+  discountAuditReason: string;
+
+  @Column({ comment: '優惠審批人ID', nullable: true })
+  discountAuditUserId: number;
+
+  @Column({ comment: '優惠審批時間', nullable: true, length: 20 })
+  discountAuditTime: string;
+
+  @Column({ comment: '優惠審批備註', nullable: true, type: 'text' })
+  discountAuditRemark: string;
+
   @Column({ comment: '發送方式 0-未發送 1-郵件發送 2-手工標記', default: 0, type: 'tinyint' })
   sendType: number;
 

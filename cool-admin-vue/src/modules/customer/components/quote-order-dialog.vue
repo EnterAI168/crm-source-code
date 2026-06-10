@@ -362,11 +362,8 @@
 								<div v-if="showVipDiscountTip" class="crm-quote-tip">
 									VIP客戶預設優惠15%
 								</div>
-								<div
-									v-if="getDiscountDeductionAmount() > 0"
-									class="crm-quote-error"
-								>
-									超出 15% 的優惠會從獎金扣除
+								<div v-if="discountAuditTip" class="crm-quote-error">
+									{{ discountAuditTip }}
 								</div>
 							</div>
 						</template>
@@ -750,6 +747,7 @@ const quotePdfPreviewRef = ref<InstanceType<typeof QuoteHistoryPreview> | null>(
 const quotePdfPreviewLoadedId = ref(0);
 const quoteTermSections = ref<any[]>([]);
 const defaultQuoteTermSections = ref<any[]>([]);
+const quoteDiscountRateThreshold = ref(0);
 let quoteTermUid = 1;
 let quotePdfPreviewLoadedResolve: (() => void) | null = null;
 
@@ -807,6 +805,7 @@ const currentCustomerLabel = computed(() => {
 const showVipDiscountTip = computed(
 	() => !isEditMode.value && Number(currentCustomerInfo.value?.isVip || 0) === 1
 );
+const discountAuditTip = computed(() => getDiscountAuditTip());
 const currentQuotePdfName = computed(() => `${quoteForm.quoteName || '未命名專案'}-報價單.pdf`);
 
 function toNumber(value: any) {
@@ -1110,11 +1109,9 @@ function createQuoteStage() {
 }
 
 function getPresetPrice(row: any) {
-	if (!row?.specId) {
-		return 0;
-	}
 	const spec = getSpecById(row.productId, row.specId);
-	return toNumber(spec?.price);
+	const product = getProductById(row.productId);
+	return toNumber(spec?.price ?? product?.price);
 }
 
 function getCostPrice(row: any) {
@@ -1143,11 +1140,11 @@ function getProductTypeLabel(row: any) {
 }
 
 function getMinActualPrice(row: any) {
-	const costPrice = getCostPrice(row);
-	if (costPrice <= 0) {
+	const presetPrice = getPresetPrice(row);
+	if (presetPrice <= 0) {
 		return 0;
 	}
-	return Number((costPrice / 0.85).toFixed(2));
+	return Number((presetPrice * 0.85).toFixed(2));
 }
 
 function recalcQuoteItem(row: any) {
@@ -1164,8 +1161,8 @@ function recalcQuoteItem(row: any) {
 	const minActualPrice = getMinActualPrice(row);
 	if (row.actualPrice <= 0) {
 		row.actualPriceError = '報價價格必須大於0';
-	} else if (minActualPrice > 0 && row.actualPrice < minActualPrice) {
-		row.actualPriceError = `不可以低於最低報價 ${toMoney(minActualPrice)}`;
+	} else if (minActualPrice > 0 && row.actualPrice <= minActualPrice) {
+		row.actualPriceError = '報價價格必須高於預設價格85%';
 	} else {
 		row.actualPriceError = '';
 	}
@@ -1224,12 +1221,17 @@ function getDutyRate() {
 	return Number.isNaN(amount) ? 0 : amount > 1 ? amount : amount * 100;
 }
 
+function normalizePercentValue(value: any) {
+	const amount = toNumber(String(value ?? '').replace('%', ''));
+	return Math.max(0, Math.min(100, amount));
+}
+
 function getDutyLabel() {
 	return toPlainPercentText(getDutyRate());
 }
 
 function getDiscountDeductionAmount() {
-	return Number((getQuoteItemsAmount() * (Math.max(0, getDiscountRate() - 15) / 100)).toFixed(2));
+	return 0;
 }
 
 function getNetCommission() {
@@ -1525,6 +1527,20 @@ function getDefaultDiscountRate(customer?: Record<string, any> | null) {
 	return Number(customer?.isVip || 0) === 1 ? 15 : 0;
 }
 
+function getDiscountAuditTip() {
+	const discountRate = getDiscountRate();
+	if (Number(currentCustomerInfo.value?.isVip || 0) === 1) {
+		return discountRate > 15
+			? '優惠比例超過VIP最大額度15%，需要老板審批，審批是否扣除獎金'
+			: '';
+	}
+
+	const threshold = normalizePercentValue(quoteDiscountRateThreshold.value);
+	return threshold > 0 && discountRate > threshold
+		? '優惠比例超過預設閾值，需要老板審批，審批是否扣除獎金'
+		: '';
+}
+
 function resolveCommission(detail: any, items: any[]) {
 	if (
 		detail?.commission !== undefined &&
@@ -1551,13 +1567,16 @@ function resolveCommission(detail: any, items: any[]) {
 }
 
 async function loadOptions() {
-	const [customers, products, quoteTerms] = await Promise.allSettled([
+	const [customers, products, quoteTerms, quoteDiscountRate] = await Promise.allSettled([
 		quoteService.customerOptions(),
 		quoteService.productOptions(),
-		quoteService.quoteTerms()
+		quoteService.quoteTerms(),
+		quoteService.quoteDiscountRate()
 	]);
 	customerOptions.value = customers.status === 'fulfilled' ? customers.value || [] : [];
 	productOptions.value = products.status === 'fulfilled' ? products.value || [] : [];
+	quoteDiscountRateThreshold.value =
+		quoteDiscountRate.status === 'fulfilled' ? normalizePercentValue(quoteDiscountRate.value) : 0;
 	defaultQuoteTermSections.value = normalizeQuoteTerms(
 		quoteTerms.status === 'fulfilled' ? quoteTerms.value : []
 	);
@@ -1642,8 +1661,9 @@ async function openWithQuote(id: number) {
 	quoteForm.customerId = detail?.customerId ? Number(detail.customerId) : undefined;
 	quoteCustomerSnapshot.value = {
 		id: quoteForm.customerId,
-		companyName: detail?.customerCompanyName || '',
-		address: detail?.customerAddress || '',
+			companyName: detail?.customerCompanyName || '',
+			isVip: Number(detail?.customerIsVip || 0),
+			address: detail?.customerAddress || '',
 		taxNumber: detail?.customerTaxNumber || '',
 		remittanceLast5: detail?.customerRemittanceLast5 || '',
 		contactName: detail?.customerContactName || '',
@@ -1829,7 +1849,7 @@ async function submitDialog() {
 			quoteTerms: quoteTermSectionsToPayload(),
 			discountRate: getDiscountRate(),
 			commission: toNumber(quotePriceRow.commission),
-			discountDeductionAmount: getDiscountDeductionAmount(),
+			discountDeductionAmount: 0,
 			contractFile: quoteForm.contractFile || undefined,
 			contractFileName: String(quoteForm.contractFileName || '').trim() || undefined,
 			finalAmount: getFinalAmount(),
@@ -1858,11 +1878,15 @@ async function submitDialog() {
 		const result: any = isEditMode.value
 			? await quoteService.update(payload)
 			: await quoteService.add(payload);
-		ElMessage.success(
-			isEditMode.value
-				? '報價單已更新'
-				: '報價單已建立：' + (result?.quoteNo || quoteForm.quoteNo)
-		);
+		if (result?.discountAuditRequired) {
+			ElMessage.warning(result?.discountAuditReason || '優惠比例需要老板審批');
+		} else {
+			ElMessage.success(
+				isEditMode.value
+					? '報價單已更新'
+					: '報價單已建立：' + (result?.quoteNo || quoteForm.quoteNo)
+			);
+		}
 		if (isEditMode.value) {
 			await loadLatestQuotePdfHistory();
 		}

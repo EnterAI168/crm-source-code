@@ -338,10 +338,10 @@ onMounted(loadStatistics);
 }
 
 .statistics-table {
-	width: 100%;
+	width: max-content;
 	min-width: 1280px;
 	border-collapse: collapse;
-	table-layout: fixed;
+	table-layout: auto;
 	border: 1px solid #cbd5e1;
 
 	th,
@@ -354,7 +354,7 @@ onMounted(loadStatistics);
 		font-size: 12px;
 		line-height: 16px;
 		word-break: normal;
-		overflow-wrap: break-word;
+		overflow-wrap: normal;
 		color: #111827;
 	}
 
@@ -365,15 +365,15 @@ onMounted(loadStatistics);
 		font-weight: 700;
 	}
 
-	td:first-child,
-	th:first-child {
-		width: 54px;
+td:first-child,
+th:first-child {
+		min-width: 54px;
 	}
 }
 
 .statistics-table th:nth-child(2),
 .statistics-table td:nth-child(2) {
-	width: 74px;
+	min-width: 74px;
 }
 
 .statistics-table th:nth-child(3),
@@ -382,7 +382,7 @@ onMounted(loadStatistics);
 .statistics-table td:nth-child(4),
 .statistics-table th:nth-child(5),
 .statistics-table td:nth-child(5) {
-	width: 124px;
+	min-width: 124px;
 }
 
 .statistics-table th:nth-child(n + 6),
@@ -397,29 +397,31 @@ onMounted(loadStatistics);
 
 	th:nth-child(2),
 	td:nth-child(2) {
-		width: 180px;
+		min-width: 180px;
 	}
 
 	th:nth-child(3),
 	td:nth-child(3) {
-		width: 160px;
+		min-width: 220px;
+		width: max-content;
+		white-space: nowrap;
 	}
 
 	th:nth-child(4),
 	td:nth-child(4) {
-		width: 138px;
+		min-width: 138px;
 		white-space: nowrap;
 		overflow-wrap: normal;
 	}
 
 	th:nth-child(5),
 	td:nth-child(5) {
-		width: 76px;
+		min-width: 76px;
 	}
 
 	th:nth-child(n + 6),
 	td:nth-child(n + 6) {
-		width: 112px;
+		min-width: 112px;
 		white-space: nowrap;
 	}
 }

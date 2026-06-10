@@ -648,35 +648,27 @@ export class CrmQuoteInvoiceService extends BaseService {
       addLine(x + width, y - height, x, y - height);
       addLine(x, y - height, x, y);
     };
-    const drawTable = (
-      x: number,
-      y: number,
-      widths: number[],
-      heights: number[]
-    ) => {
-      const totalWidth = widths.reduce((sum, item) => sum + item, 0);
-      const totalHeight = heights.reduce((sum, item) => sum + item, 0);
-      drawRect(x, y, totalWidth, totalHeight);
-      let cursorX = x;
-      widths.slice(0, -1).forEach(width => {
-        cursorX += width;
-        addLine(cursorX, y, cursorX, y - totalHeight);
-      });
-      let cursorY = y;
-      heights.slice(0, -1).forEach(height => {
-        cursorY -= height;
-        addLine(x, cursorY, x + totalWidth, cursorY);
-      });
-    };
-
     const left = 86;
     const tableX = left;
     const tableY = 570;
     const widths = [150, 38, 70, 70, 95];
+    const rowHeights = [30, 190, 32, 32, 32, 50];
+    const tableWidth = widths.reduce((sum, item) => sum + item, 0);
+    const tableHeight = rowHeights.reduce((sum, item) => sum + item, 0);
+    const columnX = widths.reduce(
+      (items, width) => [...items, items[items.length - 1] + width],
+      [tableX]
+    );
     const centers = widths.reduce((items, width, index) => {
       const prev = index === 0 ? tableX : items[index - 1].edge;
       return [...items, { x: prev + width / 2, edge: prev + width }];
     }, [] as Array<{ x: number; edge: number }>);
+    const headerBottomY = tableY - rowHeights[0];
+    const bodyBottomY = headerBottomY - rowHeights[1];
+    const footerRow1BottomY = bodyBottomY - rowHeights[2];
+    const footerRow2BottomY = footerRow1BottomY - rowHeights[3];
+    const footerRow3BottomY = footerRow2BottomY - rowHeights[4];
+    const tableBottomY = tableY - tableHeight;
 
     drawRect(72, 760, 451, 615);
     addText('電子發票證明聯', pageWidth / 2, 718, 14, { align: 'center' });
@@ -703,7 +695,20 @@ export class CrmQuoteInvoiceService extends BaseService {
       font: 'latin',
     });
 
-    drawTable(tableX, tableY, widths, [30, 190, 32, 32, 32, 50]);
+    drawRect(tableX, tableY, tableWidth, tableHeight);
+    addLine(tableX, headerBottomY, tableX + tableWidth, headerBottomY);
+    addLine(tableX, bodyBottomY, tableX + tableWidth, bodyBottomY);
+    [footerRow1BottomY, footerRow2BottomY, footerRow3BottomY].forEach(y => {
+      addLine(tableX, y, columnX[4], y);
+    });
+    columnX.slice(1, -1).forEach(x => {
+      addLine(x, tableY, x, bodyBottomY);
+    });
+    addLine(columnX[3], bodyBottomY, columnX[3], footerRow3BottomY);
+    addLine(columnX[4], bodyBottomY, columnX[4], tableBottomY);
+    addLine(columnX[1], footerRow1BottomY, columnX[1], footerRow2BottomY);
+    addLine(columnX[2], footerRow3BottomY, columnX[2], tableBottomY);
+
     ['品名', '數量', '單價', '金額', '備註'].forEach((item, index) => {
       addText(item, centers[index].x, tableY - 19, 10, { align: 'center' });
     });
@@ -736,7 +741,7 @@ export class CrmQuoteInvoiceService extends BaseService {
       { maxWidth: widths[4] - 16 }
     );
 
-    const footerY = tableY - 220;
+    const footerY = bodyBottomY;
     addText('銷售額合計', tableX + 8, footerY - 20);
     addText(
       this.formatMoney(preview.untaxedAmount ?? preview.amount),
@@ -769,18 +774,14 @@ export class CrmQuoteInvoiceService extends BaseService {
       align: 'center',
       maxWidth: widths[4] - 10,
     });
-    addText('確認鍵智創科技股份有限公司', centers[4].x, footerY - 86, 9, {
-      align: 'center',
-      maxWidth: widths[4] - 10,
-    });
     const sealImage = await this.loadInvoiceSealImage(preview.invoiceSealUrl);
     if (sealImage) {
       images.push({
         ...sealImage,
-        x: centers[4].x - 45,
-        y: footerY - 96,
-        width: 90,
-        height: 62,
+        x: centers[4].x - 50,
+        y: footerY - 132,
+        width: 100,
+        height: 100,
       });
     }
 
@@ -956,7 +957,7 @@ export class CrmQuoteInvoiceService extends BaseService {
           `q ${image.width.toFixed(2)} 0 0 ${image.height.toFixed(2)} ${image.x.toFixed(2)} ${image.y.toFixed(2)} cm /Im${index + 1} Do Q\n`
       )
       .join('');
-    return `${lineStream}${textStream}${imageStream}`;
+    return `${imageStream}${lineStream}${textStream}`;
   }
 
   private wrapInvoicePdfText(item: InvoicePdfText) {
@@ -1336,6 +1337,9 @@ export class CrmQuoteInvoiceService extends BaseService {
           remark: row.quoteName || row.quoteNo || '',
         }
       );
+      const issueAmount = result?.__crmIssueAmount;
+      const ecpayResponse = { ...result };
+      delete ecpayResponse.__crmIssueAmount;
       await this.crmQuoteInvoiceEntity.update(
         { id: row.id },
         {
@@ -1345,7 +1349,10 @@ export class CrmQuoteInvoiceService extends BaseService {
           ecpayIssueStatus: 2,
           ecpayIssueTime: this.now(),
           ecpayIssueError: null,
-          ecpayIssueResponse: JSON.stringify(result),
+          ecpayIssueResponse: JSON.stringify(ecpayResponse),
+          amount: this.toIntegerMoney(
+            issueAmount?.totalAmount ?? row.amount
+          ),
         }
       );
       return result;
@@ -1423,6 +1430,14 @@ export class CrmQuoteInvoiceService extends BaseService {
       return 0;
     }
     return Number(num.toFixed(2));
+  }
+
+  private toIntegerMoney(value: any) {
+    const num = Number(value || 0);
+    if (!Number.isFinite(num)) {
+      return 0;
+    }
+    return Math.round(num);
   }
 
   private parseDutyRate(value: any) {

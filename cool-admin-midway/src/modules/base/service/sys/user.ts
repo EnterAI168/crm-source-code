@@ -10,6 +10,7 @@ import * as md5 from 'md5';
 import { BaseSysDepartmentEntity } from '../../entity/sys/department';
 import { CachingFactory, MidwayCache } from '@midwayjs/cache-manager';
 import { BaseSysRoleEntity } from '../../entity/sys/role';
+import { BaseSysParamService } from './param';
 
 /**
  * 系統使用者
@@ -49,6 +50,9 @@ export class BaseSysUserService extends BaseService {
   baseSysPermsService: BaseSysPermsService;
 
   @Inject()
+  baseSysParamService: BaseSysParamService;
+
+  @Inject()
   ctx;
 
   /**
@@ -72,7 +76,7 @@ export class BaseSysUserService extends BaseService {
         : [];
     const sql = `
         SELECT
-            a.id,a.name,a.nickName,a.headImg,a.email,a.remark,a.salary,a.level,a.status,a.createTime,a.updateTime,a.username,a.phone,a.departmentId,
+            a.id,a.name,a.nickName,a.headImg,a.email,a.remark,a.salary,a.withholdingSalary,a.level,a.status,a.createTime,a.updateTime,a.username,a.phone,a.departmentId,
             b.name as "departmentName"
         FROM
             base_sys_user a
@@ -176,6 +180,7 @@ export class BaseSysUserService extends BaseService {
       throw new CoolCommException('該手機號賬號已存在');
     }
     await this.validateRoleAndLevel(param);
+    await this.applyWithholdingSalary(param);
     param.password = md5(param.password);
     await super.add(param);
     await this.updateUserRole(param);
@@ -238,6 +243,9 @@ export class BaseSysUserService extends BaseService {
     } else {
       delete param.password;
     }
+    if (param.salary !== undefined) {
+      await this.applyWithholdingSalary(param);
+    }
     await this.baseSysUserEntity.save(param);
   }
 
@@ -272,6 +280,7 @@ export class BaseSysUserService extends BaseService {
     if (param.status === 0) {
       await this.forbidden(param.id);
     }
+    await this.applyWithholdingSalary(param);
     await this.baseSysUserEntity.save(param);
     await this.updateUserRole(param);
   }
@@ -325,6 +334,33 @@ export class BaseSysUserService extends BaseService {
     }
 
     delete param.level;
+  }
+
+  private async getEmployeeWithholdingRate() {
+    const value = await this.baseSysParamService.dataByKey(
+      'employee_withholding_rate'
+    );
+    const rate = Number(value || 0);
+    if (!Number.isFinite(rate) || rate < 0) {
+      return 0;
+    }
+    return Math.min(rate, 100);
+  }
+
+  private async applyWithholdingSalary(param: any) {
+    const withholdingRate = await this.getEmployeeWithholdingRate();
+    param.withholdingSalary = this.calcWithholdingSalary(
+      param.salary,
+      withholdingRate
+    );
+  }
+
+  private calcWithholdingSalary(salary: any, withholdingRate: number) {
+    const rawSalary = Number(salary || 0);
+    if (!Number.isFinite(rawSalary) || rawSalary <= 0) {
+      return 0;
+    }
+    return Number((rawSalary - rawSalary * (withholdingRate / 100)).toFixed(2));
   }
 
   /**

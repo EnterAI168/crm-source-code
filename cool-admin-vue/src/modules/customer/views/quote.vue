@@ -1,7 +1,7 @@
 <template>
 	<cl-crud ref="Crud" class="quote-list-page">
 		<cl-row>
-		<cl-search ref="Search" :items="searchItems" />
+			<cl-search ref="Search" :items="searchItems" />
 		</cl-row>
 
 		<cl-row>
@@ -12,6 +12,26 @@
 			<cl-refresh-btn />
 
 			<cl-flex1 />
+		</cl-row>
+
+		<cl-row>
+			<div class="quote-discount-audit-filter">
+				<span class="quote-discount-audit-filter__label">優惠審批</span>
+
+				<el-radio-group
+					v-model="discountAuditFilter"
+					size="small"
+					@change="onDiscountAuditFilterChange"
+				>
+					<el-radio-button
+						v-for="item in discountAuditFilterOptions"
+						:key="item.value"
+						:label="item.value"
+					>
+						{{ item.label }}
+					</el-radio-button>
+				</el-radio-group>
+			</div>
 		</cl-row>
 
 		<cl-row>
@@ -474,6 +494,47 @@
 		</template>
 	</el-dialog>
 
+	<el-dialog v-model="discountAuditVisible" title="優惠審批" width="560px" append-to-body>
+		<el-form label-width="100px">
+			<el-form-item label="審批原因">
+				<div class="quote-discount-audit-reason">
+					{{ discountAuditForm.reason || '-' }}
+				</div>
+			</el-form-item>
+
+			<el-form-item label="優惠比例">
+				<span>{{ toPlainPercent(discountAuditForm.discountRate) }}</span>
+			</el-form-item>
+
+			<el-form-item label="審批結果">
+				<el-radio-group v-model="discountAuditForm.discountAuditStatus">
+					<el-radio :label="2">直接同意</el-radio>
+
+					<el-radio :label="3">同意但扣除超出部分業務獎金</el-radio>
+
+					<el-radio :label="4">不同意，需要重新填寫優惠比例</el-radio>
+				</el-radio-group>
+			</el-form-item>
+
+			<el-form-item label="備註">
+				<el-input
+					v-model="discountAuditForm.remark"
+					type="textarea"
+					:rows="4"
+					placeholder="請輸入備註"
+				/>
+			</el-form-item>
+		</el-form>
+
+		<template #footer>
+			<el-button @click="discountAuditVisible = false">取消</el-button>
+
+			<el-button type="primary" :loading="discountAuditSubmitting" @click="submitDiscountAudit">
+				確認
+			</el-button>
+		</template>
+	</el-dialog>
+
 	<el-dialog v-model="departmentAssignFormVisible" title="分配" width="520px" append-to-body>
 		<el-form label-width="90px">
 			<el-form-item label="分配人員" required>
@@ -568,6 +629,8 @@ const canDepartmentCostPerm = computed(() => checkPerm('crm:quoteOrder:departmen
 
 const canAuditPerm = computed(() => checkPerm('crm:quoteOrder:audit'));
 
+const canDiscountAuditPerm = computed(() => checkPerm('crm:quoteOrder:auditDiscount'));
+
 const canAssignPerm = computed(() => checkPerm('crm:quoteOrder:assign'));
 
 const canUpdate = computed(() => checkPerm('crm:quoteOrder:update'));
@@ -651,6 +714,10 @@ const departmentAuditSubmitting = ref(false);
 
 const departmentAuditFormVisible = ref(false);
 
+const discountAuditVisible = ref(false);
+
+const discountAuditSubmitting = ref(false);
+
 const departmentAssignFormVisible = ref(false);
 
 const receiptStageRows = ref<any[]>([]);
@@ -688,6 +755,14 @@ const departmentAuditForm = reactive({
 	remark: ''
 });
 
+const discountAuditForm = reactive({
+	id: 0,
+	reason: '',
+	discountRate: 0,
+	discountAuditStatus: 2,
+	remark: ''
+});
+
 const departmentAssignForm = reactive({
 	departmentId: 0,
 
@@ -695,6 +770,18 @@ const departmentAssignForm = reactive({
 
 	remark: ''
 });
+
+type DiscountAuditFilter = 'all' | 'pending' | 'none';
+
+const discountAuditFilter = ref<DiscountAuditFilter>('all');
+
+const discountAuditFilterOptions: Array<{ label: string; value: DiscountAuditFilter }> = [
+	{ label: '全部', value: 'all' },
+
+	{ label: '待審批', value: 'pending' },
+
+	{ label: '無需審批', value: 'none' }
+];
 
 const contractForm = reactive({
 	id: 0,
@@ -794,6 +881,19 @@ function toMoney(value: any) {
 
 function toPercent(value: any) {
 	return `${(toNumber(value) * 100).toFixed(2)}%`;
+}
+
+function toPlainPercent(value: any) {
+	return `${Number(toNumber(value).toFixed(2)).toString()}%`;
+}
+
+function getDiscountAuditStatusLabel(value: any) {
+	const status = Number(value || 0);
+	if (status === 1) return '待老板審批';
+	if (status === 2) return '已同意';
+	if (status === 3) return '已同意扣獎金';
+	if (status === 4) return '已拒絕';
+	return '無需審批';
 }
 
 function toStageRatio(value: any) {
@@ -1011,9 +1111,15 @@ function onReceiptWheel(event: WheelEvent) {
 	onReceiptXScroll({ target: scroll } as unknown as Event);
 }
 
+const Search = useSearch();
+
 const Crud = useCrud(
 	{
 		service: quoteService,
+
+		onRefresh(params, { next }) {
+			return next(buildQuoteListQuery(params));
+		},
 
 		onDelete(selection, { next }) {
 			next({
@@ -1030,8 +1136,6 @@ const Crud = useCrud(
 		return result;
 	}
 );
-
-const Search = useSearch();
 
 useTable({
 	props: {
@@ -1097,6 +1201,15 @@ useTable({
 			}
 		},
 
+		{
+			label: '優惠審批',
+			prop: 'discountAuditStatus',
+			minWidth: 140,
+			formatter(row: any) {
+				return getDiscountAuditStatusLabel(row.discountAuditStatus);
+			}
+		},
+
 		{ label: '狀態', prop: 'status', width: 100, dict: quoteStatusOptions },
 
 		{
@@ -1153,6 +1266,14 @@ function getQuoteOperationActions(row: any) {
 			onClick() {
 				if (!perms.canEdit) return;
 				openEdit(row);
+			}
+		},
+		{
+			label: '優惠審批',
+			type: 'warning',
+			hidden: !(canDiscountAuditPerm.value && perms.canDiscountAudit),
+			onClick() {
+				openDiscountAudit(row);
 			}
 		},
 		{
@@ -1927,6 +2048,36 @@ async function openInlineDepartmentAudit(row: any) {
 	}
 }
 
+function openDiscountAudit(row: any) {
+	discountAuditForm.id = Number(row?.id || 0);
+	discountAuditForm.reason = String(row?.discountAuditReason || '');
+	discountAuditForm.discountRate = toNumber(row?.discountRate);
+	discountAuditForm.discountAuditStatus = 2;
+	discountAuditForm.remark = '';
+	discountAuditVisible.value = true;
+}
+
+async function submitDiscountAudit() {
+	if (!discountAuditForm.id || discountAuditSubmitting.value) {
+		return;
+	}
+
+	discountAuditSubmitting.value = true;
+	try {
+		await quoteService.auditDiscount({
+			id: discountAuditForm.id,
+			discountAuditStatus: discountAuditForm.discountAuditStatus,
+			remark: discountAuditForm.remark || undefined
+		});
+
+		ElMessage.success('優惠審批已送出');
+		discountAuditVisible.value = false;
+		refreshByRoute();
+	} finally {
+		discountAuditSubmitting.value = false;
+	}
+}
+
 async function openInlineDepartmentAssign(row: any) {
 	const auditRow = await getInlineDepartmentAuditRow(row, 'canAssign');
 
@@ -2043,22 +2194,60 @@ function onQuoteSaved() {
 	refreshByRoute();
 }
 
-async function refreshByRoute() {
+function getQuoteSearchForm() {
+	const form =
+		Search.value?.Form?.getForm?.() ||
+		Search.value?.Form?.form ||
+		Search.value?.form ||
+		{};
+
+	return { ...form };
+}
+
+function buildQuoteListQuery(extra: Record<string, any> = {}) {
+	const query: Record<string, any> = {
+		...extra,
+		...getQuoteSearchForm()
+	};
+
 	const customerId = getCustomerIdFromRoute();
 	const quoteNo = getQuoteNoFromRoute();
-	const query: Record<string, any> = {};
 
 	if (customerId) {
 		query.customerId = customerId;
+	} else {
+		delete query.customerId;
 	}
 
 	if (quoteNo) {
 		query.quoteNo = quoteNo;
 	}
 
-	Search.value?.Form?.setForm('quoteNo', quoteNo);
+	query.discountAuditFilter =
+		discountAuditFilter.value === 'all' ? undefined : discountAuditFilter.value;
 
-	Crud.value?.refresh(Object.keys(query).length ? query : undefined);
+	Object.keys(query).forEach(key => {
+		if (query[key] === undefined || query[key] === null || query[key] === '') {
+			delete query[key];
+		}
+	});
+
+	return query;
+}
+
+function onDiscountAuditFilterChange() {
+	Crud.value?.refresh(buildQuoteListQuery({ page: 1 }));
+
+	scheduleQuoteListScrollBarUpdate();
+}
+
+async function refreshByRoute() {
+	const customerId = getCustomerIdFromRoute();
+	const quoteNo = getQuoteNoFromRoute();
+
+	Search.value?.Form?.setForm('quoteNo', quoteNo || undefined);
+
+	Crud.value?.refresh(buildQuoteListQuery());
 
 	scheduleQuoteListScrollBarUpdate();
 }
@@ -2169,6 +2358,20 @@ onBeforeUnmount(() => {
 <style scoped>
 .quote-list-page {
 	overflow: hidden !important;
+}
+
+.quote-discount-audit-filter {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-height: 32px;
+}
+
+.quote-discount-audit-filter__label {
+	color: var(--el-text-color-regular);
+	font-size: 14px;
+	line-height: 1;
+	white-space: nowrap;
 }
 
 .quote-list-table-wrap {

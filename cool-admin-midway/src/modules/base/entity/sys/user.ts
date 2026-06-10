@@ -55,6 +55,15 @@ export class BaseSysUserEntity extends BaseEntity {
   })
   salary: number;
 
+  @Column({
+    comment: '扣繳工資',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: true,
+  })
+  withholdingSalary: number;
+
   @Column({ comment: '級別', nullable: true, length: 20 })
   level: string;
 
@@ -64,7 +73,6 @@ export class BaseSysUserEntity extends BaseEntity {
   departmentName: string;
   // 角色ID列表
   roleIdList: number[];
-
   @Column({ comment: 'socketId', nullable: true })
   socketId: string;
 }
