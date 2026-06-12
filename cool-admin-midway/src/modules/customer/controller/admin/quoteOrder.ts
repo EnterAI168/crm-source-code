@@ -68,6 +68,11 @@ export class AdminCrmQuoteOrderController extends BaseController {
     return this.ok(await this.crmQuoteOrderService.quoteTerms());
   }
 
+  @Post('/quoteDiscountRate')
+  async quoteDiscountRate() {
+    return this.ok(await this.crmQuoteOrderService.quoteDiscountRate());
+  }
+
   @Post('/submitAudit')
   async submitAudit(@Body() body: any) {
     return this.ok(await this.crmQuoteOrderService.submitAudit(body));

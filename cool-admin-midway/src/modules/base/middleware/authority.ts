@@ -233,6 +233,15 @@ export class BaseAuthorityMiddleware
                   'crm/customerList/quotationView',
                   'crm/quoteInvoice/quoteInfo',
                 ],
+                'crmQuoteOrder/quoteDiscountRate': [
+                  'crm/quoteOrder/page',
+                  'crm/quoteOrder/add',
+                  'crm/quoteOrder/info',
+                  'crm/quoteOrder/update',
+                  'crm/quoteOrder/departmentCost',
+                  'crm/customerList/quotationView',
+                  'crm/quoteInvoice/quoteInfo',
+                ],
                 'crmQuoteOrder/assigneeOptions': [
                   'crm/quoteOrder/assign',
                   'crm/quoteOrder/page',

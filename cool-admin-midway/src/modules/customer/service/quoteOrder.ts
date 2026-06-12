@@ -1753,6 +1753,10 @@ export class CrmQuoteOrderService extends BaseService {
     return sections.length > 0 ? sections : this.loadQuoteTemplateTermSections();
   }
 
+  async quoteDiscountRate() {
+    return await this.getQuoteDiscountThreshold();
+  }
+
   async quotePaymentCondition() {
     const value = await this.baseSysParamService.dataByKey(
       'quote_payment_condition'

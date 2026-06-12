@@ -1,7 +1,5 @@
 import { BaseService } from '/@/cool/service/base';
 
-const paramService = new BaseService('admin/base/sys/param');
-
 export default class QuoteOrderService extends BaseService {
 	namespace = 'admin/crmQuoteOrder';
 
@@ -30,12 +28,7 @@ export default class QuoteOrderService extends BaseService {
 	}
 
 	async quoteDiscountRate(): Promise<any> {
-		const data = await paramService.request({
-			url: '/data',
-			method: 'GET',
-			params: { key: 'quote_discount_rate' }
-		});
-		return data;
+		return this.request({ url: '/quoteDiscountRate', method: 'POST' });
 	}
 
 	async submitAudit(data: { id: number }) {

@@ -411,6 +411,7 @@ const Upsert = useUpsert({
 		Upsert.value?.setForm('username', loginPhone);
 		Upsert.value?.setForm('phone', loginPhone);
 		Upsert.value?.setForm('departmentId', departmentId);
+		Upsert.value?.setForm('salary', detail?.salary ?? undefined);
 		Upsert.value?.setForm('withholdingSalary', detail?.withholdingSalary ?? calcWithholdingSalary(detail?.salary));
 		applyDepartmentRoleRule(departmentId, roleId, detail?.level);
 	},
