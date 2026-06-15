@@ -278,6 +278,7 @@ export class CrmQuoteInvoiceService extends BaseService {
       INNER JOIN crm_quote_order o ON o.id = s.quoteOrderId AND o.isDeleted = 0
       LEFT JOIN crm_customer_info c ON c.id = o.customerId AND c.isDeleted = 0
       WHERE s.isDeleted = 0
+        AND IFNULL(o.auditStatus, 0) = 2
         AND IFNULL(s.invoiceStatus, 0) = 0
         AND IFNULL(s.autoSendEmail, 0) = 1
         AND s.invoiceDate IS NOT NULL

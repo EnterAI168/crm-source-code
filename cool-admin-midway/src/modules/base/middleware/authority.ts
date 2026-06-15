@@ -246,7 +246,11 @@ export class BaseAuthorityMiddleware
                   'crm/quoteOrder/assign',
                   'crm/quoteOrder/page',
                 ],
-                'crmQuoteOrder/submitAudit': ['crm/quoteOrder/submitAudit'],
+                'crmQuoteOrder/submitAudit': [
+                  'crm/quoteOrder/submitAudit',
+                  'crm/quoteOrder/add',
+                  'crm/quoteOrder/update',
+                ],
                 'crmQuoteOrder/audit': ['crm/quoteOrder/audit'],
                 'crmQuoteOrder/assign': ['crm/quoteOrder/assign'],
                 'crmQuoteOrder/departmentAudits': [

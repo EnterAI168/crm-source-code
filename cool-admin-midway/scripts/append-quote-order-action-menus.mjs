@@ -19,6 +19,7 @@ const cfg = {
 const ROWS = [
   [2, '新增報價單', 'crm:quoteOrder:add'],
   [5, '檢視報價單', 'crm:quoteOrder:info'],
+  [6, '申請審核', 'crm:quoteOrder:submitAudit'],
   [14, '歷史記錄', 'crm:quoteOrder:history'],
   [15, '報價單PDF下載', 'crm:quoteOrder:downloadPdf'],
   [16, '成本核算', 'crm:quoteOrder:departmentCost'],

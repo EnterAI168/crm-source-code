@@ -417,7 +417,7 @@
 			<div class="crm-quote-section">
 				<div class="crm-quote-section__head">
 					<div class="crm-quote-section__title">付款階段</div>
-					<el-button v-if="!isFieldLocked" type="primary" link @click="addQuoteStage">
+					<el-button v-if="!isStageLocked" type="primary" link @click="addQuoteStage">
 						新增付款階段
 					</el-button>
 				</div>
@@ -433,7 +433,7 @@
 							<el-input
 								v-model="row.stageName"
 								clearable
-								:disabled="isFieldLocked"
+								:disabled="isStageLocked"
 								placeholder="請輸入付款階段名稱"
 							/>
 						</template>
@@ -449,7 +449,7 @@
 										:step="1"
 										:precision="0"
 										:controls="false"
-										:disabled="isFieldLocked"
+										:disabled="isStageLocked"
 										style="width: 100%"
 										@change="onStageRatioChange"
 									/>
@@ -473,7 +473,7 @@
 								type="date"
 								value-format="YYYY-MM-DD"
 								placeholder="請選擇發票票期"
-								:disabled="isFieldLocked"
+								:disabled="isStageLocked"
 								style="width: 100%"
 							/>
 						</template>
@@ -484,7 +484,7 @@
 								v-model="row.autoSendEmail"
 								:active-value="1"
 								:inactive-value="0"
-								:disabled="isFieldLocked"
+								:disabled="isStageLocked"
 							/>
 						</template>
 					</el-table-column>
@@ -493,12 +493,12 @@
 							<el-input
 								v-model="row.remark"
 								clearable
-								:disabled="isFieldLocked"
+								:disabled="isStageLocked"
 								placeholder="請輸入備註"
 							/>
 						</template>
 					</el-table-column>
-					<el-table-column v-if="!isFieldLocked" label="操作" width="80" fixed="right">
+					<el-table-column v-if="!isStageLocked" label="操作" width="80" fixed="right">
 						<template #default="{ $index }">
 							<el-button type="danger" link @click="removeQuoteStage($index)">
 								刪除
@@ -660,9 +660,19 @@
 		<template #footer>
 			<el-button @click="visible = false">取消</el-button>
 			<el-button
+				v-if="showApplyAuditButton"
+				type="success"
+				:loading="applyingAudit"
+				:disabled="isApplyAuditDisabled"
+				@click="submitDialog({ submitAudit: true })"
+			>
+				申請審核
+			</el-button>
+			<el-button
 				v-if="!isViewMode"
 				type="primary"
-				:loading="saving"
+				:loading="saving && !applyingAudit"
+				:disabled="applyingAudit"
 				@click="isCostAccountingMode ? submitCostAccounting() : submitDialog()"
 			>
 				{{ isCostAccountingMode ? '儲存成本核算' : isEditMode ? '儲存修改' : '儲存報價單' }}
@@ -748,6 +758,12 @@ const quotePdfPreviewLoadedId = ref(0);
 const quoteTermSections = ref<any[]>([]);
 const defaultQuoteTermSections = ref<any[]>([]);
 const quoteDiscountRateThreshold = ref(0);
+const applyingAudit = ref(false);
+const auditSubmitted = ref(false);
+const quotePermissions = ref<Record<string, any>>({});
+const editableFields = ref<string[]>([]);
+const quoteStatus = ref(0);
+const quoteAuditStatus = ref(0);
 let quoteTermUid = 1;
 let quotePdfPreviewLoadedResolve: (() => void) | null = null;
 
@@ -768,7 +784,34 @@ const quoteForm = reactive({
 const isContractReturned = computed(
 	() => isEditMode.value && Number(quoteForm.contractStatus || 0) === 1
 );
-const isQuoteBaseLocked = computed(() => isFieldLocked.value || isContractReturned.value);
+const isPaymentStageOnlyMode = computed(
+	() => isEditMode.value && editableFields.value.length === 1 && editableFields.value[0] === 'stages'
+);
+const isQuoteBaseLocked = computed(
+	() => isFieldLocked.value || isContractReturned.value || isPaymentStageOnlyMode.value
+);
+const isStageLocked = computed(() => isViewMode.value || isCostAccountingMode.value);
+const showApplyAuditButton = computed(
+	() =>
+		!isViewMode.value &&
+		!isCostAccountingMode.value &&
+		!isContractReturned.value &&
+		!isPaymentStageOnlyMode.value &&
+		(!isEditMode.value || !!quotePermissions.value?.canSubmitAudit)
+);
+const isApplyAuditDisabled = computed(() => {
+	if (
+		applyingAudit.value ||
+		auditSubmitted.value ||
+		(saving.value && !applyingAudit.value)
+	) {
+		return true;
+	}
+	if (!isEditMode.value) {
+		return true;
+	}
+	return !quotePermissions.value?.canSubmitAudit;
+});
 
 const quotePriceRow = reactive({
 	discountRate: 0,
@@ -1274,27 +1317,18 @@ function getOneTimeAmount() {
 	);
 }
 
-function getNonOneTimeAmount() {
-	return Number(
-		quoteItemRows.value
-			.filter(item => Number(item.isOneTimePayment) !== 1)
-			.reduce((sum, item) => sum + toNumber(item.subtotalAmount), 0)
-			.toFixed(2)
-	);
-}
-
 function getRequiredFirstStageRatio() {
 	const oneTimeAmount = getOneTimeAmount();
-	const nonOneTimeAmount = getNonOneTimeAmount();
+	const totalAmount = getQuoteItemsAmount();
 	if (oneTimeAmount <= 0) {
 		return 0;
 	}
-	if (nonOneTimeAmount <= 0) {
-		return 100;
+	if (totalAmount <= 0) {
+		return 0;
 	}
 	return Math.max(
 		0,
-		Math.min(100, Number(((oneTimeAmount / nonOneTimeAmount) * 100).toFixed(2)))
+		Math.min(100, Number(((oneTimeAmount / totalAmount) * 100).toFixed(2)))
 	);
 }
 
@@ -1638,6 +1672,12 @@ function resetDialog() {
 	costAccountingAudits.value = [];
 	latestQuotePdfHistoryId.value = 0;
 	quotePdfDownloading.value = false;
+	applyingAudit.value = false;
+	auditSubmitted.value = false;
+	quotePermissions.value = {};
+	editableFields.value = [];
+	quoteStatus.value = 0;
+	quoteAuditStatus.value = 0;
 }
 
 function openWithCustomer(customer?: Record<string, any> | null) {
@@ -1658,6 +1698,11 @@ async function openWithQuote(id: number) {
 	resetDialog();
 	const detail: any = await quoteService.info({ id });
 	const parsedRemark = parseQuoteRemarkText(detail?.remark);
+	quotePermissions.value = detail?.permissions || {};
+	editableFields.value = Array.isArray(detail?.editableFields) ? detail.editableFields : [];
+	quoteStatus.value = Number(detail?.status || 0);
+	quoteAuditStatus.value = Number(detail?.auditStatus || 0);
+	auditSubmitted.value = !quotePermissions.value?.canSubmitAudit || quoteStatus.value === 2 || quoteAuditStatus.value === 1;
 	quoteForm.customerId = detail?.customerId ? Number(detail.customerId) : undefined;
 	quoteCustomerSnapshot.value = {
 		id: quoteForm.customerId,
@@ -1764,8 +1809,17 @@ async function submitCostAccounting() {
 	}
 }
 
-async function submitDialog() {
-	if (!isContractReturned.value) {
+async function submitDialog(options: { submitAudit?: boolean } = {}) {
+	if (options.submitAudit) {
+		if (!isEditMode.value) {
+			ElMessage.warning('請先儲存報價單後再申請審核');
+			return;
+		}
+		if (isApplyAuditDisabled.value) {
+			return;
+		}
+	}
+	if (!isContractReturned.value && !isPaymentStageOnlyMode.value) {
 		if (!quoteForm.customerId) {
 			ElMessage.warning('請選擇客戶');
 			return;
@@ -1805,8 +1859,12 @@ async function submitDialog() {
 	}
 
 	saving.value = true;
+	applyingAudit.value = !!options.submitAudit;
+	if (options.submitAudit) {
+		auditSubmitted.value = true;
+	}
 	try {
-		if (isContractReturned.value) {
+		if (isContractReturned.value || isPaymentStageOnlyMode.value) {
 			await quoteService.update({
 				id: currentQuoteId.value,
 				stages: quoteStageRows.value.map((item, index) => ({
@@ -1880,6 +1938,14 @@ async function submitDialog() {
 			: await quoteService.add(payload);
 		if (result?.discountAuditRequired) {
 			ElMessage.warning(result?.discountAuditReason || '優惠比例需要老板審批');
+		} else if (options.submitAudit) {
+			const savedId = Number(result?.id || currentQuoteId.value || 0);
+			if (!savedId) {
+				ElMessage.warning('請先儲存報價單後再申請審核');
+				return;
+			}
+			await quoteService.submitAudit({ id: savedId });
+			ElMessage.success('已申請審核');
 		} else {
 			ElMessage.success(
 				isEditMode.value
@@ -1893,9 +1959,13 @@ async function submitDialog() {
 		visible.value = false;
 		emit('saved');
 	} catch (e: any) {
-		ElMessage.error(e?.message || '報價單儲存失敗');
+		ElMessage.error(e?.message || (options.submitAudit ? '申請審核失敗' : '報價單儲存失敗'));
+		if (options.submitAudit) {
+			auditSubmitted.value = false;
+		}
 	} finally {
 		saving.value = false;
+		applyingAudit.value = false;
 	}
 }
 

@@ -139,16 +139,15 @@ request.interceptors.response.use(
 		if (error.response) {
 			const { status } = error.response;
 			const { user } = useBase();
+			const url = error.config?.url || error.response.config?.url || '';
 
 			if (status == 401) {
 				user.logout(); // 未授權，登出使用者
+			} else if (status == 403) {
+				ElMessage.error(`目前帳號沒有此 API 權限${url ? `：${url}` : ''}`);
 			} else {
 				if (!isDev) {
 					switch (status) {
-						case 403:
-							router.push('/403'); // 禁止訪問
-							break;
-
 						case 500:
 							router.push('/500'); // 伺服器錯誤
 							break;

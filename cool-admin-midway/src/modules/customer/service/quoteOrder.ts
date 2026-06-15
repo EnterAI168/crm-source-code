@@ -297,7 +297,6 @@ export class CrmQuoteOrderService extends BaseService {
     const contractFile = String(param?.contractFile || '').trim();
     const hasContract = !!contractFile;
     const discountRate = this.toRatePercent(param?.discountRate);
-    const scope = await this.getScope();
     const discountAudit = await this.resolveDiscountAudit(customer, discountRate);
     const discountDeductionAmount = 0;
     const commission = this.toMoney(param?.commission || 0);
@@ -310,8 +309,8 @@ export class CrmQuoteOrderService extends BaseService {
       quoteType: this.normalizeQuoteType(param?.quoteType),
       salesmanId,
       currentAssigneeId: null,
-      status: discountAudit.required ? 1 : 2,
-      auditStatus: discountAudit.required ? 0 : 1,
+      status: 1,
+      auditStatus: 0,
       assignStatus: 0,
       contractStatus: hasContract ? 1 : 0,
       invoiceStatus: 0,
@@ -363,13 +362,13 @@ export class CrmQuoteOrderService extends BaseService {
     const oldRow = await this.getOrderById(id, scope);
     this.ensureCanEdit(oldRow, scope);
 
-    if (Number(oldRow.contractStatus || 0) === 1) {
-      this.ensureContractReturnedUpdatePayload(param);
+    if (this.isPaymentStageOnlyEditable(oldRow)) {
+      this.ensurePaymentStageOnlyUpdatePayload(param);
       const stages = this.normalizeStages(
         param?.stages || [],
         this.toMoney(oldRow.finalAmount)
       );
-      await this.ensurePaymentStagesEditableAfterContractReturned(id);
+      await this.ensurePaymentStagesEditableAfterApproved(id);
       await this.replaceStages(id, stages);
       await this.refreshOrderReceiptAndInvoiceStatus(id);
       await this.saveQuoteHistory(id);
@@ -1606,8 +1605,8 @@ export class CrmQuoteOrderService extends BaseService {
       quoteType: order.quoteType,
       salesmanId: order.salesmanId,
       currentAssigneeId: null,
-      status: discountAudit.required ? 1 : 2,
-      auditStatus: discountAudit.required ? 0 : 1,
+      status: 1,
+      auditStatus: 0,
       auditUserId: null,
       auditTime: null,
       auditRemark: null,
@@ -1941,22 +1940,20 @@ export class CrmQuoteOrderService extends BaseService {
       return row;
     }
     const hasDepartmentAccess =
-      (currentScope.isOfficeClerkManager || currentScope.isOfficeClerk) &&
+      currentScope.isOfficeClerkManager &&
       (await this.hasOrderDepartmentAccess(row.id, currentScope));
     const hasAssigneeAccess =
       currentScope.isOfficeClerk &&
       (await this.hasOrderAssigneeAccess(row.id, currentScope));
     const hasDiscountAuditAccess =
       currentScope.hasDiscountAuditPerm &&
-      Number(row.discountAuditStatus || 0) === 1;
+      Number(row.discountAuditStatus || 0) === 1 &&
+      (!currentScope.isOfficeClerkManager || hasDepartmentAccess);
     if (
       currentScope.isOfficeClerkManager &&
       !currentScope.isBoss &&
       !hasDiscountAuditAccess &&
-      !hasDepartmentAccess &&
-      !currentScope.departmentUserIds.includes(
-        Number(row.currentAssigneeId || 0)
-      )
+      !hasDepartmentAccess
     ) {
       throw new CoolCommException('????');
     }
@@ -2260,17 +2257,17 @@ export class CrmQuoteOrderService extends BaseService {
     await this.saveStages(quoteOrderId, stages);
   }
 
-  private ensureContractReturnedUpdatePayload(param: any) {
+  private ensurePaymentStageOnlyUpdatePayload(param: any) {
     const allowedKeys = ['id', 'stages'];
     const extraKeys = Object.keys(param || {}).filter(
       key => !allowedKeys.includes(key) && param[key] !== undefined
     );
     if (extraKeys.length > 0) {
-      throw new CoolCommException('合約已回傳後僅允許修改付款階段');
+      throw new CoolCommException('內勤審核通過後僅允許修改付款階段');
     }
   }
 
-  private async ensurePaymentStagesEditableAfterContractReturned(
+  private async ensurePaymentStagesEditableAfterApproved(
     quoteOrderId: number
   ) {
     const rows = await this.nativeQuery(
@@ -2296,7 +2293,7 @@ export class CrmQuoteOrderService extends BaseService {
     }
     if (issuedCount > 0) {
       throw new CoolCommException(
-        '合約已回傳後如需修改付款階段，請先將已開立的發票全部作廢'
+        '如需修改付款階段，請先將已開立的發票全部作廢'
       );
     }
   }
@@ -2421,18 +2418,30 @@ export class CrmQuoteOrderService extends BaseService {
     const rows = await this.nativeQuery(
       `
       SELECT COUNT(1) AS count
-      FROM crm_quote_order_department_audit
-      WHERE quoteOrderId = ?
-        AND isDeleted = 0
+      FROM crm_quote_order q
+      WHERE q.id = ?
+        AND q.isDeleted = 0
         AND (
-          departmentId in (?)
-          OR assigneeId in (?)
+          EXISTS (
+            SELECT 1
+            FROM crm_quote_order_department_audit da
+            WHERE da.quoteOrderId = q.id
+              AND da.isDeleted = 0
+              AND da.departmentId in (?)
+          )
+          OR EXISTS (
+            SELECT 1
+            FROM crm_quote_order_item qi
+            WHERE qi.quoteOrderId = q.id
+              AND qi.isDeleted = 0
+              AND qi.departmentId in (?)
+          )
         )
     `,
       [
         orderId,
         scope.departmentIds.length ? scope.departmentIds : [null],
-        scope.departmentUserIds.length ? scope.departmentUserIds : [null],
+        scope.departmentIds.length ? scope.departmentIds : [null],
       ]
     );
     return Number(rows?.[0]?.count || 0) > 0;
@@ -2946,28 +2955,35 @@ export class CrmQuoteOrderService extends BaseService {
     }
 
     if (scope.isOfficeClerkManager) {
+      const departmentIds = scope.departmentIds.length
+        ? scope.departmentIds
+        : [null];
       return {
         sql: this.setSql(
           true,
           `and (
-            ${scope.hasDiscountAuditPerm ? 'a.discountAuditStatus = 1 or' : ''}
-            exists (
-              select 1
-              from crm_quote_order_department_audit da
-              where da.quoteOrderId = a.id
-                and da.isDeleted = 0
-                and (
-                  da.departmentId in (?)
-                  or da.assigneeId in (?)
-                )
+            (
+              exists (
+                select 1
+                from crm_quote_order_department_audit da
+                where da.quoteOrderId = a.id
+                  and da.isDeleted = 0
+                  and da.departmentId in (?)
+              )
+              or exists (
+                select 1
+                from crm_quote_order_item qi
+                where qi.quoteOrderId = a.id
+                  and qi.isDeleted = 0
+                  and qi.departmentId in (?)
+              )
             )
-            or a.currentAssigneeId in (?)
+            and (
+              ${scope.hasDiscountAuditPerm ? 'a.discountAuditStatus = 1 or' : ''}
+              a.status <> 1
+            )
           )`,
-          [
-            scope.departmentIds.length ? scope.departmentIds : [null],
-            scope.departmentUserIds.length ? scope.departmentUserIds : [null],
-            scope.departmentUserIds.length ? scope.departmentUserIds : [null],
-          ]
+          [departmentIds, departmentIds]
         ),
         params: {},
       };
@@ -2979,13 +2995,18 @@ export class CrmQuoteOrderService extends BaseService {
           true,
           `and (
             ${scope.hasDiscountAuditPerm ? 'a.discountAuditStatus = 1 or' : ''}
-            a.currentAssigneeId = ?
-            or exists (
-              select 1
-              from crm_quote_order_department_audit da
-              where da.quoteOrderId = a.id
-                and da.isDeleted = 0
-                and da.assigneeId = ?
+            (
+              a.status <> 1
+              and (
+                a.currentAssigneeId = ?
+                or exists (
+                  select 1
+                  from crm_quote_order_department_audit da
+                  where da.quoteOrderId = a.id
+                    and da.isDeleted = 0
+                    and da.assigneeId = ?
+                )
+              )
             )
           )`,
           [scope.userId, scope.userId]
@@ -3153,7 +3174,7 @@ export class CrmQuoteOrderService extends BaseService {
       return [];
     }
 
-    if (Number(order.contractStatus || 0) === 1) {
+    if (this.isPaymentStageOnlyEditable(order)) {
       return ['stages'];
     }
 
@@ -3220,7 +3241,7 @@ export class CrmQuoteOrderService extends BaseService {
       return false;
     }
 
-    if (Number(order.contractStatus || 0) === 1) {
+    if (this.isPaymentStageOnlyEditable(order)) {
       return true;
     }
 
@@ -3231,6 +3252,13 @@ export class CrmQuoteOrderService extends BaseService {
     return (
       this.canSalesOperate(order, scope) &&
       [1, 3].includes(Number(order.status || 0))
+    );
+  }
+
+  private isPaymentStageOnlyEditable(order: any) {
+    return (
+      Number(order.contractStatus || 0) === 1 ||
+      Number(order.auditStatus || 0) === 2
     );
   }
 
@@ -3294,7 +3322,11 @@ export class CrmQuoteOrderService extends BaseService {
   }
 
   private canHandleInvoice(order: any, scope: QuoteScope) {
-    return this.isDiscountAuditPassed(order) && this.canAccessOrder(order, scope);
+    return (
+      this.isDiscountAuditPassed(order) &&
+      this.canAccessOrder(order, scope) &&
+      Number(order.auditStatus || 0) === 2
+    );
   }
 
   private ensureCanEdit(order: any, scope: QuoteScope) {
@@ -3353,7 +3385,9 @@ export class CrmQuoteOrderService extends BaseService {
 
   private ensureCanHandleInvoice(order: any, scope: QuoteScope) {
     if (!this.canHandleInvoice(order, scope)) {
-      throw new CoolCommException('褰撳墠鐘舵€佷笉鍏佽澶勭悊鍙戠エ');
+      throw new CoolCommException(
+        '所有內勤審核通過後才可以申請開票'
+      );
     }
   }
 

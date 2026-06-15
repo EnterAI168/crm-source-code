@@ -1133,14 +1133,29 @@ export class CrmPerformanceService extends BaseService {
     range: { start: string; end: string },
     type: DetailType
   ) {
-    const dateField = type === 'actual' ? 's.receiptTime' : 'q.auditTime';
+    const isActual = type === 'actual';
+    const dateField = isActual ? 's.receiptTime' : 'departmentAudit.auditTime';
+    const auditTimeSelect = isActual ? 'q.auditTime' : 'departmentAudit.auditTime';
+    const departmentAuditJoin = isActual
+      ? ''
+      : `
+      INNER JOIN (
+        SELECT
+          quoteOrderId,
+          MAX(auditTime) AS auditTime
+        FROM crm_quote_order_department_audit
+        WHERE isDeleted = 0
+        GROUP BY quoteOrderId
+        HAVING COUNT(1) > 0
+          AND SUM(CASE WHEN auditStatus = 2 THEN 1 ELSE 0 END) = COUNT(1)
+          AND SUM(CASE WHEN auditTime IS NOT NULL AND auditTime <> '' THEN 1 ELSE 0 END) = COUNT(1)
+      ) departmentAudit ON departmentAudit.quoteOrderId = q.id
+      `;
     const amountWhere =
-      type === 'actual'
+      isActual
         ? 'AND s.receiptStatus = 1 AND s.receiptAmount > 0'
         : `
         AND q.auditStatus = 2
-        AND q.auditTime IS NOT NULL
-        AND q.auditTime <> ''
         `;
     const internalJoin =
       roleType === 'internal'
@@ -1174,11 +1189,12 @@ export class CrmPerformanceService extends BaseService {
         q.finalAmount,
         q.discountDeductionAmount,
         q.discountRate,
-        q.auditTime,
+        ${auditTimeSelect} AS auditTime,
         q.salesmanId,
         u.departmentId
       FROM crm_quote_order_stage s
       LEFT JOIN crm_quote_order q ON q.id = s.quoteOrderId
+      ${departmentAuditJoin}
       LEFT JOIN base_sys_user u ON u.id = ?
       WHERE s.isDeleted = 0
         AND q.isDeleted = 0
