@@ -1527,21 +1527,24 @@ export class CrmPerformanceService extends BaseService {
       const secondaryOriginalCostAmount = this.toMoney(
         secondaryAmount - secondaryGrossProfit
       );
-      const secondaryRatio =
-        totalAmount > 0 ? this.toMoney((secondaryAmount / totalAmount) * 100) / 100 : 0;
+      const mainRatio = this.toProductRatio(mainAmount, totalAmount);
+      const oneTimeEligibleMainRatio = this.toProductRatio(
+        oneTimeEligibleMainAmount,
+        totalAmount
+      );
+      const secondaryRatio = this.toProductRatio(secondaryAmount, totalAmount);
       const secondarySalesAmount = this.toMoney(totalAmount * secondaryRatio);
       const secondaryCostAmount = this.toMoney(
         secondaryOriginalCostAmount
       );
       map.set(quoteId, {
-        mainRatio: totalAmount > 0 ? mainAmount / totalAmount : 0,
+        mainRatio,
         totalAmount,
         mainAmount,
         secondaryAmount,
         secondarySalesAmount,
         items: list,
-        oneTimeEligibleMainRatio:
-          totalAmount > 0 ? oneTimeEligibleMainAmount / totalAmount : 0,
+        oneTimeEligibleMainRatio,
         secondaryRatio,
         grossProfitRatio: totalAmount > 0 ? grossProfitAmount / totalAmount : 0,
         grossProfitAmount,
@@ -2930,6 +2933,14 @@ export class CrmPerformanceService extends BaseService {
 
   private toMoney(value: any) {
     return Number(this.toNumber(value).toFixed(2));
+  }
+
+  private toProductRatio(amount: any, totalAmount: any) {
+    const total = this.toMoney(totalAmount);
+    if (total <= 0) {
+      return 0;
+    }
+    return Number(((this.toMoney(amount) / total) * 100).toFixed(4)) / 100;
   }
 
   private percent(value: any) {
