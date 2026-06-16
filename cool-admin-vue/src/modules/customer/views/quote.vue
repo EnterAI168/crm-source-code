@@ -115,14 +115,6 @@
 				</div>
 			</el-form-item>
 
-			<el-form-item label="檔名稱">
-				<el-input
-					v-model="contractForm.fileName"
-					clearable
-					placeholder="選填，不填預設取上傳檔名"
-				/>
-			</el-form-item>
-
 			<el-form-item label="備註">
 				<el-input
 					v-model="contractForm.remark"

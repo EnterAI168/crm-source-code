@@ -171,8 +171,8 @@
 							<el-option label="續約" :value="2" />
 						</el-select>
 					</div>
-					<div>主力產品比例：{{ toProductPercent(group.mainProductRatio) }}</div>
-					<div>副位產品比例：{{ toProductPercent(group.secondaryProductRatio) }}</div>
+					<div>主力產品比例：{{ toPercent(group.mainProductRatio * 100) }}</div>
+					<div>副位產品比例：{{ toPercent(group.secondaryProductRatio * 100) }}</div>
 					<div>是否一次性付款：{{ Number(group.isOneTimePayment) === 1 ? '是' : '否' }}</div>
 				</div>
 
@@ -297,10 +297,6 @@ function toMoney(value: any) {
 
 function toPercent(value: any) {
 	return `${Number(toNumber(value).toFixed(2)).toString()}%`;
-}
-
-function toProductPercent(value: any) {
-	return `${toNumber(value * 100).toFixed(4)}%`;
 }
 
 function getStatusLabel(value: any) {

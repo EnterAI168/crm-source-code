@@ -1178,6 +1178,7 @@ export class CrmPerformanceService extends BaseService {
         s.stageNo,
         s.stageName,
         s.ratio,
+        stageCount.total AS stageCount,
         s.amount,
         s.invoiceDate,
         s.receiptTime,
@@ -1194,6 +1195,12 @@ export class CrmPerformanceService extends BaseService {
         u.departmentId
       FROM crm_quote_order_stage s
       LEFT JOIN crm_quote_order q ON q.id = s.quoteOrderId
+      LEFT JOIN (
+        SELECT quoteOrderId, COUNT(1) AS total
+        FROM crm_quote_order_stage
+        WHERE isDeleted = 0
+        GROUP BY quoteOrderId
+      ) stageCount ON stageCount.quoteOrderId = s.quoteOrderId
       ${departmentAuditJoin}
       LEFT JOIN base_sys_user u ON u.id = ?
       WHERE s.isDeleted = 0
@@ -1527,12 +1534,11 @@ export class CrmPerformanceService extends BaseService {
       const secondaryOriginalCostAmount = this.toMoney(
         secondaryAmount - secondaryGrossProfit
       );
-      const mainRatio = this.toProductRatio(mainAmount, totalAmount);
-      const oneTimeEligibleMainRatio = this.toProductRatio(
-        oneTimeEligibleMainAmount,
-        totalAmount
-      );
-      const secondaryRatio = this.toProductRatio(secondaryAmount, totalAmount);
+      const mainRatio = totalAmount > 0 ? mainAmount / totalAmount : 0;
+      const oneTimeEligibleMainRatio =
+        totalAmount > 0 ? oneTimeEligibleMainAmount / totalAmount : 0;
+      const secondaryRatio =
+        totalAmount > 0 ? secondaryAmount / totalAmount : 0;
       const secondarySalesAmount = this.toMoney(totalAmount * secondaryRatio);
       const secondaryCostAmount = this.toMoney(
         secondaryOriginalCostAmount
@@ -1567,6 +1573,8 @@ export class CrmPerformanceService extends BaseService {
     const stageNo = Number(stage?.stageNo || 1);
     const stageRatio = this.toNumber(stage?.ratio);
     const taxableRatio = 1 + (ctx.dutyRate || 0);
+    const isFullSingleStage =
+      Number(stage?.stageCount || 0) === 1 && this.toNumber(stageRatio) >= 1;
     const oneTimeItems = (Array.isArray(profile.items) ? profile.items : [])
       .filter((item: any) => Number(item?.isOneTimePayment || 0) === 1)
       .filter((item: any) => !this.isOneTimeAddExcludedCategory(item));
@@ -1586,7 +1594,7 @@ export class CrmPerformanceService extends BaseService {
         )
     );
     const currentOneTimeMainAmount = this.toMoney(
-      stageNo === 1 ? totalOneTimeMainAmount : 0
+      stageNo === 1 && isFullSingleStage ? totalOneTimeMainAmount : 0
     );
     const nonOneTimeMainAmount = this.toMoney(
       (this.toMoney(profile.mainAmount) - totalOneTimeMainAmount) * stageRatio
@@ -1604,10 +1612,10 @@ export class CrmPerformanceService extends BaseService {
       this.toMoney(profile.grossProfitAmount) * stageRatio
     );
     const stageMainBaseAmount = this.toMoney(
-      sourceAmount * this.toMoney(profile.mainRatio * 100) / 100
+      sourceAmount * this.toNumber(profile.mainRatio)
     );
     const stageSecondaryBaseAmount = this.toMoney(
-      sourceAmount * this.toMoney(profile.secondaryRatio * 100) / 100
+      sourceAmount * this.toNumber(profile.secondaryRatio)
     );
     const secondaryCostRatio =
       this.toMoney(profile.secondarySalesAmount) > 0
@@ -2546,6 +2554,7 @@ export class CrmPerformanceService extends BaseService {
         i.stageNo,
         i.stageName,
         i.ratio,
+        stageCount.total AS stageCount,
         i.amount AS sourceAmount,
         i.auditTime,
         q.quoteNo,
@@ -2553,6 +2562,12 @@ export class CrmPerformanceService extends BaseService {
         q.quoteType
       FROM crm_quote_invoice i
       INNER JOIN crm_quote_order q ON q.id = i.quoteOrderId
+      LEFT JOIN (
+        SELECT quoteOrderId, COUNT(1) AS total
+        FROM crm_quote_order_stage
+        WHERE isDeleted = 0
+        GROUP BY quoteOrderId
+      ) stageCount ON stageCount.quoteOrderId = i.quoteOrderId
       WHERE i.isDeleted = 0
         AND i.status = 2
         AND IFNULL(i.ecpayInvalidStatus, 0) <> 2
@@ -2933,14 +2948,6 @@ export class CrmPerformanceService extends BaseService {
 
   private toMoney(value: any) {
     return Number(this.toNumber(value).toFixed(2));
-  }
-
-  private toProductRatio(amount: any, totalAmount: any) {
-    const total = this.toMoney(totalAmount);
-    if (total <= 0) {
-      return 0;
-    }
-    return Number(((this.toMoney(amount) / total) * 100).toFixed(4)) / 100;
   }
 
   private percent(value: any) {

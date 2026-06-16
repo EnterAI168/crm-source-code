@@ -2141,6 +2141,9 @@ export class CrmQuoteOrderService extends BaseService {
       if (ratio <= 0 && amount > 0 && finalAmount > 0) {
         ratio = this.toNumber(amount / finalAmount);
       }
+      if (ratio <= 0) {
+        throw new CoolCommException(`第${index + 1}個付款階段比例必須大於0`);
+      }
 
       return {
         stageNo: index + 1,

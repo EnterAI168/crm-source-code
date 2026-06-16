@@ -444,7 +444,7 @@
 								<div class="crm-percent-input">
 									<el-input-number
 										v-model="row.ratio"
-										:min="0"
+										:min="1"
 										:max="100"
 										:step="1"
 										:precision="0"
@@ -1342,6 +1342,11 @@ function getStageRatioTotalError() {
 	return Math.abs(getStageRatioTotal() - 100) > 0.01 ? '付款階段比例合計必須等於 100%' : '';
 }
 
+function getStageRatioPositiveError() {
+	const index = quoteStageRows.value.findIndex(item => toNumber(item.ratio) <= 0);
+	return index >= 0 ? `第${index + 1}個付款階段比例必須大於0` : '';
+}
+
 function getFirstStageRatioError(index: number) {
 	if (index !== 0) {
 		return '';
@@ -1845,6 +1850,11 @@ async function submitDialog(options: { submitAudit?: boolean } = {}) {
 	}
 	if (quoteStageRows.value.length === 0) {
 		ElMessage.warning('請至少新增一個付款階段');
+		return;
+	}
+	const ratioPositiveError = getStageRatioPositiveError();
+	if (ratioPositiveError) {
+		ElMessage.warning(ratioPositiveError);
 		return;
 	}
 	const ratioTotalError = getStageRatioTotalError();
