@@ -7,6 +7,9 @@
 		<cl-row>
 			<cl-add-btn />
 			<el-button v-if="canImport" type="primary" @click="openImport">匯入</el-button>
+			<el-button type="success" :loading="exporting" @click="exportCustomerListData">
+				匯出
+			</el-button>
 			<cl-flex1 />
 		</cl-row>
 
@@ -665,6 +668,7 @@ const salesmenRows = ref<any[]>([]);
 const fileRef = ref<HTMLInputElement | null>(null);
 const importDialogVisible = ref(false);
 const importing = ref(false);
+const exporting = ref(false);
 
 const customerListTableWrapRef = ref<HTMLElement | null>(null);
 const customerListXScrollRef = ref<HTMLElement | null>(null);
@@ -900,6 +904,72 @@ function getQuoteInvoiceStatusLabel(value: any) {
 
 function getAdCustomerLabel(row: any) {
 	return Number(row?.isAdCustomer || 0) === 1 ? '是' : '否';
+}
+
+function getCustomerStatusLabel(value: any) {
+	const status = Number(value);
+	return customerStatusOptions.find(item => Number(item.value) === status)?.label || '';
+}
+
+function getIndustryLabel(value: any) {
+	if (value === undefined || value === null || value === '') {
+		return '';
+	}
+	return industryOptions.value.find(item => String(item.value) === String(value))?.label || String(value);
+}
+
+function getCurrentSearchParams() {
+	const params = Crud.value?.getParams?.() || {};
+	const query: Record<string, any> = { ...params, page: 1, size: 10000 };
+	Object.keys(query).forEach(key => {
+		if (query[key] === undefined || query[key] === null || query[key] === '') {
+			delete query[key];
+		}
+	});
+	return query;
+}
+
+async function exportCustomerListData() {
+	if (exporting.value) {
+		return;
+	}
+	exporting.value = true;
+	try {
+		const res: any = await customerList.page(getCurrentSearchParams());
+		const rows = Array.isArray(res?.list) ? res.list : [];
+		if (!rows.length) {
+			ElMessage.warning('暫無可匯出資料');
+			return;
+		}
+
+		const sheetRows = rows.map((row: any) => ({
+			公司名稱: row.companyName || '',
+			地址: row.address || '',
+			統一編號: row.taxNumber || '',
+			匯款本公司: row.remittanceLast5 || '',
+			廣告投放: getAdCustomerLabel(row),
+			聯絡人: row.contactName || '',
+			手機號: row.mobile || '',
+			郵箱: row.email || '',
+			VIP: Number(row.isVip || 0) === 1 ? '是' : '否',
+			累計成交次數: toNumber(row.dealCount),
+			累計成交金額: toMoney(row.dealAmount),
+			狀態: getCustomerStatusLabel(row.status),
+			行業: getIndustryLabel(row.industry),
+			業務員: row.salesmanName || '',
+			備註: row.remark || '',
+			建立時間: row.createTime || ''
+		}));
+		const ws = XLSX.utils.json_to_sheet(sheetRows);
+		const wb = XLSX.utils.book_new();
+		XLSX.utils.book_append_sheet(wb, ws, '客戶列表');
+		XLSX.writeFile(wb, '客戶列表匯出.xlsx');
+		ElMessage.success('客戶列表匯出成功');
+	} catch (error: any) {
+		ElMessage.error(error?.message || '客戶列表匯出失敗');
+	} finally {
+		exporting.value = false;
+	}
 }
 
 function quoteFollowIndexMethod(index: number) {

@@ -918,6 +918,33 @@ function ensureQuoteTermSections(value: any[]) {
 	return sections.length ? sections : [createQuoteTermSection()];
 }
 
+function formatQuoteOpenDate() {
+	const now = new Date();
+	const month = String(now.getMonth() + 1).padStart(2, '0');
+	const day = String(now.getDate()).padStart(2, '0');
+
+	return `${now.getFullYear()}年${month}月${day}日`;
+}
+
+function fillQuoteOpenDateTerms(sections: any[]) {
+	const openDate = formatQuoteOpenDate();
+
+	return sections.map(section => ({
+		...section,
+		items: (Array.isArray(section.items) ? section.items : []).map((item: any) => ({
+			...item,
+			text: String(item?.text || '').replace(
+				/(報價單開立日(?:期)?為)\s*[_＿]*年\s*[_＿]*月\s*[_＿]*日/g,
+				`$1${openDate}`
+			)
+		}))
+	}));
+}
+
+function createDefaultQuoteTermSectionsForAdd() {
+	return fillQuoteOpenDateTerms(ensureQuoteTermSections(defaultQuoteTermSections.value));
+}
+
 function getQuoteTermItemNo(sectionIndex: number, itemIndex: number) {
 	return (
 		quoteTermSections.value
@@ -1620,7 +1647,7 @@ async function loadOptions() {
 		quoteTerms.status === 'fulfilled' ? quoteTerms.value : []
 	);
 	if (!isEditMode.value) {
-		quoteTermSections.value = ensureQuoteTermSections(defaultQuoteTermSections.value);
+		quoteTermSections.value = createDefaultQuoteTermSectionsForAdd();
 	}
 	try {
 		quoteDutyValue.value = await quoteService.duty();
@@ -1687,7 +1714,7 @@ function resetDialog() {
 
 function openWithCustomer(customer?: Record<string, any> | null) {
 	resetDialog();
-	quoteTermSections.value = ensureQuoteTermSections(defaultQuoteTermSections.value);
+	quoteTermSections.value = createDefaultQuoteTermSectionsForAdd();
 	if (customer?.id) {
 		quoteForm.customerId = Number(customer.id);
 		followSalesmanId.value = Number(customer.salesmanId || 0);

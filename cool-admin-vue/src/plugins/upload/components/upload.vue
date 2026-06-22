@@ -89,7 +89,33 @@
 
 				<!-- 列表 -->
 				<template #item="{ element: item, index }">
+					<div
+						v-if="type == 'file'"
+						class="cl-upload__item"
+						:class="{ 'is-plain-file': isPlainUploadItem(item) }"
+						@click.stop
+					>
+						<upload-item
+							:show-tag="showTag"
+							:item="item"
+							:list="list"
+							:disabled="disabled"
+							:deletable="deletable"
+							@remove="remove(index)"
+						/>
+
+						<!-- 小圖模式 -->
+						<el-icon
+							v-if="small"
+							class="cl-upload__item-remove"
+							@click.stop.prevent="remove(index)"
+						>
+							<circle-close-filled />
+						</el-icon>
+					</div>
+
 					<el-upload
+						v-else
 						action=""
 						:accept="accept"
 						:show-file-list="false"
@@ -121,7 +147,7 @@
 								<el-icon
 									v-if="small"
 									class="cl-upload__item-remove"
-									@click.stop="remove(index)"
+									@click.stop.prevent="remove(index)"
 								>
 									<circle-close-filled />
 								</el-icon>
@@ -364,6 +390,10 @@ function remove(index: number) {
 	update();
 }
 
+function isPlainUploadItem(item: Upload.Item) {
+	return !['image', 'video', 'audio'].includes(item?.type || '');
+}
+
 // 清空
 function clear() {
 	list.value = [];
@@ -388,7 +418,10 @@ async function httpRequest(req: any, item?: Upload.Item) {
 		}
 	})
 		.then(res => {
-			assign(item!, res);
+			assign(item!, {
+				...res,
+				name: item!.name || getFileName(res?.url || res?.key)
+			});
 			emit('success', item);
 			update();
 		})
@@ -458,6 +491,7 @@ watch(
 					},
 					old,
 					{
+						name: getFileName(url),
 						type: getType(url),
 						url,
 						preload: old.url == url ? old.preload : url // 防止重複預覽
@@ -472,6 +506,19 @@ watch(
 		immediate: true
 	}
 );
+
+function getFileName(value: any) {
+	const text = decodeFileName(String(value || '').split('?')[0]).replace(/\\/g, '/');
+	return text.split('/').pop() || 'download';
+}
+
+function decodeFileName(value: string) {
+	try {
+		return decodeURIComponent(value);
+	} catch {
+		return value;
+	}
+}
 
 // 匯出
 defineExpose({

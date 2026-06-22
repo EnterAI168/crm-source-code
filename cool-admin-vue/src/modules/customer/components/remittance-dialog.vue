@@ -30,24 +30,7 @@
 						</el-form-item>
 					</div>
 
-					<div class="form-grid form-grid--three">
-						<el-form-item label="關聯報價單" prop="quoteOrderId">
-							<el-select
-								v-model="form.quoteOrderId"
-								placeholder="請選擇關聯報價單"
-								filterable
-								style="width: 100%"
-								@change="onQuoteOrderChange"
-							>
-								<el-option
-									v-for="item in quoteOrderOptions"
-									:key="item.id"
-									:label="`${item.quoteName} (${item.quoteNo})`"
-									:value="item.id"
-								/>
-							</el-select>
-						</el-form-item>
-
+					<div class="form-grid form-grid--three remittance-upload-grid">
 						<el-form-item label="匯款型別" prop="remittanceType">
 							<el-select
 								v-model="form.remittanceType"
@@ -65,7 +48,27 @@
 							</el-select>
 						</el-form-item>
 
-						<div />
+						<el-form-item label="上傳檔案" class="remittance-upload-item">
+							<cl-upload
+								v-model="form.uploadFiles"
+								type="file"
+								multiple
+								small
+								:size="72"
+								:text="'上傳檔案'"
+							/>
+						</el-form-item>
+
+						<el-form-item label="上傳發票" class="remittance-upload-item">
+							<cl-upload
+								v-model="form.invoiceFiles"
+								type="file"
+								multiple
+								small
+								:size="72"
+								:text="'上傳發票'"
+							/>
+						</el-form-item>
 					</div>
 				</div>
 
@@ -174,6 +177,26 @@
 							</template>
 						</el-table-column>
 
+						<el-table-column label="關聯報價單" min-width="220" align="center">
+							<template #default="{ row }">
+								<el-select
+									v-model="row.quoteOrderId"
+									placeholder="請選擇關聯報價單"
+									filterable
+									size="small"
+									style="width: 100%"
+									:disabled="isStagePaid(row)"
+								>
+									<el-option
+										v-for="item in quoteOrderOptions"
+										:key="item.id"
+										:label="`${item.quoteName} (${item.quoteNo})`"
+										:value="item.id"
+									/>
+								</el-select>
+							</template>
+						</el-table-column>
+
 						<el-table-column label="備註" min-width="180" align="center">
 							<template #default="{ row }">
 								<el-input v-model="row.remark" placeholder="請輸入備註" size="small" />
@@ -253,10 +276,11 @@ const loading = ref(false);
 const quoteOrderOptions = ref<any[]>([]);
 const supplierOptions = ref<any[]>([]);
 
-const createInitialStage = () => ({
+const createInitialStage = (quoteOrderId?: number) => ({
 	stageName: '第一階段',
 	ratio: 100,
 	amount: 0,
+	quoteOrderId,
 	expectedRemittanceTime: null,
 	actualRemittanceTime: null,
 	nextStageRemittanceTime: null,
@@ -276,6 +300,8 @@ const createInitialForm = () => ({
 	supplierUnifiedNo: '',
 	supplierEmail: '',
 	totalAmount: 0,
+	uploadFiles: [] as string[],
+	invoiceFiles: [] as string[],
 	stages: [createInitialStage()] as any[],
 	remark: ''
 });
@@ -297,9 +323,9 @@ const hasInvalidStageRatio = computed(() => form.value.stages.some(item => Numbe
 const hasRatioTotalError = computed(() => Math.abs(totalRatio.value - 100) > 0.01);
 const hasRatioError = computed(() => hasInvalidStageRatio.value || hasRatioTotalError.value);
 const ratioSummaryText = computed(() => {
-	const paidRatio = Number(paidRatioTotal.value.toFixed(2));
-	const unpaidRatio = Number(unpaidRatioTotal.value.toFixed(2));
-	const total = Number(totalRatio.value.toFixed(2));
+	const paidRatio = formatRatioForDisplay(paidRatioTotal.value);
+	const unpaidRatio = formatRatioForDisplay(unpaidRatioTotal.value);
+	const total = formatRatioForDisplay(totalRatio.value);
 	const hasPaidStage = isEdit.value && paidRatio > 0;
 
 	if (hasInvalidStageRatio.value && hasRatioTotalError.value) {
@@ -337,13 +363,16 @@ function getErrorMessage(error: any, fallback = '儲存失敗') {
 
 const rules = {
 	remittanceName: [{ required: true, message: '請輸入匯款專案名稱', trigger: 'blur' }],
-	quoteOrderId: [{ required: true, message: '請選擇關聯報價單', trigger: 'change' }],
 	totalAmount: [
 		{ required: true, message: '請輸入匯款總價', trigger: ['blur', 'change'] },
 		{ validator: validateTotalAmount, trigger: ['blur', 'change'] }
 	],
 	supplierId: [{ required: true, message: '請選擇供應商公司', trigger: 'change' }]
 };
+
+function formatRatioForDisplay(value: any) {
+	return Number(Number(value || 0).toFixed(2));
+}
 
 watch(
 	() => props.modelValue,
@@ -408,12 +437,15 @@ async function loadRemittanceData() {
 			supplierUnifiedNo: source.supplierUnifiedNo || '',
 			supplierEmail: source.supplierEmail || '',
 			totalAmount: Number(source.totalAmount || 0),
+			uploadFiles: normalizeFileList(source.uploadFiles),
+			invoiceFiles: normalizeFileList(source.invoiceFiles),
 			stages: Array.isArray(source.stages) && source.stages.length
 				? source.stages.map((item: any) => ({
 						id: item.id,
 						stageName: item.stageName || '',
-						ratio: Number(item.ratio || 0) * 100,
+						ratio: formatRatioForDisplay(Number(item.ratio || 0) * 100),
 						amount: Number(item.amount || 0),
+						quoteOrderId: item.quoteOrderId || source.quoteOrderId || undefined,
 						expectedRemittanceTime: item.expectedRemittanceTime || null,
 						actualRemittanceTime: item.actualRemittanceTime || null,
 						nextStageRemittanceTime: item.nextStageRemittanceTime || null,
@@ -433,10 +465,6 @@ async function loadRemittanceData() {
 function resetForm() {
 	form.value = createInitialForm();
 	formRef.value?.clearValidate?.();
-}
-
-function onQuoteOrderChange(value?: number) {
-	if (!value) return;
 }
 
 function onSupplierChange(value?: number) {
@@ -491,6 +519,7 @@ function syncSupplierFields() {
 }
 
 function onRatioChange(row: any) {
+	row.ratio = formatRatioForDisplay(row.ratio);
 	row.amount = Number(((Number(form.value.totalAmount || 0) * Number(row.ratio || 0)) / 100).toFixed(2));
 }
 
@@ -498,11 +527,35 @@ function recalculateStageAmounts() {
 	form.value.stages.forEach(item => onRatioChange(item));
 }
 
+function normalizeFileList(value: any): string[] {
+	if (Array.isArray(value)) {
+		return value.filter(Boolean).map(item => String(item));
+	}
+	const text = String(value || '').trim();
+	if (!text) {
+		return [];
+	}
+	try {
+		const parsed = JSON.parse(text);
+		return Array.isArray(parsed) ? parsed.filter(Boolean).map(item => String(item)) : [];
+	} catch {
+		return text
+			.split(',')
+			.map(item => item.trim())
+			.filter(Boolean);
+	}
+}
+
+function getPrimaryQuoteOrderId() {
+	return Number(form.value.stages.find(item => Number(item.quoteOrderId || 0) > 0)?.quoteOrderId || 0);
+}
+
 function addStage() {
 	form.value.stages.push({
 		stageName: `第${form.value.stages.length + 1}階段`,
 		ratio: 0,
 		amount: 0,
+		quoteOrderId: undefined,
 		expectedRemittanceTime: null,
 		actualRemittanceTime: null,
 		nextStageRemittanceTime: null,
@@ -535,6 +588,11 @@ async function handleSubmit() {
 		return;
 	}
 
+	if (form.value.stages.some(item => Number(item.quoteOrderId || 0) <= 0)) {
+		ElMessage.warning('請選擇付款階段關聯報價單');
+		return;
+	}
+
 	if (hasInvalidStageRatio.value) {
 		ElMessage.warning('匯款比例必須大於0');
 		return;
@@ -553,9 +611,10 @@ async function handleSubmit() {
 	try {
 		const payload = {
 			...form.value,
+			quoteOrderId: getPrimaryQuoteOrderId(),
 			stages: form.value.stages.map(item => ({
 				...item,
-				ratio: Number(item.ratio || 0) / 100
+				ratio: formatRatioForDisplay(item.ratio) / 100
 			}))
 		};
 
@@ -604,6 +663,65 @@ function handleClose() {
 
 .form-grid--three {
 	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.remittance-upload-grid {
+	align-items: flex-start;
+}
+
+.remittance-upload-item {
+	margin-bottom: 0;
+}
+
+.remittance-upload-item :deep(.el-form-item__content) {
+	align-items: flex-start;
+	min-height: 32px;
+}
+
+.remittance-upload-item :deep(.cl-upload__file-btn) {
+	margin-bottom: 8px;
+}
+
+.remittance-upload-item :deep(.cl-upload__list) {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 0;
+}
+
+.remittance-upload-item :deep(.cl-upload__item) {
+	width: 72px;
+	height: 72px;
+}
+
+.remittance-upload-item :deep(.cl-upload__item.is-plain-file) {
+	width: 132px;
+	height: 96px;
+}
+
+.remittance-upload-item :deep(.cl-upload-item) {
+	width: 72px;
+	height: 72px;
+}
+
+.remittance-upload-item :deep(.cl-upload__item.is-plain-file .cl-upload-item) {
+	width: 132px;
+	height: 96px;
+}
+
+.remittance-upload-item :deep(.cl-upload-item__name) {
+	max-width: 64px;
+	font-size: 11px;
+	line-height: 16px;
+}
+
+.remittance-upload-item :deep(.cl-upload__item.is-plain-file .cl-upload-item__name) {
+	max-width: 116px;
+}
+
+.remittance-upload-item :deep(.cl-upload-item__tag) {
+	transform: scale(0.82);
+	transform-origin: top left;
 }
 
 .stage-actions {

@@ -8,11 +8,18 @@ export class CrmSupplierInfoEntity extends BaseEntity {
   companyName: string;
 
   @Column({
-    comment: '分類(字典 crmSupplierCategory)',
+    comment: '廠商分類(字典 crmSupplierCategory)',
     nullable: true,
     length: 64,
   })
   category: string;
+
+  @Column({
+    comment: '分類(字典 crmSupplierBusinessCategory)',
+    nullable: true,
+    length: 64,
+  })
+  businessCategory: string;
 
   @Index()
   @Column({ comment: '統一編號', nullable: true, length: 100 })

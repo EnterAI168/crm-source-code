@@ -10,7 +10,8 @@ export class CrmSupplierInfoService extends BaseService {
   crmSupplierInfoEntity: Repository<CrmSupplierInfoEntity>;
 
   async page(query: any) {
-    const { companyName, category, address, email, status } = query || {};
+    const { companyName, category, businessCategory, address, email, status } =
+      query || {};
     const unifiedNo = String(query?.unifiedNo || query?.taxNumber || '').trim();
 
     const sql = `
@@ -19,6 +20,7 @@ export class CrmSupplierInfoService extends BaseService {
       WHERE a.isDeleted = 0
       ${this.setSql(companyName, 'and a.companyName like ?', [`%${companyName}%`])}
       ${this.setSql(category, 'and a.category = ?', [String(category)])}
+      ${this.setSql(businessCategory, 'and a.businessCategory = ?', [String(businessCategory)])}
       ${this.setSql(unifiedNo, 'and a.unifiedNo like ?', [`%${unifiedNo}%`])}
       ${this.setSql(address, 'and a.address like ?', [`%${address}%`])}
       ${this.setSql(email, 'and a.email like ?', [`%${email}%`])}
@@ -79,6 +81,7 @@ export class CrmSupplierInfoService extends BaseService {
       ...param,
       companyName: this.toText(param.companyName),
       category: this.toNullableText(param.category),
+      businessCategory: this.toNullableText((param as any).businessCategory),
       unifiedNo: this.toNullableText((param as any).unifiedNo ?? param.taxNumber),
       contactName: this.toNullableText((param as any).contactName),
       contactPhone: this.toNullableText((param as any).contactPhone),

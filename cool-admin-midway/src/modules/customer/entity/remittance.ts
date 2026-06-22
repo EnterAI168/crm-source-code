@@ -59,6 +59,12 @@ export class CrmRemittanceEntity extends BaseEntity {
   @Column({ comment: '業務員ID', nullable: true })
   salesmanId: number;
 
+  @Column({ comment: '上傳檔案', nullable: true, type: 'text' })
+  uploadFiles: string;
+
+  @Column({ comment: '上傳發票', nullable: true, type: 'text' })
+  invoiceFiles: string;
+
   @Column({ comment: '備註', nullable: true, type: 'text' })
   remark: string;
 

@@ -16,19 +16,7 @@
 				class="remittance-table-wrap"
 				@wheel="onRemittanceTableWheel"
 			>
-				<cl-table ref="Table" class="remittance-table">
-					<template #column-quoteOrderName="{ scope }">
-						<el-button
-							v-if="scope.row?.quoteOrderId"
-							type="primary"
-							link
-							@click="openQuoteList(scope.row)"
-						>
-							{{ getQuoteOrderDisplayText(scope.row) }}
-						</el-button>
-						<span v-else>-</span>
-					</template>
-				</cl-table>
+				<cl-table ref="Table" class="remittance-table" />
 
 				<div
 					ref="remittanceXScrollRef"
@@ -66,17 +54,67 @@
 			<el-descriptions-item label="統一編號">{{ detailData.supplierUnifiedNo || '-' }}</el-descriptions-item>
 			<el-descriptions-item label="郵箱">{{ detailData.supplierEmail || '-' }}</el-descriptions-item>
 			<el-descriptions-item label="匯款型別">{{ getRemittanceTypeLabel(detailData.remittanceType) }}</el-descriptions-item>
-			<el-descriptions-item label="關聯報價單">
-				<el-button v-if="detailData.quoteOrderId" type="primary" link @click="openQuoteDetail(detailData)">
-					{{ detailData.quoteOrderName || '-' }}
-				</el-button>
-				<span v-else>-</span>
-			</el-descriptions-item>
 			<el-descriptions-item label="業務員">{{ detailData.salesmanName || '-' }}</el-descriptions-item>
 			<el-descriptions-item label="匯款總額">{{ toMoney(detailData.totalAmount) }}</el-descriptions-item>
 			<el-descriptions-item label="已匯款金額">{{ toMoney(detailData.paidAmount) }}</el-descriptions-item>
-			<el-descriptions-item label="備註" :span="3">
+			<el-descriptions-item label="備註">
 				<div class="remittance-remark">{{ detailData.remark || '-' }}</div>
+			</el-descriptions-item>
+			<el-descriptions-item label="上傳發票" :span="3">
+				<div v-if="getVoucherFiles(detailData.invoiceFiles).length" class="voucher-files">
+					<template v-for="file in getVoucherFiles(detailData.invoiceFiles)" :key="file">
+						<el-image
+							v-if="isVoucherImage(file)"
+							class="voucher-thumb"
+							:src="file"
+							:alt="getVoucherFileName(file)"
+							:preview-src-list="getVoucherImageFiles(detailData.invoiceFiles)"
+							fit="cover"
+							preview-teleported
+							hide-on-click-modal
+						/>
+						<el-button
+							v-else
+							class="voucher-file-button"
+							type="primary"
+							link
+							:title="getVoucherFileName(file)"
+							@click="downloadVoucherFile(file)"
+						>
+							<cl-svg :name="getVoucherFileIcon(file)" />
+							<span>{{ getVoucherFileName(file) }}</span>
+						</el-button>
+					</template>
+				</div>
+				<span v-else class="remittance-attachment-empty">-</span>
+			</el-descriptions-item>
+			<el-descriptions-item label="上傳檔案" :span="3">
+				<div v-if="getVoucherFiles(detailData.uploadFiles).length" class="voucher-files">
+					<template v-for="file in getVoucherFiles(detailData.uploadFiles)" :key="file">
+						<el-image
+							v-if="isVoucherImage(file)"
+							class="voucher-thumb"
+							:src="file"
+							:alt="getVoucherFileName(file)"
+							:preview-src-list="getVoucherImageFiles(detailData.uploadFiles)"
+							fit="cover"
+							preview-teleported
+							hide-on-click-modal
+						/>
+						<el-button
+							v-else
+							class="voucher-file-button"
+							type="primary"
+							link
+							:title="getVoucherFileName(file)"
+							@click="downloadVoucherFile(file)"
+						>
+							<cl-svg :name="getVoucherFileIcon(file)" />
+							<span>{{ getVoucherFileName(file) }}</span>
+						</el-button>
+					</template>
+				</div>
+				<span v-else class="remittance-attachment-empty">-</span>
 			</el-descriptions-item>
 		</el-descriptions>
 
@@ -90,6 +128,9 @@
 				</el-table-column>
 				<el-table-column label="應匯款金額" width="120">
 					<template #default="{ row }">{{ toMoney(row.amount) }}</template>
+				</el-table-column>
+				<el-table-column label="關聯報價單" min-width="220">
+					<template #default="{ row }">{{ getStageQuoteOrderText(row) }}</template>
 				</el-table-column>
 				<el-table-column prop="expectedRemittanceTime" label="預計匯款時間" width="180" />
 				<el-table-column prop="actualRemittanceTime" label="實際匯款時間" width="180" />
@@ -111,8 +152,16 @@
 									preview-teleported
 									hide-on-click-modal
 								/>
-								<el-button v-else type="primary" link @click="downloadVoucherFile(file)">
-									{{ getVoucherFileName(file) }}
+								<el-button
+									v-else
+									class="voucher-file-button"
+									type="primary"
+									link
+									:title="getVoucherFileName(file)"
+									@click="downloadVoucherFile(file)"
+								>
+									<cl-svg :name="getVoucherFileIcon(file)" />
+									<span>{{ getVoucherFileName(file) }}</span>
 								</el-button>
 							</template>
 						</div>
@@ -186,35 +235,19 @@
 			</el-table-column>
 		</el-table>
 	</el-dialog>
-
-	<el-dialog v-model="quoteDetailVisible" title="報價單詳情" width="1240px">
-		<el-descriptions :column="3" border>
-			<el-descriptions-item label="專案編號">{{ quoteDetailData.quoteNo || '-' }}</el-descriptions-item>
-			<el-descriptions-item label="客戶">{{ quoteDetailData.customerCompanyName || '-' }}</el-descriptions-item>
-			<el-descriptions-item label="客戶郵箱">{{ quoteDetailData.customerEmail || '-' }}</el-descriptions-item>
-			<el-descriptions-item label="專案名稱">{{ quoteDetailData.quoteName || '-' }}</el-descriptions-item>
-			<el-descriptions-item label="專案性質">{{ getQuoteTypeLabel(quoteDetailData.quoteType) }}</el-descriptions-item>
-			<el-descriptions-item label="狀態">{{ getQuoteStatusLabel(quoteDetailData.status) }}</el-descriptions-item>
-		</el-descriptions>
-	</el-dialog>
 </template>
 
 <script lang="ts" setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useCrud, useTable } from '@cool-vue/crud'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { useRouter } from 'vue-router'
 import { checkPerm } from '/$/base'
 import RemittanceService from '../service/remittance'
-import QuoteOrderService from '../service/quote'
 import RemittanceDialog from '../components/remittance-dialog.vue'
-import { getQuoteStatusLabel, getQuoteTypeLabel } from '../utils/quote'
 import { useCrmRemittanceTypeDict } from '../utils/remittanceTypeDict'
 
 const remittanceService = new RemittanceService()
-const quoteService = new QuoteOrderService()
 const { options: remittanceTypeOptions } = useCrmRemittanceTypeDict()
-const router = useRouter()
 
 const canAdd = computed(() => checkPerm('crm:remittance:add'))
 const canInfo = computed(() => checkPerm('crm:remittance:info'))
@@ -239,8 +272,6 @@ const remittanceVisible = ref(false)
 const remittanceSubmitting = ref(false)
 const remittanceStageRows = ref<any[]>([])
 const currentRemittanceId = ref(0)
-const quoteDetailVisible = ref(false)
-const quoteDetailData = ref<Record<string, any>>({})
 
 const searchItems = computed(() => [
 	{
@@ -307,13 +338,6 @@ function toPercent(value: any) {
 	return `${(toNumber(value) * 100).toFixed(2)}%`
 }
 
-function getQuoteOrderDisplayText(row: any) {
-	if (!row?.quoteOrderName) {
-		return '-'
-	}
-	return row.quoteOrderNo ? `${row.quoteOrderName} (${row.quoteOrderNo})` : row.quoteOrderName
-}
-
 function getRemittanceStatusLabel(value: any) {
 	return Number(value) === 2 ? '已完成' : '匯款中'
 }
@@ -328,6 +352,17 @@ function getRemittanceTypeLabel(value: any) {
 	}
 	const match = remittanceTypeOptions.value.find(item => String(item.value) === String(value))
 	return String(match?.label ?? match?.name ?? value)
+}
+
+function getStageQuoteOrderText(row: any) {
+	const name = row?.quoteOrderName || row?.quoteName || ''
+	const no = row?.quoteOrderNo || row?.quoteNo || ''
+
+	if (!name && !no) {
+		return '-'
+	}
+
+	return no ? `${name || '報價單'} (${no})` : name
 }
 
 function getVoucherFiles(value: any) {
@@ -358,8 +393,28 @@ function getVoucherFiles(value: any) {
 }
 
 function getVoucherFileName(file: string) {
-	const name = String(file || '').split('/').pop() || '匯款憑證'
-	return decodeURIComponent(name.split('?')[0] || '匯款憑證')
+	const name = decodeFileName(String(file || '').split('?')[0]).replace(/\\/g, '/')
+	return name.split('/').pop() || '匯款憑證'
+}
+
+function decodeFileName(value: string) {
+	try {
+		return decodeURIComponent(value)
+	} catch {
+		return value
+	}
+}
+
+function getVoucherFileIcon(file: string) {
+	const ext = getVoucherFileName(file).split('.').pop()?.toLowerCase() || ''
+
+	if (['doc', 'docx', 'docm', 'dot', 'dotx', 'dotm'].includes(ext)) return 'upload-word'
+	if (['xls', 'xlsx', 'xlsm', 'xlt', 'xltx', 'xltm'].includes(ext)) return 'upload-excel'
+	if (['ppt', 'pptx', 'pptm', 'ppsx', 'ppsm', 'pps', 'potx', 'potm'].includes(ext)) return 'upload-ppt'
+	if (ext === 'pdf') return 'upload-pdf'
+	if (['zip', 'rar', '7z'].includes(ext)) return 'upload-rar'
+
+	return 'upload-file'
 }
 
 function isVoucherImage(file: string) {
@@ -497,12 +552,6 @@ useTable({
 		{ type: 'selection', width: 60 },
 		{ label: '匯款專案名稱', prop: 'remittanceName', minWidth: 180, showOverflowTooltip: true },
 		{ label: '供應商', prop: 'supplierCompanyName', minWidth: 180, showOverflowTooltip: true },
-		{
-			label: '關聯報價單',
-			prop: 'quoteOrderName',
-			minWidth: 220,
-			showOverflowTooltip: true
-		},
 		{ label: '業務員', prop: 'salesmanName', width: 120 },
 		{
 			label: '匯款總金額',
@@ -546,6 +595,7 @@ useTable({
 					: toMoney(row.currentStageRemainingAmount)
 			}
 		},
+		{ label: '請款時間', prop: 'createTime', minWidth: 180, showOverflowTooltip: true },
 		{ label: '預計匯款時間', prop: 'currentExpectedRemittanceTime', minWidth: 180, showOverflowTooltip: true },
 		{ label: '實際匯款時間', prop: 'currentActualRemittanceTime', minWidth: 180, showOverflowTooltip: true },
 		{
@@ -683,22 +733,6 @@ async function deleteRemittance(row: any) {
 	scheduleRemittanceScrollBarUpdate()
 }
 
-async function openQuoteDetail(row: any) {
-	if (!row.quoteOrderId) return
-	quoteDetailData.value = ((await quoteService.info({ id: row.quoteOrderId })) as any) || {}
-	quoteDetailVisible.value = true
-}
-
-function openQuoteList(row: any) {
-	if (!String(row?.quoteOrderNo || '').trim()) return
-	router.push({
-		path: '/crm/quote/list',
-		query: {
-			quoteNo: String(row.quoteOrderNo).trim()
-		}
-	})
-}
-
 function onRemittanceSaved() {
 	remittanceDialogVisible.value = false
 	remittanceEditId.value = 0
@@ -769,16 +803,48 @@ onBeforeUnmount(() => {
 .voucher-files {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 6px;
+	gap: 8px;
 	align-items: center;
+	min-width: 0;
 }
 
 .voucher-thumb {
-	width: 44px;
-	height: 44px;
+	width: 40px;
+	height: 40px;
 	border: 1px solid var(--el-border-color);
 	border-radius: 4px;
 	cursor: zoom-in;
 	background: var(--el-fill-color-light);
+	flex-shrink: 0;
+}
+
+.remittance-attachment-empty {
+	color: var(--el-text-color-secondary);
+}
+
+.voucher-file-button {
+	max-width: 420px;
+	height: 32px;
+	padding: 0 10px;
+	border: 1px solid var(--el-border-color-light);
+	border-radius: 4px;
+	background-color: var(--el-fill-color-lighter);
+	vertical-align: middle;
+}
+
+.voucher-file-button :deep(.cl-svg) {
+	width: 18px;
+	height: 18px;
+	margin-right: 6px;
+	flex-shrink: 0;
+}
+
+.voucher-file-button span {
+	display: inline-block;
+	max-width: 360px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	vertical-align: middle;
 }
 </style>

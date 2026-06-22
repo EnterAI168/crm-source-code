@@ -8,17 +8,23 @@ export const CRM_SUPPLIER_CATEGORY_DICT_KEYS = [
 	'crm_supplier_category'
 ] as const;
 
-export function useSupplierCategoryDict() {
+export const CRM_SUPPLIER_BUSINESS_CATEGORY_DICT_KEYS = [
+	'crmSupplierBusinessCategory',
+	'supplierBusinessCategory',
+	'crm_supplier_business_category'
+] as const;
+
+function useSupplierDict(keys: readonly string[]) {
 	const { dict } = useDict();
 
 	const activeKey = computed(() => {
-		for (const key of CRM_SUPPLIER_CATEGORY_DICT_KEYS) {
+		for (const key of keys) {
 			const rows = dict.data[key as string];
 			if (Array.isArray(rows) && rows.length > 0) {
 				return key as string;
 			}
 		}
-		return CRM_SUPPLIER_CATEGORY_DICT_KEYS[0];
+		return keys[0];
 	});
 
 	const options = computed(() => {
@@ -32,7 +38,7 @@ export function useSupplierCategoryDict() {
 	const tableDict = computed(() => options.value);
 
 	onMounted(async () => {
-		await dict.refresh([...CRM_SUPPLIER_CATEGORY_DICT_KEYS]);
+		await dict.refresh([...keys]);
 	});
 
 	return {
@@ -41,4 +47,12 @@ export function useSupplierCategoryDict() {
 		options,
 		tableDict
 	};
+}
+
+export function useSupplierCategoryDict() {
+	return useSupplierDict(CRM_SUPPLIER_CATEGORY_DICT_KEYS);
+}
+
+export function useSupplierBusinessCategoryDict() {
+	return useSupplierDict(CRM_SUPPLIER_BUSINESS_CATEGORY_DICT_KEYS);
 }

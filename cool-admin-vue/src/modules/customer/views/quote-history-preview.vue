@@ -17,7 +17,10 @@
 
 		<div v-loading="loading" class="quote-preview-canvas">
 			<article ref="sheetRef" class="quote-sheet" id="quote-history-preview-doc">
-				<header class="quote-sheet__title">合作報價單</header>
+				<header class="quote-sheet__title">
+					<img class="quote-sheet__header-logo" src="/quote-header-logo.png" alt="ENTER" />
+					<span>合作報價單</span>
+				</header>
 
 				<div class="quote-sheet__body">
 					<aside class="quote-sheet__rail" aria-hidden="true">
@@ -240,8 +243,12 @@
 						<section class="quote-sign">
 							<aside class="quote-sign__rail">
 								<div class="quote-sign__meta">
-									<div>委刊單號</div>
-									<div>委刊日期</div>
+									<div>
+										<span>委刊單號</span>
+									</div>
+									<div>
+										<span>委刊日期</span>
+									</div>
 								</div>
 								<img
 									class="quote-sign__logo"
@@ -250,6 +257,10 @@
 								/>
 							</aside>
 							<div class="quote-sign__content">
+								<div class="quote-sign__values">
+									<div>{{ commissionNo }}</div>
+									<div>{{ commissionDate }}</div>
+								</div>
 								<div class="quote-sign__names">
 									<span>甲方簽章</span>
 									<span>乙方簽章</span>
@@ -339,6 +350,10 @@ const visibleItems = computed(() => {
 
 const finalAmount = computed(() => toNumber(order.finalAmount || detail.value?.amount || 0));
 const dutyRate = computed(() => parseDutyRate(detail.value?.duty));
+const commissionNo = computed(() => detail.value?.quoteNo || order.quoteNo || '-');
+const commissionDate = computed(() =>
+	formatDateText(order.createTime || detail.value?.quoteCreateTime || detail.value?.createTime)
+);
 const untaxedAmount = computed(() => {
 	return dutyRate.value > 0 ? finalAmount.value / (1 + dutyRate.value) : finalAmount.value;
 });
@@ -629,6 +644,7 @@ defineExpose({
 }
 
 .quote-sheet__title {
+	position: relative;
 	height: 76px;
 	line-height: 76px;
 	text-align: center;
@@ -637,6 +653,16 @@ defineExpose({
 	font-size: 34px;
 	font-weight: 700;
 	letter-spacing: 2px;
+}
+
+.quote-sheet__header-logo {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 64px;
+	height: 76px;
+	object-fit: cover;
+	display: block;
 }
 
 .quote-sheet__body {
@@ -958,12 +984,39 @@ defineExpose({
 .quote-sign__meta {
 	width: 100%;
 	margin-top: 56px;
-	line-height: 2.9;
+	line-height: 1.4;
 	text-align: left;
 }
 
 .quote-sign__meta div {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	min-height: 48px;
 	padding-left: 8px;
+	padding-right: 12px;
+	box-sizing: border-box;
+	text-align: right;
+}
+
+.quote-sign__values {
+	position: absolute;
+	top: 56px;
+	left: 10px;
+	width: 230px;
+	color: #111;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1.4;
+}
+
+.quote-sign__values div {
+	display: flex;
+	align-items: center;
+	min-height: 48px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .quote-sign__logo {

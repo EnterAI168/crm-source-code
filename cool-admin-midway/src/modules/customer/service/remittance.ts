@@ -122,10 +122,7 @@ export class CrmRemittanceService extends BaseService {
     const remittance = await this.getRemittanceById(Number(id));
     const detail = await this.fetchRemittanceDetail(remittance.id);
 
-    const stages = await this.crmRemittanceStageEntity.find({
-      where: { remittanceId: remittance.id },
-      order: { stageOrder: 'ASC', id: 'ASC' },
-    });
+    const stages = await this.fetchRemittanceStages(remittance.id);
 
     return {
       ...detail,
@@ -171,7 +168,7 @@ export class CrmRemittanceService extends BaseService {
     }
 
     const remittanceNo = await this.resolveCreateRemittanceNo(param?.remittanceNo);
-    const stages = this.normalizeStages(param?.stages || [], totalAmount);
+    const stages = this.normalizeStages(param?.stages || [], totalAmount, quoteOrderId);
     const salesmanId = quoteOrder?.salesmanId || this.ctx.admin?.userId || null;
 
     const saved = await this.crmRemittanceEntity.save({
@@ -188,6 +185,8 @@ export class CrmRemittanceService extends BaseService {
       paidAmount: 0,
       status: 1,
       salesmanId,
+      uploadFiles: this.normalizeFileList(param?.uploadFiles),
+      invoiceFiles: this.normalizeFileList(param?.invoiceFiles),
       remark: String(param?.remark || '').trim() || null,
       isDeleted: 0,
     });
@@ -244,7 +243,7 @@ export class CrmRemittanceService extends BaseService {
       }
     }
 
-    const stages = await this.normalizeStagesForUpdate(param?.stages || [], totalAmount, oldRow.id);
+    const stages = await this.normalizeStagesForUpdate(param?.stages || [], totalAmount, oldRow.id, quoteOrderId);
     const salesmanId = quoteOrder?.salesmanId || oldRow.salesmanId || this.ctx.admin?.userId || null;
 
     await this.crmRemittanceEntity.update(
@@ -260,6 +259,8 @@ export class CrmRemittanceService extends BaseService {
         supplierEmail: supplier?.email || String(param?.supplierEmail || '').trim() || null,
         totalAmount,
         salesmanId,
+        uploadFiles: this.normalizeFileList(param?.uploadFiles),
+        invoiceFiles: this.normalizeFileList(param?.invoiceFiles),
         remark: String(param?.remark || '').trim() || null,
       }
     );
@@ -435,7 +436,24 @@ export class CrmRemittanceService extends BaseService {
     return rows?.[0] || null;
   }
 
-  private normalizeStages(stages: any[], totalAmount: number) {
+  private async fetchRemittanceStages(remittanceId: number) {
+    return await this.nativeQuery(
+      `
+      SELECT
+        s.*,
+        q.quoteName AS quoteOrderName,
+        q.quoteNo AS quoteOrderNo
+      FROM crm_remittance_stage s
+      LEFT JOIN crm_remittance r ON r.id = s.remittanceId
+      LEFT JOIN crm_quote_order q ON q.id = COALESCE(s.quoteOrderId, r.quoteOrderId)
+      WHERE s.remittanceId = ?
+      ORDER BY s.stageOrder ASC, s.id ASC
+      `,
+      [remittanceId]
+    );
+  }
+
+  private normalizeStages(stages: any[], totalAmount: number, defaultQuoteOrderId: number) {
     if (!Array.isArray(stages) || stages.length === 0) {
       throw new CoolCommException('匯款階段不能為空');
     }
@@ -446,6 +464,7 @@ export class CrmRemittanceService extends BaseService {
 
       return {
         stageOrder: index + 1,
+        quoteOrderId: this.toNullableNumber(item?.quoteOrderId) || defaultQuoteOrderId || null,
         stageName: String(item?.stageName || `階段${index + 1}`).trim(),
         ratio: this.toNumber(ratio),
         amount: this.toMoney(amount),
@@ -466,7 +485,7 @@ export class CrmRemittanceService extends BaseService {
     return normalized;
   }
 
-  private async normalizeStagesForUpdate(stages: any[], totalAmount: number, remittanceId: number) {
+  private async normalizeStagesForUpdate(stages: any[], totalAmount: number, remittanceId: number, defaultQuoteOrderId: number) {
     if (!Array.isArray(stages) || stages.length === 0) {
       throw new CoolCommException('匯款階段不能為空');
     }
@@ -501,6 +520,7 @@ export class CrmRemittanceService extends BaseService {
         return {
           id: stageId,
           stageOrder: index + 1,
+          quoteOrderId: existing?.quoteOrderId || defaultQuoteOrderId || null,
           stageName: existing?.stageName || String(item?.stageName || `階段${index + 1}`).trim(),
           ratio: existing?.ratio || 0,
           amount: existing?.amount || 0,
@@ -522,6 +542,7 @@ export class CrmRemittanceService extends BaseService {
       return {
         id: stageId > 0 ? stageId : undefined,
         stageOrder: index + 1,
+        quoteOrderId: this.toNullableNumber(item?.quoteOrderId) || defaultQuoteOrderId || null,
         stageName: String(item?.stageName || `階段${index + 1}`).trim(),
         ratio: this.toNumber(ratio),
         amount: this.toMoney(amount),
@@ -686,6 +707,19 @@ export class CrmRemittanceService extends BaseService {
     }
     const n = Number(value);
     return Number.isNaN(n) || n <= 0 ? null : n;
+  }
+
+  private normalizeFileList(value: any) {
+    const list = Array.isArray(value)
+      ? value
+      : String(value || '')
+          .split(',')
+          .map(item => item.trim())
+          .filter(Boolean);
+    const normalized = list
+      .map(item => String(item || '').trim())
+      .filter(Boolean);
+    return normalized.length ? JSON.stringify(normalized) : null;
   }
 
   private normalizeDateTime(value: any) {

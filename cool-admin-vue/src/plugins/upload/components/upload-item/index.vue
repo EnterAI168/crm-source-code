@@ -5,7 +5,8 @@
 				class="cl-upload-item"
 				:class="[
 					{
-						'is-play': item.isPlay
+						'is-play': item.isPlay,
+						'is-plain-file': isPlainFile
 					}
 				]"
 				@contextmenu.stop.prevent="onContextMenu"
@@ -17,6 +18,7 @@
 						fit="contain"
 						:src="item.preload || url"
 						@error="item.error = $t('載入失敗')"
+						@click.stop="preview"
 					/>
 				</template>
 
@@ -28,16 +30,21 @@
 				<!-- 其他 -->
 				<template v-else>
 					<!-- 圖示 -->
-					<div
-						class="cl-upload-item__icon"
-					>
-						<cl-svg :name="'upload-' + item.type" />
+					<div class="cl-upload-item__icon">
+						<cl-svg :name="fileIconName" />
 					</div>
 					<!-- 檔名 -->
-					<div
-						class="cl-upload-item__name"
-					>
-						<span>{{ item.name || url }}</span>
+					<div class="cl-upload-item__name">
+						<button
+							v-if="canDownload"
+							class="cl-upload-item__name-download"
+							type="button"
+							:title="getDownloadName()"
+							@click.stop.prevent="download"
+						>
+							{{ getDownloadName() }}
+						</button>
+						<span v-else class="cl-upload-item__name-text" :title="displayName">{{ displayName }}</span>
 						<span v-show="item.error" class="error">{{ item.error }}</span>
 					</div>
 				</template>
@@ -94,19 +101,11 @@
 							</el-icon>
 						</template>
 
-						<template v-else>
+						<template v-else-if="!isPlainFile">
 							<el-icon class="action-preview" @click.stop="preview">
 								<zoom-in />
 							</el-icon>
 						</template>
-
-						<el-icon
-							v-if="canDownload"
-							class="action-download"
-							@click.stop="download"
-						>
-							<download />
-						</el-icon>
 
 						<el-icon
 							v-if="!disabled || deletable"
@@ -131,7 +130,7 @@ defineOptions({
 });
 
 import { computed, type PropType, onMounted, watch, reactive } from 'vue';
-import { ZoomIn, Delete, Download, VideoPause, VideoPlay } from '@element-plus/icons-vue';
+import { ZoomIn, Delete, VideoPause, VideoPlay } from '@element-plus/icons-vue';
 import { ContextMenu } from '@cool-vue/crud';
 import { useCool } from '/@/cool';
 import { extname } from '/@/cool/utils';
@@ -170,7 +169,13 @@ const { t } = useI18n();
 // 圖片地址
 const url = computed(() => props.item.url || '');
 
+const isPlainFile = computed(() => !['image', 'video', 'audio'].includes(props.item.type || ''));
+
 const canDownload = computed(() => !!url.value && !['image', 'video', 'audio'].includes(props.item.type || ''));
+
+const displayName = computed(() => getFileName(props.item.name || getDownloadName()));
+
+const fileIconName = computed(() => `upload-${props.item.type || 'file'}`);
 
 // 角標
 const tag = computed(() => {
@@ -194,7 +199,20 @@ function preview() {
 
 function getDownloadName() {
 	const name = props.item.name || url.value.split('/').pop() || 'download';
-	return decodeURIComponent(String(name).split('?')[0] || 'download');
+	return getFileName(name);
+}
+
+function getFileName(value: any) {
+	const name = decodeFileName(String(value || '').split('?')[0]).replace(/\\/g, '/');
+	return name.split('/').pop() || 'download';
+}
+
+function decodeFileName(value: string) {
+	try {
+		return decodeURIComponent(value);
+	} catch {
+		return value;
+	}
 }
 
 function download() {
@@ -378,6 +396,26 @@ onMounted(() => {
 				margin-top: 5px;
 			}
 		}
+
+		&-download {
+			display: block;
+			width: 100%;
+			padding: 0;
+			border: 0;
+			background: transparent;
+			color: var(--el-color-primary);
+			font-size: 12px;
+			line-height: 18px;
+			text-align: left;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+			overflow: hidden;
+			cursor: pointer;
+
+			&:hover {
+				text-decoration: underline;
+			}
+		}
 	}
 
 	&__progress {
@@ -467,11 +505,51 @@ onMounted(() => {
 		animation: play 1s linear infinite;
 	}
 
+	&.is-plain-file {
+		padding: 8px;
+		justify-content: flex-start;
+
+		.cl-upload-item__icon {
+			width: 34px;
+			height: 34px;
+			margin-top: 4px;
+			flex-shrink: 0;
+
+			.cl-svg {
+				position: static;
+				font-size: 34px;
+				fill: var(--el-fill-color-dark);
+			}
+		}
+
+		.cl-upload-item__name {
+			position: static;
+			height: auto;
+			padding: 0;
+			margin-top: 6px;
+		}
+
+		.cl-upload-item__name-download,
+		.cl-upload-item__name-text {
+			text-align: center;
+			white-space: nowrap;
+			display: block;
+			line-height: 16px;
+			max-height: 16px;
+			text-overflow: ellipsis;
+			overflow: hidden;
+		}
+	}
+
 	&:hover {
 		.cl-upload-item__actions {
 			opacity: 1;
 		}
 	}
+}
+
+.cl-upload-item__image-cover {
+	cursor: pointer;
 }
 
 @keyframes play {

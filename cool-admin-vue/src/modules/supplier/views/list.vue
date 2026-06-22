@@ -30,10 +30,14 @@ import { computed } from 'vue';
 import { ElMessage } from 'element-plus';
 import { useCrud, useTable, useUpsert } from '@cool-vue/crud';
 import SupplierInfoService from '../service/info';
-import { useSupplierCategoryDict } from '../utils/categoryDict';
+import { useSupplierBusinessCategoryDict, useSupplierCategoryDict } from '../utils/categoryDict';
 
 const supplierInfo = new SupplierInfoService();
 const { options: categoryOptions, tableDict: categoryTableDict } = useSupplierCategoryDict();
+const {
+	options: businessCategoryOptions,
+	tableDict: businessCategoryTableDict
+} = useSupplierBusinessCategoryDict();
 
 const Crud = useCrud({ service: supplierInfo }, app => app.refresh());
 
@@ -51,6 +55,20 @@ const categoryTableOptions = computed(() =>
 	}))
 );
 
+const businessCategorySelectOptions = computed(() =>
+	businessCategoryOptions.value.map((item: any) => ({
+		...item,
+		value: String(item?.value ?? item?.id ?? '')
+	}))
+);
+
+const businessCategoryTableOptions = computed(() =>
+	businessCategoryTableDict.value.map((item: any) => ({
+		...item,
+		value: String(item?.value ?? item?.id ?? '')
+	}))
+);
+
 const searchItems = computed(() => [
 	{
 		label: '公司名稱',
@@ -58,15 +76,28 @@ const searchItems = computed(() => [
 		component: { name: 'el-input', props: { clearable: true, placeholder: '請輸入公司名稱' } }
 	},
 	{
-		label: '分類',
+		label: '廠商分類',
 		prop: 'category',
 		component: {
 			name: 'cl-select',
 			props: {
 				clearable: true,
 				filterable: true,
-				placeholder: '請選擇分類',
+				placeholder: '請選擇廠商分類',
 				options: categorySelectOptions
+			}
+		}
+	},
+	{
+		label: '分類',
+		prop: 'businessCategory',
+		component: {
+			name: 'cl-select',
+			props: {
+				clearable: true,
+				filterable: true,
+				placeholder: '請選擇分類',
+				options: businessCategorySelectOptions
 			}
 		}
 	},
@@ -91,7 +122,8 @@ useTable({
 	columns: [
 		{ type: 'selection' },
 		{ label: '公司名稱', prop: 'companyName', minWidth: 180, showOverflowTooltip: true },
-		{ label: '分類', prop: 'category', minWidth: 120, dict: categoryTableOptions },
+		{ label: '廠商分類', prop: 'category', minWidth: 120, dict: categoryTableOptions },
+		{ label: '分類', prop: 'businessCategory', minWidth: 120, dict: businessCategoryTableOptions },
 		{ label: '統一編號', prop: 'unifiedNo', minWidth: 150, showOverflowTooltip: true },
 		{ label: '地址', prop: 'address', minWidth: 220, showOverflowTooltip: true },
 		{ label: '郵箱', prop: 'email', minWidth: 180, showOverflowTooltip: true },
@@ -114,15 +146,28 @@ const Upsert = useUpsert({
 			}
 		},
 		{
-			label: '分類',
+			label: '廠商分類',
 			prop: 'category',
 			component: {
 				name: 'cl-select',
 				props: {
 					clearable: true,
 					filterable: true,
-					placeholder: '請選擇分類',
+					placeholder: '請選擇廠商分類',
 					options: categorySelectOptions
+				}
+			}
+		},
+		{
+			label: '分類',
+			prop: 'businessCategory',
+			component: {
+				name: 'cl-select',
+				props: {
+					clearable: true,
+					filterable: true,
+					placeholder: '請選擇分類',
+					options: businessCategorySelectOptions
 				}
 			}
 		},

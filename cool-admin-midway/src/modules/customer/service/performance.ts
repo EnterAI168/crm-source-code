@@ -1007,7 +1007,7 @@ export class CrmPerformanceService extends BaseService {
       const mainRate = passMainThreshold
         ? ctx.salesMainRate + tierAddRate + oneTimeAddRate
         : 0;
-      const secondaryRate = mainRate;
+      const secondaryRate = passMainThreshold ? ctx.salesSecondaryRate : 0;
       const mainBonusBaseAmount = this.toMoney(item.mainPerformance);
       const mainBonus = this.toMoney((mainBonusBaseAmount * mainRate) / 100);
       const secondaryBonus = this.toMoney(

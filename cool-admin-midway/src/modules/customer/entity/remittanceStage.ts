@@ -7,6 +7,10 @@ export class CrmRemittanceStageEntity extends BaseEntity {
   @Column({ comment: '匯款單ID' })
   remittanceId: number;
 
+  @Index()
+  @Column({ comment: '關聯報價單ID', nullable: true })
+  quoteOrderId: number;
+
   @Column({ comment: '階段序號', type: 'int' })
   stageOrder: number;
 

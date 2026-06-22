@@ -1215,7 +1215,7 @@ useTable({
 		{
 			type: 'op',
 
-			width: 300,
+			width: 420,
 
 			fixed: 'right',
 
@@ -1228,8 +1228,10 @@ useTable({
 
 function getQuoteOperationButtons(row: any) {
 	const actions = getQuoteOperationActions(row).filter(item => !item.hidden);
-	const visibleActions = actions.slice(0, 2);
-	const moreActions = actions.slice(2);
+	const inlineActions = actions.filter(item => item.inline);
+	const normalActions = actions.filter(item => !item.inline);
+	const visibleActions = [...normalActions.slice(0, 2), ...inlineActions];
+	const moreActions = normalActions.slice(2);
 	const buttons: any[] = visibleActions.map(toQuoteOperationButton);
 
 	if (moreActions.length > 0) {
@@ -1241,6 +1243,8 @@ function getQuoteOperationButtons(row: any) {
 
 function getQuoteOperationActions(row: any) {
 	const perms = row.permissions || {};
+	const canInlineDepartmentAudit = canAuditPerm.value && perms.canInlineDepartmentAudit;
+	const canInlineDepartmentAssign = canAssignPerm.value && perms.canInlineDepartmentAssign;
 
 	return [
 		{
@@ -1323,7 +1327,7 @@ function getQuoteOperationActions(row: any) {
 			hidden: !(
 				(canAuditPerm.value || canAssignPerm.value) &&
 				perms.canDepartmentAuditDialog
-			),
+			) || canInlineDepartmentAudit || canInlineDepartmentAssign,
 			onClick() {
 				openDepartmentAudit(row);
 			}
@@ -1331,7 +1335,8 @@ function getQuoteOperationActions(row: any) {
 		{
 			label: '審核',
 			type: 'primary',
-			hidden: !(canAuditPerm.value && perms.canInlineDepartmentAudit),
+			inline: true,
+			hidden: !canInlineDepartmentAudit,
 			onClick() {
 				openInlineDepartmentAudit(row);
 			}
@@ -1339,7 +1344,8 @@ function getQuoteOperationActions(row: any) {
 		{
 			label: '分配',
 			type: 'primary',
-			hidden: !(canAssignPerm.value && perms.canInlineDepartmentAssign),
+			inline: true,
+			hidden: !canInlineDepartmentAssign,
 			onClick() {
 				openInlineDepartmentAssign(row);
 			}
