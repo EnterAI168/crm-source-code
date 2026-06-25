@@ -4,7 +4,7 @@ import { BaseEntity, transformerJson } from '../../base/entity/base';
 @Entity('crm_quote_order')
 export class CrmQuoteOrderEntity extends BaseEntity {
   @Index()
-  @Column({ comment: '報價單編號', length: 32 })
+  @Column({ comment: '報價單編號', length: 50 })
   quoteNo: string;
 
   @Index()
@@ -20,6 +20,10 @@ export class CrmQuoteOrderEntity extends BaseEntity {
   @Index()
   @Column({ comment: '業務員ID', nullable: true })
   salesmanId: number;
+
+  @Index()
+  @Column({ comment: '陪同管理業務ID', nullable: true })
+  accompanySalesmanId: number;
 
   @Index()
   @Column({ comment: '當前內勤處理人ID', nullable: true })
@@ -194,8 +198,31 @@ export class CrmQuoteOrderEntity extends BaseEntity {
   @Column({ comment: '執行備註', nullable: true, type: 'text' })
   execRemark: string;
 
+  @Column({ comment: '項目狀況', nullable: true, type: 'text' })
+  projectStatus: string;
+
+  @Column({
+    comment: '項目狀況圖片',
+    nullable: true,
+    type: 'json',
+    transformer: transformerJson,
+  })
+  projectStatusImages: string[];
+
+  @Column({ comment: '項目雲端Cue表', nullable: true, type: 'text' })
+  projectCueSheet: string;
+
   @Column({ comment: '價格備註', nullable: true, type: 'text' })
   priceRemark: string;
+
+  @Column({ comment: '折讓申請狀態 0-未申請 1-已確認', default: 0, type: 'tinyint' })
+  allowanceApplyStatus: number;
+
+  @Column({ comment: '折讓申請人ID', nullable: true })
+  allowanceApplyUserId: number;
+
+  @Column({ comment: '折讓申請時間', nullable: true, length: 20 })
+  allowanceApplyTime: string;
 
   @Column({
     comment: '報價單條款',

@@ -11,6 +11,9 @@ import {
 } from '@midwayjs/core';
 import { CachingFactory, MidwayCache } from '@midwayjs/cache-manager';
 import { Utils } from '../../../comm/utils';
+import { InjectEntityModel } from '@midwayjs/typeorm';
+import { Repository } from 'typeorm';
+import { BaseSysUserEntity } from '../entity/sys/user';
 
 /**
  * 權限校驗
@@ -36,6 +39,9 @@ export class BaseAuthorityMiddleware
 
   @Inject()
   utils: Utils;
+
+  @InjectEntityModel(BaseSysUserEntity)
+  baseSysUserEntity: Repository<BaseSysUserEntity>;
 
   ignoreUrls: string[] = [];
 
@@ -69,6 +75,12 @@ export class BaseAuthorityMiddleware
           return;
         }
         if (ctx.admin) {
+          const currentUser = await this.baseSysUserEntity.findOneBy({
+            id: ctx.admin.userId,
+          });
+          if (!currentUser || Number(currentUser.status) === 0) {
+            throw new CoolCommException('登入失效~', 401);
+          }
           const rToken = await this.midwayCache.get(
             `admin:token:${ctx.admin.userId}`
           );
@@ -118,6 +130,14 @@ export class BaseAuthorityMiddleware
               const aliasPerms: Record<string, string[]> = {
                 // 使用者管理-使用者列表改為讀取系統使用者介面時，相容原有 user:info:page 權限
                 'base/sys/user/page': ['user/info/page'],
+                'base/sys/user/transferCustomersToPool': [
+                  'base/sys/user/update',
+                  'base/sys/user/page',
+                ],
+                'base/sys/user/deleteCheck': [
+                  'base/sys/user/delete',
+                  'base/sys/user/page',
+                ],
                 /**
                  * CRM 客戶：控制器 prefix 為 crmCustomerList / crmCustomerPool 等，
                  * 與選單權限 crm:customerList:*（轉後為 crm/customerList/*）路徑不一致，需對映
@@ -187,12 +207,16 @@ export class BaseAuthorityMiddleware
                   'crm/quoteOrder/update',
                   'crm/quoteOrder/add',
                 ],
+                'crmQuoteOrder/applyAllowance': [
+                  'crm/quoteOrder/applyAllowance',
+                ],
                 'crmQuoteOrder/delete': ['crm/quoteOrder/delete'],
                 'crmQuoteOrder/info': [
                   'crm/quoteOrder/info',
                   'crm/quoteOrder/page',
                   'crm/quoteOrder/add',
                   'crm/quoteOrder/update',
+                  'crm/quoteOrder/applyAllowance',
                   'crm/quoteOrder/departmentCost',
                   'crm/customerList/quotationView',
                   'crm/quoteInvoice/quoteInfo',
@@ -202,6 +226,7 @@ export class BaseAuthorityMiddleware
                   'crm/quoteOrder/add',
                   'crm/quoteOrder/info',
                   'crm/quoteOrder/update',
+                  'crm/quoteOrder/applyAllowance',
                   'crm/quoteOrder/departmentCost',
                   'crm/customerList/quotationView',
                   'crm/quoteInvoice/quoteInfo',
@@ -211,15 +236,25 @@ export class BaseAuthorityMiddleware
                   'crm/quoteOrder/add',
                   'crm/quoteOrder/info',
                   'crm/quoteOrder/update',
+                  'crm/quoteOrder/applyAllowance',
                   'crm/quoteOrder/departmentCost',
                   'crm/customerList/quotationView',
                   'crm/quoteInvoice/quoteInfo',
+                ],
+                'crmQuoteOrder/salesmanOptions': [
+                  'crm/quoteOrder/page',
+                  'crm/quoteOrder/add',
+                  'crm/quoteOrder/info',
+                  'crm/quoteOrder/update',
+                  'crm/quoteOrder/applyAllowance',
+                  'crm/customerList/quotationView',
                 ],
                 'crmQuoteOrder/duty': [
                   'crm/quoteOrder/page',
                   'crm/quoteOrder/add',
                   'crm/quoteOrder/info',
                   'crm/quoteOrder/update',
+                  'crm/quoteOrder/applyAllowance',
                   'crm/quoteOrder/departmentCost',
                   'crm/customerList/quotationView',
                   'crm/quoteInvoice/quoteInfo',
@@ -229,6 +264,7 @@ export class BaseAuthorityMiddleware
                   'crm/quoteOrder/add',
                   'crm/quoteOrder/info',
                   'crm/quoteOrder/update',
+                  'crm/quoteOrder/applyAllowance',
                   'crm/quoteOrder/departmentCost',
                   'crm/customerList/quotationView',
                   'crm/quoteInvoice/quoteInfo',
@@ -238,6 +274,7 @@ export class BaseAuthorityMiddleware
                   'crm/quoteOrder/add',
                   'crm/quoteOrder/info',
                   'crm/quoteOrder/update',
+                  'crm/quoteOrder/applyAllowance',
                   'crm/quoteOrder/departmentCost',
                   'crm/customerList/quotationView',
                   'crm/quoteInvoice/quoteInfo',
@@ -348,6 +385,10 @@ export class BaseAuthorityMiddleware
                   'crm/remittance/remit',
                 ],
                 'crmRemittance/submitRemittance': ['crm/remittance/remit'],
+                'crmRemittance/updateReceivedStatus': [
+                  'crm/remittance/update',
+                  'crm/remittance/remit',
+                ],
                 'crmRemittance/quoteOrderOptions': [
                   'crm/remittance/page',
                   'crm/remittance/add',
@@ -374,6 +415,17 @@ export class BaseAuthorityMiddleware
                 ],
                 'crmQuoteInvoice/send': ['crm/quoteInvoice/send'],
                 'crmQuoteInvoice/handleScheduled': ['crm/quoteInvoice/audit'],
+                /**
+                 * 專案管理列表：控制器 prefix 為 productProject，
+                 * 選單權限為 product:project:*，需要做路由別名對映
+                 */
+                'productProject/page': ['product/project/page'],
+                'productProject/info': [
+                  'product/project/info',
+                  'product/project/page',
+                  'product/project/update',
+                ],
+                'productProject/update': ['product/project/update'],
                 'crmPerformance/page': ['crm/performance/page'],
                 'crmPerformance/expectedDetail': [
                   'crm/performance/expectedDetail',

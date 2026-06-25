@@ -51,4 +51,12 @@ export default class QuoteInvoiceService extends BaseService {
 			data
 		});
 	}
+
+	async void(data: { id: number; reason: string }) {
+		return this.request({
+			url: '/void',
+			method: 'POST',
+			data
+		});
+	}
 }

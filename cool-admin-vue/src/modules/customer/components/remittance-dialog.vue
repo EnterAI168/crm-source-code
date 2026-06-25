@@ -2,7 +2,7 @@
 	<el-dialog
 		v-model="visible"
 		:title="isEdit ? '編輯匯款單' : '新增匯款單'"
-		width="1200px"
+		width="1320px"
 		:close-on-click-modal="false"
 		@close="handleClose"
 	>
@@ -25,7 +25,8 @@
 								:precision="2"
 								:controls="false"
 								style="width: 100%"
-								placeholder="請輸入匯款總價"
+								placeholder="依付款階段金額自動計算"
+								disabled
 							/>
 						</el-form-item>
 					</div>
@@ -109,7 +110,9 @@
 						<el-form-item label="郵箱">
 							<el-input v-model="form.supplierEmail" disabled />
 						</el-form-item>
-						<div />
+						<el-form-item label="賬戶資訊">
+							<el-input v-model="form.accountInfo" placeholder="請輸入賬戶資訊" clearable />
+						</el-form-item>
 						<div />
 					</div>
 				</div>
@@ -141,8 +144,7 @@
 										:controls="false"
 										size="small"
 										style="width: 100%"
-										:disabled="isStagePaid(row)"
-										@change="onRatioChange(row)"
+										disabled
 									/>
 									<span>%</span>
 								</div>
@@ -158,7 +160,8 @@
 									:controls="false"
 									size="small"
 									style="width: 100%"
-									disabled
+									:disabled="isStagePaid(row)"
+									@change="onAmountChange(row)"
 								/>
 							</template>
 						</el-table-column>
@@ -197,6 +200,12 @@
 							</template>
 						</el-table-column>
 
+						<el-table-column label="勞保單" width="160" align="center">
+							<template #default="{ row }">
+								<el-input v-model="row.laborInsuranceNo" placeholder="請輸入勞保單" size="small" />
+							</template>
+						</el-table-column>
+
 						<el-table-column label="備註" min-width="180" align="center">
 							<template #default="{ row }">
 								<el-input v-model="row.remark" placeholder="請輸入備註" size="small" />
@@ -222,8 +231,8 @@
 						<el-button type="primary" size="small" @click="addStage">新增</el-button>
 					</div>
 
-					<div v-if="hasRatioError" class="stage-ratio-tip is-error">
-						{{ ratioSummaryText }}
+					<div v-if="stageAmountErrorText" class="stage-ratio-tip is-error">
+						{{ stageAmountErrorText }}
 					</div>
 				</div>
 
@@ -285,7 +294,8 @@ const createInitialStage = (quoteOrderId?: number) => ({
 	actualRemittanceTime: null,
 	nextStageRemittanceTime: null,
 	paymentStatus: 0,
-	remark: ''
+	remark: '',
+	laborInsuranceNo: ''
 });
 
 const createInitialForm = () => ({
@@ -299,6 +309,7 @@ const createInitialForm = () => ({
 	supplierAddress: '',
 	supplierUnifiedNo: '',
 	supplierEmail: '',
+	accountInfo: '',
 	totalAmount: 0,
 	uploadFiles: [] as string[],
 	invoiceFiles: [] as string[],
@@ -308,39 +319,19 @@ const createInitialForm = () => ({
 
 const form = ref(createInitialForm());
 
-const totalRatio = computed(() => form.value.stages.reduce((sum, item) => sum + Number(item.ratio || 0), 0));
-const paidRatioTotal = computed(() =>
-	form.value.stages
-		.filter(item => isStagePaid(item))
-		.reduce((sum, item) => sum + Number(item.ratio || 0), 0)
+const hasInvalidStageAmount = computed(() =>
+	form.value.stages.some(item => Number(item.amount || 0) <= 0)
 );
-const unpaidRatioTotal = computed(() =>
-	form.value.stages
-		.filter(item => !isStagePaid(item))
-		.reduce((sum, item) => sum + Number(item.ratio || 0), 0)
-);
-const hasInvalidStageRatio = computed(() => form.value.stages.some(item => Number(item.ratio || 0) <= 0));
-const hasRatioTotalError = computed(() => Math.abs(totalRatio.value - 100) > 0.01);
-const hasRatioError = computed(() => hasInvalidStageRatio.value || hasRatioTotalError.value);
-const ratioSummaryText = computed(() => {
-	const paidRatio = formatRatioForDisplay(paidRatioTotal.value);
-	const unpaidRatio = formatRatioForDisplay(unpaidRatioTotal.value);
-	const total = formatRatioForDisplay(totalRatio.value);
-	const hasPaidStage = isEdit.value && paidRatio > 0;
+const stageAmountErrorText = computed(() => {
+	if (!form.value.stages.length) {
+		return '';
+	}
 
-	if (hasInvalidStageRatio.value && hasRatioTotalError.value) {
-		if (hasPaidStage) {
-			return `已匯款階段比例為 ${paidRatio}% ，未匯款階段比例累計為 ${unpaidRatio}% ，合計必須等於100%，且每條匯款比例必須大於0`;
-		}
-		return `匯款比例累計為 ${total}% ，必須等於100%，且每條匯款比例必須大於0`;
+	if (hasInvalidStageAmount.value) {
+		return '付款階段金額必須大於0';
 	}
-	if (hasInvalidStageRatio.value) {
-		return '匯款比例必須大於0';
-	}
-	if (hasPaidStage) {
-		return `已匯款階段比例為 ${paidRatio}% ，未匯款階段比例累計為 ${unpaidRatio}% ，合計必須等於100%`;
-	}
-	return `匯款比例累計為 ${total}% ，必須等於100%`;
+
+	return '';
 });
 
 const validateTotalAmount = (_rule: any, value: any, callback: (error?: Error) => void) => {
@@ -364,7 +355,7 @@ function getErrorMessage(error: any, fallback = '儲存失敗') {
 const rules = {
 	remittanceName: [{ required: true, message: '請輸入匯款專案名稱', trigger: 'blur' }],
 	totalAmount: [
-		{ required: true, message: '請輸入匯款總價', trigger: ['blur', 'change'] },
+		{ required: true, message: '請先輸入付款階段金額', trigger: ['blur', 'change'] },
 		{ validator: validateTotalAmount, trigger: ['blur', 'change'] }
 	],
 	supplierId: [{ required: true, message: '請選擇供應商公司', trigger: 'change' }]
@@ -372,6 +363,14 @@ const rules = {
 
 function formatRatioForDisplay(value: any) {
 	return Number(Number(value || 0).toFixed(2));
+}
+
+function toMoney(value: any) {
+	return Number(Number(value || 0).toFixed(2));
+}
+
+function toRatio(value: any) {
+	return Number(Number(value || 0).toFixed(4));
 }
 
 watch(
@@ -385,13 +384,6 @@ watch(
 			resetForm();
 			await loadNextNo();
 		}
-	}
-);
-
-watch(
-	() => form.value.totalAmount,
-	() => {
-		recalculateStageAmounts();
 	}
 );
 
@@ -436,6 +428,7 @@ async function loadRemittanceData() {
 			supplierAddress: source.supplierAddress || '',
 			supplierUnifiedNo: source.supplierUnifiedNo || '',
 			supplierEmail: source.supplierEmail || '',
+			accountInfo: source.accountInfo || '',
 			totalAmount: Number(source.totalAmount || 0),
 			uploadFiles: normalizeFileList(source.uploadFiles),
 			invoiceFiles: normalizeFileList(source.invoiceFiles),
@@ -450,13 +443,15 @@ async function loadRemittanceData() {
 						actualRemittanceTime: item.actualRemittanceTime || null,
 						nextStageRemittanceTime: item.nextStageRemittanceTime || null,
 						paymentStatus: Number(item.paymentStatus || 0),
-						remark: item.remark || ''
+						remark: item.remark || '',
+						laborInsuranceNo: item.laborInsuranceNo || ''
 				  }))
 				: [createInitialStage()],
 			remark: source.remark || ''
 		};
 		ensureSelectedOptions(source);
 		syncSupplierFields();
+		recalculateStageSummary();
 	} finally {
 		loading.value = false;
 	}
@@ -518,13 +513,34 @@ function syncSupplierFields() {
 	form.value.supplierEmail ||= supplier.email || '';
 }
 
-function onRatioChange(row: any) {
-	row.ratio = formatRatioForDisplay(row.ratio);
-	row.amount = Number(((Number(form.value.totalAmount || 0) * Number(row.ratio || 0)) / 100).toFixed(2));
+function recalculateStageSummary() {
+	const normalizedAmounts = form.value.stages.map(item => toMoney(item.amount));
+	const totalAmount = toMoney(normalizedAmounts.reduce((sum, amount) => sum + amount, 0));
+	form.value.totalAmount = totalAmount;
+
+	let ratioPercentSum = 0;
+	form.value.stages.forEach((item, index) => {
+		item.amount = normalizedAmounts[index];
+
+		if (totalAmount <= 0) {
+			item.ratio = 0;
+			return;
+		}
+
+		if (index === form.value.stages.length - 1) {
+			item.ratio = formatRatioForDisplay(Math.max(0, 100 - ratioPercentSum));
+			return;
+		}
+
+		const ratioPercent = formatRatioForDisplay((normalizedAmounts[index] / totalAmount) * 100);
+		item.ratio = ratioPercent;
+		ratioPercentSum = formatRatioForDisplay(ratioPercentSum + ratioPercent);
+	});
 }
 
-function recalculateStageAmounts() {
-	form.value.stages.forEach(item => onRatioChange(item));
+function onAmountChange(row: any) {
+	row.amount = toMoney(row.amount);
+	recalculateStageSummary();
 }
 
 function normalizeFileList(value: any): string[] {
@@ -560,12 +576,15 @@ function addStage() {
 		actualRemittanceTime: null,
 		nextStageRemittanceTime: null,
 		paymentStatus: 0,
-		remark: ''
+		remark: '',
+		laborInsuranceNo: ''
 	});
+	recalculateStageSummary();
 }
 
 function removeStage(index: number) {
 	form.value.stages.splice(index, 1);
+	recalculateStageSummary();
 }
 
 function isStagePaid(row: any) {
@@ -574,6 +593,34 @@ function isStagePaid(row: any) {
 
 function isStageDisabled(row: any) {
 	return isStagePaid(row);
+}
+
+function buildStagePayload() {
+	const stages = form.value.stages.map(item => ({
+		...item,
+		amount: toMoney(item.amount)
+	}));
+	const totalAmount = toMoney(stages.reduce((sum, item) => sum + Number(item.amount || 0), 0));
+
+	let ratioSum = 0;
+
+	return stages.map((item, index) => {
+		let ratio = 0;
+
+		if (totalAmount > 0) {
+			if (index === stages.length - 1) {
+				ratio = toRatio(Math.max(0, 1 - ratioSum));
+			} else {
+				ratio = toRatio(Number(item.amount || 0) / totalAmount);
+				ratioSum = toRatio(ratioSum + ratio);
+			}
+		}
+
+		return {
+			...item,
+			ratio
+		};
+	});
 }
 
 async function handleSubmit() {
@@ -593,29 +640,21 @@ async function handleSubmit() {
 		return;
 	}
 
-	if (hasInvalidStageRatio.value) {
-		ElMessage.warning('匯款比例必須大於0');
-		return;
-	}
+	recalculateStageSummary();
 
-	if (hasRatioTotalError.value) {
-		ElMessage.warning(
-			isEdit.value && paidRatioTotal.value > 0
-				? '修改未付款的比例必須加上已匯款的比例等於100%'
-				: '匯款比例累加必須等於100%'
-		);
+	if (hasInvalidStageAmount.value) {
+		ElMessage.warning('付款階段金額必須大於0');
 		return;
 	}
 
 	loading.value = true;
 	try {
+		const stagePayload = buildStagePayload();
 		const payload = {
 			...form.value,
+			totalAmount: toMoney(form.value.totalAmount),
 			quoteOrderId: getPrimaryQuoteOrderId(),
-			stages: form.value.stages.map(item => ({
-				...item,
-				ratio: formatRatioForDisplay(item.ratio) / 100
-			}))
+			stages: stagePayload
 		};
 
 		if (isEdit.value) {

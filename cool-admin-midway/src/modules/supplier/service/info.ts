@@ -10,7 +10,7 @@ export class CrmSupplierInfoService extends BaseService {
   crmSupplierInfoEntity: Repository<CrmSupplierInfoEntity>;
 
   async page(query: any) {
-    const { companyName, category, businessCategory, address, email, status } =
+    const { companyName, category, businessCategory, address, email, remittanceInfo, status } =
       query || {};
     const unifiedNo = String(query?.unifiedNo || query?.taxNumber || '').trim();
 
@@ -24,6 +24,7 @@ export class CrmSupplierInfoService extends BaseService {
       ${this.setSql(unifiedNo, 'and a.unifiedNo like ?', [`%${unifiedNo}%`])}
       ${this.setSql(address, 'and a.address like ?', [`%${address}%`])}
       ${this.setSql(email, 'and a.email like ?', [`%${email}%`])}
+      ${this.setSql(remittanceInfo, 'and a.remittanceInfo like ?', [`%${remittanceInfo}%`])}
       ${this.setSql(status !== undefined && status !== null, 'and a.status = ?', [Number(status)])}
       ORDER BY a.createTime DESC
     `;
@@ -87,6 +88,7 @@ export class CrmSupplierInfoService extends BaseService {
       contactPhone: this.toNullableText((param as any).contactPhone),
       address: this.toNullableText(param.address),
       email: this.toNullableText(param.email),
+      remittanceInfo: this.toNullableText((param as any).remittanceInfo),
       remark: this.toNullableText(param.remark),
       status: Number((param as any).status) === 0 ? 0 : 1,
     };

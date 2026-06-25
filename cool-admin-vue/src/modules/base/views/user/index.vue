@@ -12,6 +12,16 @@
 					/>
 				</el-form-item>
 
+				<el-form-item label="英文名稱">
+					<el-input
+						v-model="searchForm.englishName"
+						class="user-search-form__field"
+						clearable
+						placeholder="請輸入英文名稱"
+						@keyup.enter="onSearch"
+					/>
+				</el-form-item>
+
 				<el-form-item label="部門">
 					<el-tree-select
 						v-model="searchForm.departmentId"
@@ -146,7 +156,7 @@ import { useTable, useUpsert, useCrud } from '@cool-vue/crud';
 import { useCool } from '/@/cool';
 import { BaseService } from '/@/cool/service/base';
 import { Plugins } from '/#/crud';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { computed, h, onMounted, ref } from 'vue';
 import { deepTree } from '/@/cool/utils';
 
@@ -185,6 +195,7 @@ const LEVEL_NORMAL = '一般同仁';
 function createSearchForm() {
 	return {
 		name: '',
+		englishName: '',
 		departmentId: undefined as number | undefined,
 		phone: '',
 		email: ''
@@ -208,7 +219,45 @@ const loginPhoneDisplayValue = computed(
 );
 
 const Crud = useCrud({
-	service: service.base.sys.user
+	service: service.base.sys.user,
+	async onDelete(selection, { next }) {
+		const ids = selection
+			.map((item: any) => Number(item?.id || 0))
+			.filter((id: number) => Number.isFinite(id) && id > 0);
+
+		if (!ids.length) {
+			return;
+		}
+
+		try {
+			const result = await service.base.sys.user.request({
+				url: '/deleteCheck',
+				method: 'POST',
+				data: { ids }
+			});
+
+			const blockedUsers = (Array.isArray(result) ? result : []).filter(
+				(item: any) => Number(item?.customerCount || 0) > 0
+			);
+
+			if (blockedUsers.length > 0) {
+				const names = blockedUsers
+					.map((item: any) => item?.userName || `ID:${item?.userId || ''}`)
+					.join('、');
+				ElMessage.warning(`請先將 ${names} 的客戶轉移到客戶公池後再刪除`);
+				return;
+			}
+
+			next({ ids });
+		} catch (error: any) {
+			ElMessage.error(error?.message || '刪除前檢查失敗');
+		}
+	}
+});
+
+const canTransferCustomersToPool = computed(() => {
+	const perms = service.base.sys.user?._permission || {};
+	return !!(perms.update || perms.page);
 });
 
 const Table = useTable({
@@ -221,6 +270,7 @@ const Table = useTable({
 			render: (row: any) =>
 				h('div', { class: 'user-info-cell' }, [
 					h('div', { class: 'user-info-cell__name' }, row?.name || '-'),
+					h('div', { class: 'user-info-cell__meta' }, `英文名稱：${row?.englishName || '-'}`),
 					h('div', { class: 'user-info-cell__meta' }, `郵箱：${row?.email || '-'}`),
 					h(
 						'div',
@@ -240,7 +290,23 @@ const Table = useTable({
 		},
 		{ prop: 'salary', label: '月工資', width: 140 },
 		{ prop: 'withholdingSalary', label: '扣繳工資', width: 140 },
-		{ type: 'op', width: 220, buttons: ['info', 'edit', 'delete'] }
+		{
+			type: 'op',
+			width: 320,
+			buttons: ({ scope }: any) => [
+				'info',
+				'edit',
+				{
+					label: '轉公池',
+					type: 'warning',
+					hidden: !canShowTransferCustomersButton(scope.row),
+					onClick() {
+						handleTransferCustomersToPool(scope.row);
+					}
+				},
+				'delete'
+			]
+		}
 	]
 });
 
@@ -260,6 +326,14 @@ const Upsert = useUpsert({
 			label: '員工名稱',
 			span: 12,
 			required: true,
+			component: { name: 'el-input' }
+		},
+		{
+			prop: 'englishName',
+			label: '英文名稱',
+			span: 12,
+			required: true,
+			rules: [{ required: true, message: '請輸入英文名稱', trigger: 'blur' }],
 			component: { name: 'el-input' }
 		},
 		{
@@ -480,6 +554,46 @@ function getSalesRole() {
 
 function getFinanceRole() {
 	return roles.value.find(isFinanceRole);
+}
+
+function canShowTransferCustomersButton(row: any) {
+	if (!canTransferCustomersToPool.value) return false;
+	const roleName = String(row?.roleName || '');
+	const departmentName = String(row?.departmentName || '');
+	return roleName.includes('業務') || departmentName.includes('業務');
+}
+
+async function handleTransferCustomersToPool(row: any) {
+	const userName = String(row?.name || row?.nickName || row?.username || '該使用者');
+	try {
+		await ElMessageBox.confirm(
+			`確認將「${userName}」名下的客戶全部轉移到客戶公池嗎？轉移後可由老闆重新分配給其他業務員。`,
+			'轉移客戶到公池',
+			{
+				type: 'warning',
+				confirmButtonText: '確認',
+				cancelButtonText: '取消'
+			}
+		);
+
+		const result = await service.base.sys.user.request({
+			url: '/transferCustomersToPool',
+			method: 'POST',
+			data: { userId: Number(row.id) }
+		});
+
+		const movedCount = Number(result?.movedCount || 0);
+		ElMessage.success(
+			movedCount > 0
+				? `已成功轉移 ${movedCount} 筆客戶到公池`
+				: '該業務目前沒有可轉移的客戶'
+		);
+	} catch (error: any) {
+		if (error === 'cancel' || error === 'close' || error?.message === 'cancel') {
+			return;
+		}
+		ElMessage.error(error?.message || '轉移客戶到公池失敗');
+	}
 }
 
 function findDepartmentPath(id?: number, list: any[] = departmentTree.value, path: any[] = []): any[] {
@@ -709,16 +823,19 @@ function collectDepartmentIds(list: any[] = []) {
 function buildSearchParams() {
 	const params: Record<string, any> = {
 		name: undefined,
+		englishName: undefined,
 		phone: undefined,
 		email: undefined,
 		departmentIds: []
 	};
 	const name = searchForm.value.name?.trim();
+	const englishName = searchForm.value.englishName?.trim();
 	const phone = searchForm.value.phone?.trim();
 	const email = searchForm.value.email?.trim();
 	const departmentId = Number(searchForm.value.departmentId || 0);
 
 	if (name) params.name = name;
+	if (englishName) params.englishName = englishName;
 	if (phone) params.phone = phone;
 	if (email) params.email = email;
 
@@ -743,6 +860,7 @@ function onResetSearch() {
 	refresh({
 		page: 1,
 		name: undefined,
+		englishName: undefined,
 		phone: undefined,
 		email: undefined,
 		departmentIds: []

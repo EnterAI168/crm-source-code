@@ -383,6 +383,31 @@
         "isShow": true,
         "childMenus": [
             {
+                "name": "內勤統計",
+                "router": "/crm/internal/statistics",
+                "perms": "crm:internalStatistics:page",
+                "type": 1,
+                "icon": "icon-data",
+                "orderNum": -1,
+                "viewPath": "modules/customer/views/internal-statistics.vue",
+                "keepAlive": true,
+                "isShow": true,
+                "childMenus": [
+                    {
+                        "name": "頁面",
+                        "router": null,
+                        "perms": "crm:internalStatistics:page",
+                        "type": 2,
+                        "icon": null,
+                        "orderNum": 1,
+                        "viewPath": null,
+                        "keepAlive": false,
+                        "isShow": false,
+                        "childMenus": []
+                    }
+                ]
+            },
+            {
                 "name": "平台統計",
                 "router": "/crm/platform/statistics",
                 "perms": "crm:platformStatistics:page",
@@ -1115,6 +1140,31 @@
                         "name": "權限",
                         "router": null,
                         "perms": "product:info:page,product:info:list,product:info:info,product:info:add,product:info:update,product:info:delete",
+                        "type": 2,
+                        "icon": null,
+                        "orderNum": 0,
+                        "viewPath": null,
+                        "keepAlive": true,
+                        "isShow": true,
+                        "childMenus": []
+                    }
+                ]
+            },
+            {
+                "name": "專案管理列表",
+                "router": "/product/project-list",
+                "perms": null,
+                "type": 1,
+                "icon": "icon-list",
+                "orderNum": 3,
+                "viewPath": "modules/product/views/project-list.vue",
+                "keepAlive": true,
+                "isShow": true,
+                "childMenus": [
+                    {
+                        "name": "權限",
+                        "router": null,
+                        "perms": "product:project:page,product:project:info,product:project:update",
                         "type": 2,
                         "icon": null,
                         "orderNum": 0,

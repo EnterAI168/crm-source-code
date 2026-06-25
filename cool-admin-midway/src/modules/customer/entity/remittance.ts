@@ -33,6 +33,9 @@ export class CrmRemittanceEntity extends BaseEntity {
   @Column({ comment: '供應商郵箱', length: 120, nullable: true })
   supplierEmail: string;
 
+  @Column({ comment: '賬戶資訊', length: 500, nullable: true })
+  accountInfo: string;
+
   @Column({
     comment: '匯款總價',
     type: 'decimal',
@@ -64,6 +67,12 @@ export class CrmRemittanceEntity extends BaseEntity {
 
   @Column({ comment: '上傳發票', nullable: true, type: 'text' })
   invoiceFiles: string;
+
+  @Column({ comment: '是否收到勞保單 0-否 1-是', default: 0, type: 'tinyint' })
+  receivedLaborInsurance: number;
+
+  @Column({ comment: '是否收到發票 0-否 1-是', default: 0, type: 'tinyint' })
+  receivedInvoice: number;
 
   @Column({ comment: '備註', nullable: true, type: 'text' })
   remark: string;

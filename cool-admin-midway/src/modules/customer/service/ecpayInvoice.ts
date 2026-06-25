@@ -42,6 +42,25 @@ interface InvalidInvoiceOptions {
   reason?: string;
 }
 
+interface NotifyInvoiceOptions {
+  invoiceNumber: string;
+  invoiceDate: string;
+  notifyMail: string;
+}
+
+interface DownloadInvoicePdfOptions {
+  invoiceNumber: string;
+  invoiceDate: string;
+}
+
+interface AllowanceInvoiceOptions {
+  invoiceNumber: string;
+  invoiceDate: string;
+  amount: number;
+  itemName?: string;
+  originalSequenceNumber?: number;
+}
+
 interface PostAesOptions {
   actionName: string;
   endpoint: string;
@@ -153,6 +172,143 @@ export class CrmEcpayInvoiceService extends BaseService {
     return decrypted;
   }
 
+  async notifyB2bInvoice(
+    configValue: any,
+    options: NotifyInvoiceOptions
+  ): Promise<any> {
+    const config = this.normalizeConfig(configValue);
+    if (!config.enabled) {
+      throw new CoolCommException('綠界發票開票配置未啟用');
+    }
+    if (!config.merchantId || !config.hashKey || !config.hashIv) {
+      throw new CoolCommException('綠界發票參數未配置，請在參數列表配置 crmEcpayInvoice');
+    }
+    this.validateCryptoConfig(config);
+
+    const result = await this.postAesJson(config, {
+      actionName: '發送通知',
+      endpoint: this.buildEndpoint(config.endpoint, '/B2BInvoice/Notify'),
+      data: this.buildNotifyData(config, options),
+    });
+    const decrypted = result.data;
+    if (Number(decrypted.RtnCode) !== 1) {
+      throw new CoolCommException(
+        `綠界發票發送通知失敗：${decrypted.RtnMsg || decrypted.RtnCode || '業務錯誤'}`
+      );
+    }
+    return decrypted;
+  }
+
+  async allowanceB2bInvoice(
+    configValue: any,
+    options: AllowanceInvoiceOptions
+  ): Promise<any> {
+    const config = this.normalizeConfig(configValue);
+    if (!config.enabled) {
+      throw new CoolCommException('綠界發票開票配置未啟用');
+    }
+    if (!config.merchantId || !config.hashKey || !config.hashIv) {
+      throw new CoolCommException('綠界發票參數未配置，請在參數列表配置 crmEcpayInvoice');
+    }
+    this.validateCryptoConfig(config);
+
+    const result = await this.postAesJson(config, {
+      actionName: '折讓',
+      endpoint: this.buildEndpoint(config.endpoint, '/B2BInvoice/Allowance'),
+      data: this.buildAllowanceData(config, options),
+    });
+    const decrypted = result.data;
+    if (Number(decrypted.RtnCode) !== 1) {
+      throw new CoolCommException(
+        `綠界發票折讓失敗：${decrypted.RtnMsg || decrypted.RtnCode || '業務錯誤'}`
+      );
+    }
+    return {
+      ...decrypted,
+      [this.ECPAY_B2B_ISSUE_AMOUNT_META_KEY]: this.resolveB2bIssueAmount(
+        options.amount,
+        config.taxType
+      ),
+    };
+  }
+
+  async downloadB2bInvoicePdf(
+    configValue: any,
+    options: DownloadInvoicePdfOptions
+  ): Promise<Buffer> {
+    const config = this.normalizeConfig(configValue);
+    if (!config.enabled) {
+      throw new CoolCommException('綠界發票開票配置未啟用');
+    }
+    if (!config.merchantId || !config.hashKey || !config.hashIv) {
+      throw new CoolCommException('綠界發票參數未配置，請在參數列表配置 crmEcpayInvoice');
+    }
+    this.validateCryptoConfig(config);
+
+    const timestamp = Math.floor(Date.now() / 1000);
+    const requestData = this.buildDownloadPdfData(config, options);
+    let lastError: any = null;
+
+    for (const jsonMode of ['node', 'php'] as EcpayJsonMode[]) {
+      const response = await this.sendAesBinaryRequest(
+        config,
+        {
+          actionName: '下載發票PDF',
+          endpoint: this.buildEndpoint(config.endpoint, '/B2BInvoice/DownloadB2BPdf'),
+          data: requestData,
+        },
+        timestamp,
+        jsonMode
+      );
+
+      const pdfBuffer = this.extractPdfBuffer(
+        response.data,
+        response.headers?.['content-type']
+      );
+      if (pdfBuffer) {
+        return pdfBuffer;
+      }
+
+      const result = this.parseBinaryResponseData(response.data);
+      if (jsonMode === 'node' && this.isEcpayDecryptFail(result)) {
+        lastError = result;
+        continue;
+      }
+
+      if (response.status < 200 || response.status >= 300) {
+        throw new CoolCommException(
+          `綠界發票下載PDF失敗：HTTP ${response.status} ${this.formatResponseData(
+            result
+          )}；${this.buildConfigDiagnostic(config, timestamp, jsonMode)}`
+        );
+      }
+
+      if (Number(result?.TransCode) !== 1) {
+        throw new CoolCommException(
+          `綠界發票下載PDF失敗：${
+            result?.TransMsg || result?.RtnMsg || '請求格式或加密錯誤'
+          }；${this.buildConfigDiagnostic(config, timestamp, jsonMode)}`
+        );
+      }
+
+      const decrypted = this.decryptResponseData(
+        result.Data,
+        config.hashKey,
+        config.hashIv,
+        '下載發票PDF'
+      );
+      throw new CoolCommException(
+        `綠界發票下載PDF失敗：${
+          decrypted?.RtnMsg || decrypted?.RtnCode || '未返回PDF內容'
+        }`
+      );
+    }
+
+    throw new CoolCommException(
+      `綠界發票下載PDF失敗：${this.formatResponseData(lastError)}`
+    );
+  }
+
   private async postAesJson(config: EcpayInvoiceConfig, options: PostAesOptions) {
     const timestamp = Math.floor(Date.now() / 1000);
     let jsonMode: EcpayJsonMode = 'node';
@@ -213,6 +369,31 @@ export class CrmEcpayInvoiceService extends BaseService {
       headers: {
         'Content-Type': 'application/json',
       },
+      validateStatus: () => true,
+    });
+  }
+
+  private async sendAesBinaryRequest(
+    config: EcpayInvoiceConfig,
+    options: PostAesOptions,
+    timestamp: number,
+    jsonMode: EcpayJsonMode
+  ) {
+    const body = {
+      Data: this.aesEncrypt(options.data, config.hashKey, config.hashIv, jsonMode),
+      MerchantID: config.merchantId,
+      RqHeader: {
+        Timestamp: timestamp,
+        RqID: crypto.randomUUID(),
+        Revision: '1.0.0',
+      },
+    };
+    return axios.post(options.endpoint, body, {
+      timeout: Math.max(Number(config.timeout || 0), 60000),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      responseType: 'arraybuffer',
       validateStatus: () => true,
     });
   }
@@ -381,6 +562,94 @@ export class CrmEcpayInvoiceService extends BaseService {
       InvoiceNumber: invoiceNumber,
       InvoiceDate: invoiceDate,
       Reason: reason || 'CRM發票作廢',
+    };
+  }
+
+  private buildNotifyData(
+    config: EcpayInvoiceConfig,
+    options: NotifyInvoiceOptions
+  ) {
+    const invoiceNumber = String(options.invoiceNumber || '').trim();
+    if (!invoiceNumber) {
+      throw new CoolCommException('綠界發票號碼為空，無法發送通知');
+    }
+    const invoiceDate = this.normalizeInvoiceDate(options.invoiceDate);
+    if (!invoiceDate) {
+      throw new CoolCommException('綠界發票日期為空，無法發送通知');
+    }
+    const notifyMail = String(options.notifyMail || '').trim();
+    if (!notifyMail || !this.isValidEmail(notifyMail)) {
+      throw new CoolCommException('買方郵箱為空或格式不正確，無法發送綠界通知');
+    }
+    return {
+      MerchantID: config.merchantId,
+      InvoiceDate: invoiceDate,
+      InvoiceNumber: invoiceNumber,
+      NotifyMail: notifyMail,
+      InvoiceTag: '1',
+      Notified: 'C',
+    };
+  }
+
+  private buildAllowanceData(
+    config: EcpayInvoiceConfig,
+    options: AllowanceInvoiceOptions
+  ) {
+    const invoiceNumber = String(options.invoiceNumber || '').trim();
+    if (!invoiceNumber) {
+      throw new CoolCommException('綠界發票號碼為空，無法開立折讓');
+    }
+    const invoiceDate = this.normalizeInvoiceDate(options.invoiceDate);
+    if (!invoiceDate) {
+      throw new CoolCommException('綠界發票日期為空，無法開立折讓');
+    }
+    const amount = this.resolveB2bIssueAmount(options.amount, config.taxType);
+    if (!Number.isFinite(amount.totalAmount) || amount.totalAmount <= 0) {
+      throw new CoolCommException('折讓金額必須大於0');
+    }
+    const itemName =
+      String(options.itemName || '').trim().slice(0, 500) || 'CRM折讓';
+    const originalSequenceNumber = Math.max(
+      1,
+      Math.floor(Number(options.originalSequenceNumber || 1))
+    );
+
+    return {
+      MerchantID: config.merchantId,
+      TaxAmount: amount.taxAmount,
+      TotalAmount: amount.salesAmount,
+      Details: [
+        {
+          OriginalInvoiceNumber: invoiceNumber,
+          OriginalInvoiceDate: invoiceDate,
+          ItemName: itemName,
+          OriginalSequenceNumber: originalSequenceNumber,
+          ItemCount: 1,
+          ItemPrice: amount.salesAmount,
+          ItemAmount: amount.salesAmount,
+        },
+      ],
+    };
+  }
+
+  private buildDownloadPdfData(
+    config: EcpayInvoiceConfig,
+    options: DownloadInvoicePdfOptions
+  ) {
+    const invoiceNumber = String(options.invoiceNumber || '').trim();
+    if (!invoiceNumber) {
+      throw new CoolCommException('綠界發票號碼為空，無法下載PDF');
+    }
+    const invoiceDate = this.normalizeInvoiceDate(options.invoiceDate);
+    if (!invoiceDate) {
+      throw new CoolCommException('綠界發票日期為空，無法下載PDF');
+    }
+    return {
+      MerchantID: config.merchantId,
+      InvoiceCategory: 0,
+      InvoiceNo: invoiceNumber,
+      InvoiceDate: invoiceDate,
+      PrintStyle: 1,
     };
   }
 
@@ -610,6 +879,84 @@ export class CrmEcpayInvoiceService extends BaseService {
       return JSON.stringify(data).slice(0, 500);
     } catch {
       return String(data).slice(0, 500);
+    }
+  }
+
+  private extractPdfBuffer(content: any, contentType: any) {
+    const buffer = this.toBuffer(content);
+    if (!buffer.length) {
+      return null;
+    }
+    if (this.isPdfBuffer(buffer)) {
+      return buffer;
+    }
+
+    const decodedBase64Buffer = this.tryDecodePdfBase64(buffer);
+    if (decodedBase64Buffer) {
+      return decodedBase64Buffer;
+    }
+
+    const normalizedType = Array.isArray(contentType)
+      ? String(contentType[0] || '').toLowerCase()
+      : String(contentType || '').toLowerCase();
+    if (normalizedType.includes('application/pdf')) {
+      return null;
+    }
+    return null;
+  }
+
+  private parseBinaryResponseData(content: any) {
+    const buffer = this.toBuffer(content);
+    const text = buffer.toString('utf8').trim();
+    if (!text) {
+      return {};
+    }
+    try {
+      return JSON.parse(text);
+    } catch {
+      return { raw: text.slice(0, 500) };
+    }
+  }
+
+  private toBuffer(content: any) {
+    if (!content) {
+      return Buffer.from([]);
+    }
+    if (Buffer.isBuffer(content)) {
+      return content;
+    }
+    if (content instanceof ArrayBuffer) {
+      return Buffer.from(content);
+    }
+    if (ArrayBuffer.isView(content)) {
+      return Buffer.from(content.buffer, content.byteOffset, content.byteLength);
+    }
+    if (typeof content === 'string') {
+      return Buffer.from(content);
+    }
+    return Buffer.from([]);
+  }
+
+  private isPdfBuffer(buffer: Buffer) {
+    return buffer.length >= 4 && buffer.subarray(0, 4).toString('utf8') === '%PDF';
+  }
+
+  private tryDecodePdfBase64(buffer: Buffer) {
+    const text = buffer.toString('utf8').trim();
+    if (!text || text.length < 32) {
+      return null;
+    }
+
+    const normalized = text.replace(/\s+/g, '');
+    if (!/^[A-Za-z0-9+/=]+$/.test(normalized)) {
+      return null;
+    }
+
+    try {
+      const decoded = Buffer.from(normalized, 'base64');
+      return this.isPdfBuffer(decoded) ? decoded : null;
+    } catch {
+      return null;
     }
   }
 

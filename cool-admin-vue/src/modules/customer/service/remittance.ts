@@ -26,6 +26,18 @@ export default class RemittanceService extends BaseService {
 		});
 	}
 
+	async updateReceivedStatus(data: {
+		id: number;
+		receivedLaborInsurance?: number;
+		receivedInvoice?: number;
+	}) {
+		return this.request({
+			url: '/updateReceivedStatus',
+			method: 'POST',
+			data
+		});
+	}
+
 	async quoteOrderOptions(): Promise<any[]> {
 		const data = await this.request({ url: '/quoteOrderOptions', method: 'POST' });
 		return Array.isArray(data) ? data : [];

@@ -80,4 +80,9 @@ export class AdminCrmPerformanceController extends BaseController {
   async invoiceStatistics() {
     return this.ok(await this.crmPerformanceService.invoiceStatistics());
   }
+
+  @Post('/internalStatistics')
+  async internalStatistics() {
+    return this.ok(await this.crmPerformanceService.internalStatistics());
+  }
 }

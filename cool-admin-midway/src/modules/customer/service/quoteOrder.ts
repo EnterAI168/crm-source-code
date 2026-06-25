@@ -174,6 +174,15 @@ export class CrmQuoteOrderService extends BaseService {
       SELECT
         a.*,
         ${businessStatusSql} AS businessStatus,
+        (
+          SELECT COUNT(1)
+          FROM crm_quote_invoice qi
+          WHERE qi.quoteOrderId = a.id
+            AND qi.isDeleted = 0
+            AND qi.status = 2
+            AND IFNULL(qi.ecpayInvalidStatus, 0) <> 2
+            AND qi.voidTime IS NULL
+        ) AS issuedInvoiceCount,
         c.companyName AS customerCompanyName,
         c.address AS customerAddress,
         c.taxNumber AS customerTaxNumber,
@@ -183,10 +192,12 @@ export class CrmQuoteOrderService extends BaseService {
         c.email AS customerEmail,
         c.isVip AS customerIsVip,
         u.name AS salesmanName,
+        u3.name AS accompanySalesmanName,
         u2.name AS currentAssigneeName
       FROM crm_quote_order a
       LEFT JOIN crm_customer_info c ON c.id = a.customerId
       LEFT JOIN base_sys_user u ON u.id = a.salesmanId
+      LEFT JOIN base_sys_user u3 ON u3.id = a.accompanySalesmanId
       LEFT JOIN base_sys_user u2 ON u2.id = a.currentAssigneeId
         WHERE a.isDeleted = 0
           ${restrictSql.sql}
@@ -211,6 +222,7 @@ export class CrmQuoteOrderService extends BaseService {
       (result.list || []).map(async (row: any) => ({
         ...row,
         status: Number(row.businessStatus || row.status || 0),
+        viewerSalesIdentity: this.getViewerSalesIdentity(row, scope),
         permissions: {
           ...this.buildPermissions(row, scope),
           ...(await this.buildCaseMeetingPermissions(row, scope)),
@@ -229,7 +241,7 @@ export class CrmQuoteOrderService extends BaseService {
     });
     const detail = await this.fetchOrderDetail(order.id);
 
-    const [items, stages, auditRows] = await Promise.all([
+    const [items, stages, invoices, auditRows] = await Promise.all([
       this.crmQuoteOrderItemEntity.find({
         where: { quoteOrderId: order.id, isDeleted: 0 },
         order: { sortNum: 'ASC', id: 'ASC' },
@@ -238,8 +250,13 @@ export class CrmQuoteOrderService extends BaseService {
         where: { quoteOrderId: order.id, isDeleted: 0 },
         order: { sortNum: 'ASC', id: 'ASC' },
       }),
+      this.crmQuoteInvoiceEntity.find({
+        where: { quoteOrderId: order.id, isDeleted: 0 },
+        order: { createTime: 'DESC', id: 'DESC' },
+      }),
       this.fetchDepartmentAudits(order.id),
     ]);
+    const decoratedStages = this.decorateStagesWithInvoiceMeta(stages, invoices);
     const departmentAudits = auditRows.map(audit => ({
       ...audit,
       items: items.filter(
@@ -256,7 +273,7 @@ export class CrmQuoteOrderService extends BaseService {
     return {
       ...detail,
       items,
-      stages,
+      stages: decoratedStages,
       departmentAudits,
       contractList: detail?.contractFile
         ? [
@@ -289,11 +306,14 @@ export class CrmQuoteOrderService extends BaseService {
       param?.stages || [],
       summary.finalAmount
     );
-    const quoteNo =
-      String(param?.quoteNo || '').trim() || (await this.generateQuoteNo());
     const salesmanId = Number(
       customer.salesmanId || this.ctx.admin?.userId || 0
     );
+    const accompanySalesmanId = await this.normalizeAccompanySalesmanId(
+      param?.accompanySalesmanId,
+      salesmanId
+    );
+    const quoteNoPrefix = await this.getQuoteNoPrefix(salesmanId);
     const contractFile = String(param?.contractFile || '').trim();
     const hasContract = !!contractFile;
     const discountRate = this.toRatePercent(param?.discountRate);
@@ -303,11 +323,12 @@ export class CrmQuoteOrderService extends BaseService {
     const quoteTerms = await this.resolveQuoteTermsForSave(param);
 
     const saved = await this.crmQuoteOrderEntity.save({
-      quoteNo,
+      quoteNo: await this.generateQuoteNoSeed(),
       customerId: customer.id,
       quoteName: String(param?.quoteName || '').trim(),
       quoteType: this.normalizeQuoteType(param?.quoteType),
       salesmanId,
+      accompanySalesmanId,
       currentAssigneeId: null,
       status: 1,
       auditStatus: 0,
@@ -341,6 +362,11 @@ export class CrmQuoteOrderService extends BaseService {
       caseMeetingFlag: 1,
       isDeleted: 0,
     });
+    saved.quoteNo = await this.assignSavedQuoteNo(
+      saved.id,
+      saved.createTime,
+      quoteNoPrefix
+    );
 
     await this.saveItems(saved.id, items);
     await this.saveStages(saved.id, stages);
@@ -357,12 +383,170 @@ export class CrmQuoteOrderService extends BaseService {
   }
 
   async update(param: any): Promise<any> {
+    return this.saveOrderUpdate(param, false);
+  }
+
+  async applyAllowance(param: any): Promise<any> {
+    return this.applyAllowanceUpdate(param);
+  }
+
+  private async applyAllowanceUpdate(param: any): Promise<any> {
     const scope = await this.getScope();
     const id = Number(param?.id || 0);
     const oldRow = await this.getOrderById(id, scope);
-    this.ensureCanEdit(oldRow, scope);
+    await this.ensureCanApplyAllowance(oldRow, scope);
+    await this.ensureAllowanceItemsAndDiscountStable(id, param, oldRow);
 
-    if (this.isPaymentStageOnlyEditable(oldRow)) {
+    const customer = await this.getCustomerById(
+      Number(param?.customerId || oldRow.customerId),
+      true
+    );
+    const rawStages = Array.isArray(param?.stages) ? param.stages : [];
+    const items = await this.normalizeItems(param?.items || []);
+    const itemSummary = this.calcSummary(items);
+    const summary = this.resolveSummary(param, itemSummary);
+    const stages = this.normalizeStages(rawStages, summary.finalAmount);
+
+    const currentInvoices = await this.crmQuoteInvoiceEntity.find({
+      where: { quoteOrderId: id, isDeleted: 0 },
+      order: { id: 'ASC' },
+    });
+    const activeIssuedInvoices = currentInvoices.filter(
+      item =>
+        Number(item.status || 0) === 2 &&
+        Number(item.ecpayInvalidStatus || 0) !== 2 &&
+        !item.voidTime
+    );
+
+    const allowanceDecision = this.buildAllowanceDecisionSummary(
+      rawStages,
+      stages,
+      activeIssuedInvoices
+    );
+
+    await this.crmQuoteOrderEntity.save({
+      ...oldRow,
+      id,
+      customerId: customer.id,
+      quoteName: String(param?.quoteName || '').trim(),
+      quoteType: this.normalizeQuoteType(param?.quoteType),
+      salesmanId: Number(
+        customer.salesmanId || oldRow.salesmanId || this.ctx.admin?.userId || 0
+      ),
+      accompanySalesmanId: await this.normalizeAccompanySalesmanId(
+        Object.prototype.hasOwnProperty.call(param || {}, 'accompanySalesmanId')
+          ? param?.accompanySalesmanId
+          : oldRow.accompanySalesmanId,
+        Number(customer.salesmanId || oldRow.salesmanId || this.ctx.admin?.userId || 0)
+      ),
+      startDate: this.normalizeDate(param?.startDate),
+      endDate: this.normalizeDate(param?.endDate),
+      finalAmount: summary.finalAmount,
+      costAmount: summary.costAmount,
+      grossProfitAmount: summary.grossProfitAmount,
+      grossProfitRate: summary.grossProfitRate,
+      remark: String(param?.remark || '').trim() || null,
+      execRemark: String(param?.execRemark || '').trim() || null,
+      priceRemark: String(param?.priceRemark || '').trim() || null,
+      quoteTerms: Object.prototype.hasOwnProperty.call(param || {}, 'quoteTerms')
+        ? await this.resolveQuoteTermsForSave(param, oldRow)
+        : oldRow.quoteTerms,
+      discountRate: this.toRatePercent(oldRow.discountRate),
+      commission: Object.prototype.hasOwnProperty.call(param || {}, 'commission')
+        ? this.toMoney(param?.commission || 0)
+        : this.toMoney(oldRow.commission || 0),
+      discountDeductionAmount: 0,
+      discountAuditStatus: oldRow.discountAuditStatus,
+      discountAuditReason: oldRow.discountAuditReason,
+      discountAuditUserId: oldRow.discountAuditUserId,
+      discountAuditTime: oldRow.discountAuditTime,
+      discountAuditRemark: oldRow.discountAuditRemark,
+      isDeleted: 0,
+    });
+
+    await this.replaceItems(id, items);
+    await this.replaceStages(id, stages);
+    await this.syncDepartmentAudits(id, items);
+    await this.executeAllowanceInvoiceStrategy(
+      oldRow,
+      allowanceDecision,
+      activeIssuedInvoices,
+      stages
+    );
+    await this.crmQuoteOrderEntity.update(
+      { id },
+      {
+        allowanceApplyStatus: 1,
+        allowanceApplyUserId: this.ctx.admin?.userId || null,
+        allowanceApplyTime: this.now(),
+      }
+    );
+    await this.refreshOrderReceiptAndInvoiceStatus(id);
+    await this.saveQuoteHistory(id);
+
+    return {
+      id,
+      allowanceAction: allowanceDecision.action,
+      expectedIssuedInvoiceAmount: allowanceDecision.expectedIssuedInvoiceAmount,
+      appliedInvoiceAmount: allowanceDecision.appliedInvoiceAmount,
+      uninvoicedAmount: allowanceDecision.uninvoicedAmount,
+    };
+  }
+
+  private async ensureAllowanceItemsAndDiscountStable(
+    quoteOrderId: number,
+    param: any,
+    oldRow: any
+  ) {
+    if (
+      Object.prototype.hasOwnProperty.call(param || {}, 'discountRate') &&
+      this.toRatePercent(param?.discountRate) !==
+        this.toRatePercent(oldRow?.discountRate)
+    ) {
+      throw new CoolCommException('申請折讓不支援修改優惠折扣');
+    }
+
+    const incomingItems = Array.isArray(param?.items) ? param.items : [];
+    const existingItems = await this.crmQuoteOrderItemEntity.find({
+      where: { quoteOrderId, isDeleted: 0 },
+      order: { sortNum: 'ASC', id: 'ASC' },
+    });
+
+    if (incomingItems.length !== existingItems.length) {
+      throw new CoolCommException('申請折讓不支援新增或刪除產品');
+    }
+
+    for (let index = 0; index < existingItems.length; index++) {
+      const incomingItem = incomingItems[index] || {};
+      const existingItem = existingItems[index];
+      const incomingProductId = Number(incomingItem?.productId || 0);
+      const existingProductId = Number(existingItem?.productId || 0);
+      const incomingSpecId = Number(incomingItem?.specId || 0);
+      const existingSpecId = Number(existingItem?.specId || 0);
+
+      if (
+        incomingProductId !== existingProductId ||
+        incomingSpecId !== existingSpecId
+      ) {
+        throw new CoolCommException('申請折讓不支援新增產品或更換產品規格');
+      }
+    }
+  }
+
+  private async saveOrderUpdate(
+    param: any,
+    isAllowanceUpdate: boolean
+  ): Promise<any> {
+    const scope = await this.getScope();
+    const id = Number(param?.id || 0);
+    const oldRow = await this.getOrderById(id, scope);
+    if (isAllowanceUpdate) {
+      await this.ensureCanApplyAllowance(oldRow, scope);
+    } else {
+      this.ensureCanEdit(oldRow, scope);
+    }
+
+    if (!isAllowanceUpdate && this.isPaymentStageOnlyEditable(oldRow)) {
       this.ensurePaymentStageOnlyUpdatePayload(param);
       const stages = this.normalizeStages(
         param?.stages || [],
@@ -431,6 +615,12 @@ export class CrmQuoteOrderService extends BaseService {
       remark: String(param?.remark || '').trim() || null,
       isDeleted: 0,
     };
+    payload.accompanySalesmanId = await this.normalizeAccompanySalesmanId(
+      Object.prototype.hasOwnProperty.call(param || {}, 'accompanySalesmanId')
+        ? param?.accompanySalesmanId
+        : oldRow.accompanySalesmanId,
+      Number(payload.salesmanId || 0)
+    );
     const shouldResubmitDepartmentAudit =
       Number(oldRow.status || 0) === 3 || Number(oldRow.auditStatus || 0) === 3;
 
@@ -649,7 +839,7 @@ export class CrmQuoteOrderService extends BaseService {
   }
 
   async productOptions() {
-    const [products, specs] = await Promise.all([
+    const [products, specs, departments] = await Promise.all([
       this.productInfoEntity.find({
         where: { isDeleted: 0, status: 1 },
         order: { createTime: 'DESC', id: 'DESC' },
@@ -658,6 +848,7 @@ export class CrmQuoteOrderService extends BaseService {
         where: { isDeleted: 0 },
         order: { orderNum: 'ASC', id: 'ASC' },
       }),
+      this.baseSysDepartmentEntity.find(),
     ]);
 
     const specMap = new Map<number, any[]>();
@@ -667,10 +858,39 @@ export class CrmQuoteOrderService extends BaseService {
       specMap.set(Number(spec.productId), list);
     }
 
+    const departmentMap = new Map<number, any>();
+    for (const department of departments) {
+      departmentMap.set(Number(department.id), department);
+    }
+
     return products.map(product => ({
       ...product,
+      departmentName:
+        departmentMap.get(Number(product.departmentId || 0))?.name || '',
       specs: specMap.get(Number(product.id)) || [],
     }));
+  }
+
+  async salesmanOptions() {
+    const rows = await this.nativeQuery(
+      `
+      SELECT DISTINCT
+        a.id,
+        a.name,
+        a.nickName,
+        a.username
+      FROM base_sys_user a
+      INNER JOIN base_sys_user_role ur ON ur.userId = a.id
+      INNER JOIN base_sys_role r ON r.id = ur.roleId
+      WHERE a.status = 1
+        AND a.username != 'admin'
+        AND r.label = ?
+      ORDER BY a.name ASC, a.id ASC
+    `,
+      [SALESMAN_ROLE_LABEL]
+    );
+
+    return rows || [];
   }
 
   async assigneeOptions() {
@@ -1271,26 +1491,99 @@ export class CrmQuoteOrderService extends BaseService {
       id: order.id,
       quoteNo: order.quoteNo,
       quoteName: order.quoteName,
-      stages: stages.map(item => {
-        const invoiceRecord =
-          invoiceByStageId.get(Number(item.id)) ||
-          activeInvoiceByStageNo.get(Number(item.stageNo || 0)) ||
-          null;
-        const invoiceStatus = invoiceRecord
-          ? Number(invoiceRecord.ecpayInvalidStatus) === 2 || invoiceRecord.voidTime
-            ? 2
-            : Number(invoiceRecord.status) === 2
-              ? 3
-              : 1
-          : item.invoiceStatus;
-        return {
-          ...item,
-          invoiceStatus,
-          invoiceProductName:
-            invoiceRecord?.invoiceProductName || item.invoiceProductName,
-          invoiceRecord,
-        };
-      }),
+      stages: this.decorateStagesWithInvoiceMeta(stages, invoices),
+    };
+  }
+
+  private decorateStagesWithInvoiceMeta(stages: any[], invoices: any[]) {
+    const invoiceByStageId = new Map<number, any>();
+    const activeInvoiceByStageNo = new Map<number, any>();
+
+    (invoices || []).forEach(item => {
+      const status = Number(item.status || 0);
+      if (![1, 2].includes(status)) {
+        return;
+      }
+      const stageId = Number(item.quoteStageId || 0);
+      if (stageId && !invoiceByStageId.has(stageId)) {
+        invoiceByStageId.set(stageId, item);
+      }
+      const stageNo = Number(item.stageNo || 0);
+      if (stageNo && !activeInvoiceByStageNo.has(stageNo)) {
+        activeInvoiceByStageNo.set(stageNo, item);
+      }
+    });
+
+    return (stages || []).map(item => {
+      const invoiceRecord =
+        invoiceByStageId.get(Number(item.id)) ||
+        activeInvoiceByStageNo.get(Number(item.stageNo || 0)) ||
+        null;
+      const invoiceStatus = invoiceRecord
+        ? Number(invoiceRecord.ecpayInvalidStatus) === 2 || invoiceRecord.voidTime
+          ? 2
+          : Number(invoiceRecord.status) === 2
+            ? 3
+            : 1
+        : item.invoiceStatus;
+
+      return {
+        ...item,
+        invoiceStatus,
+        issuedInvoiceAmount:
+          Number(invoiceStatus) === 3 ? this.toMoney(invoiceRecord?.amount) : 0,
+        allowanceStatus: this.resolveInvoiceAllowanceMeta(invoiceRecord).status,
+        allowanceNo: this.resolveInvoiceAllowanceMeta(invoiceRecord).no,
+        allowanceAmount: this.resolveInvoiceAllowanceMeta(invoiceRecord).amount,
+        allowanceTime: this.resolveInvoiceAllowanceMeta(invoiceRecord).time,
+        invoiceProductName:
+          invoiceRecord?.invoiceProductName || item.invoiceProductName,
+        invoiceRecord,
+      };
+    });
+  }
+
+  private resolveInvoiceAllowanceMeta(invoiceRecord: any) {
+    if (!invoiceRecord) {
+      return {
+        status: 0,
+        no: '',
+        amount: 0,
+        time: '',
+      };
+    }
+    const response = this.parseJsonObject(invoiceRecord?.ecpayInvalidResponse);
+    const allowance = this.parseJsonObject(response?.allowance);
+    if (!allowance || Number(allowance?.RtnCode || 0) !== 1) {
+      return {
+        status: 0,
+        no: '',
+        amount: 0,
+        time: '',
+      };
+    }
+    const issueAmount = this.parseJsonObject(
+      allowance?.__crmIssueAmount || allowance?.['__crmIssueAmount']
+    );
+    return {
+      status: 1,
+      no: String(
+        allowance?.AllowanceNo ||
+          allowance?.IA_Allow_No ||
+          allowance?.AllowNo ||
+          ''
+      ).trim(),
+      amount: this.toMoney(
+        issueAmount?.totalAmount ??
+          issueAmount?.TotalAmount ??
+          0
+      ),
+      time: String(
+        allowance?.AllowanceDate ||
+          allowance?.CreateTime ||
+          invoiceRecord?.updateTime ||
+          ''
+      ).trim(),
     };
   }
 
@@ -1559,7 +1852,9 @@ export class CrmQuoteOrderService extends BaseService {
   async copyCreate(param: any) {
     const scope = await this.getScope();
     const order = await this.getOrderById(Number(param?.id || 0), scope);
-    const quoteNo = await this.generateQuoteNo();
+    const quoteNoPrefix = await this.getQuoteNoPrefix(
+      Number(order.salesmanId || 0)
+    );
 
     const [items, stages] = await Promise.all([
       this.crmQuoteOrderItemEntity.find({
@@ -1599,11 +1894,12 @@ export class CrmQuoteOrderService extends BaseService {
       : { required: false, reason: '' };
 
     const saved = await this.crmQuoteOrderEntity.save({
-      quoteNo,
+      quoteNo: await this.generateQuoteNoSeed(),
       customerId: order.customerId,
       quoteName: `${order.quoteName || ''}`.trim(),
       quoteType: order.quoteType,
       salesmanId: order.salesmanId,
+      accompanySalesmanId: order.accompanySalesmanId || null,
       currentAssigneeId: null,
       status: 1,
       auditStatus: 0,
@@ -1648,6 +1944,11 @@ export class CrmQuoteOrderService extends BaseService {
       remark: order.remark,
       isDeleted: 0,
     });
+    saved.quoteNo = await this.assignSavedQuoteNo(
+      saved.id,
+      saved.createTime,
+      quoteNoPrefix
+    );
 
     await this.saveItems(saved.id, copiedItems);
 
@@ -1891,7 +2192,7 @@ export class CrmQuoteOrderService extends BaseService {
 
   async nextNo() {
     return {
-      quoteNo: await this.generateQuoteNo(),
+      quoteNo: '儲存後自動生成',
     };
   }
 
@@ -1960,6 +2261,7 @@ export class CrmQuoteOrderService extends BaseService {
     if (
       currentScope.isOfficeClerk &&
       Number(row.salesmanId || 0) !== Number(currentScope.userId || 0) &&
+      Number(row.accompanySalesmanId || 0) !== Number(currentScope.userId || 0) &&
       !hasDiscountAuditAccess &&
       !hasAssigneeAccess &&
       Number(row.currentAssigneeId || 0) !== Number(currentScope.userId || 0)
@@ -1967,7 +2269,7 @@ export class CrmQuoteOrderService extends BaseService {
       throw new CoolCommException('????');
     }
     if (
-      !this.canAccessOrder(row, currentScope) &&
+      !this.canViewOrder(row, currentScope) &&
       !hasDepartmentAccess &&
       !hasDiscountAuditAccess &&
       !hasAssigneeAccess
@@ -1992,19 +2294,21 @@ export class CrmQuoteOrderService extends BaseService {
         c.email AS customerEmail,
         c.isVip AS customerIsVip,
         u.name AS salesmanName,
-          u2.name AS currentAssigneeName,
-          u3.name AS auditUserName,
-          u4.name AS assignUserName,
-          u5.name AS sendUserName,
-          u6.name AS contractUploadUserName
+        u2.name AS currentAssigneeName,
+        u3.name AS accompanySalesmanName,
+        u4.name AS auditUserName,
+        u5.name AS assignUserName,
+        u6.name AS sendUserName,
+        u7.name AS contractUploadUserName
         FROM crm_quote_order a
         LEFT JOIN crm_customer_info c ON c.id = a.customerId
         LEFT JOIN base_sys_user u ON u.id = a.salesmanId
         LEFT JOIN base_sys_user u2 ON u2.id = a.currentAssigneeId
-        LEFT JOIN base_sys_user u3 ON u3.id = a.auditUserId
-        LEFT JOIN base_sys_user u4 ON u4.id = a.assignUserId
-        LEFT JOIN base_sys_user u5 ON u5.id = a.sendUserId
-        LEFT JOIN base_sys_user u6 ON u6.id = a.contractUploadUserId
+        LEFT JOIN base_sys_user u3 ON u3.id = a.accompanySalesmanId
+        LEFT JOIN base_sys_user u4 ON u4.id = a.auditUserId
+        LEFT JOIN base_sys_user u5 ON u5.id = a.assignUserId
+        LEFT JOIN base_sys_user u6 ON u6.id = a.sendUserId
+        LEFT JOIN base_sys_user u7 ON u7.id = a.contractUploadUserId
         WHERE a.id = ? AND a.isDeleted = 0
         LIMIT 1
       `,
@@ -2146,6 +2450,7 @@ export class CrmQuoteOrderService extends BaseService {
       }
 
       return {
+        id: Number(item?.id || 0) || undefined,
         stageNo: index + 1,
         stageName: String(item?.stageName || `闃舵${index + 1}`).trim(),
         ratio: this.toNumber(ratio),
@@ -2165,6 +2470,61 @@ export class CrmQuoteOrderService extends BaseService {
         remark: String(item?.remark || '').trim() || null,
         sortNum: index + 1,
         isDeleted: 0,
+      };
+    });
+  }
+
+  private async buildStagePersistList(quoteOrderId: number, stages: any[]) {
+    const existingStages = quoteOrderId
+      ? await this.crmQuoteOrderStageEntity.find({
+          where: { quoteOrderId, isDeleted: 0 },
+          order: { sortNum: 'ASC', id: 'ASC' },
+        })
+      : [];
+
+    const existingStageById = new Map<number, CrmQuoteOrderStageEntity>();
+    const existingStageByStageNo = new Map<number, CrmQuoteOrderStageEntity>();
+    existingStages.forEach(item => {
+      const stageId = Number(item.id || 0);
+      const stageNo = Number(item.stageNo || 0);
+      if (stageId > 0) {
+        existingStageById.set(stageId, item);
+      }
+      if (stageNo > 0 && !existingStageByStageNo.has(stageNo)) {
+        existingStageByStageNo.set(stageNo, item);
+      }
+    });
+
+    return (Array.isArray(stages) ? stages : []).map(item => {
+      const currentId = Number(item?.id || 0);
+      const currentStageNo = Number(item?.stageNo || 0);
+      const previousStage =
+        (currentId > 0 ? existingStageById.get(currentId) : null) ||
+        (currentStageNo > 0 ? existingStageByStageNo.get(currentStageNo) : null) ||
+        null;
+
+      return {
+        ...item,
+        receiptAmount: this.toMoney(
+          previousStage?.receiptAmount ?? item?.receiptAmount ?? 0
+        ),
+        receiptVoucher:
+          previousStage?.receiptVoucher ??
+          (String(item?.receiptVoucher || '').trim() || null),
+        receiptTime: previousStage?.receiptTime ?? item?.receiptTime ?? null,
+        receiptStatus: Number(
+          previousStage?.receiptStatus ?? item?.receiptStatus ?? 0
+        ),
+        invoiceProductName:
+          previousStage?.invoiceProductName ??
+          (String(item?.invoiceProductName || '').trim() || null),
+        invoiceStatus: Number(
+          previousStage?.invoiceStatus ?? item?.invoiceStatus ?? 0
+        ),
+        invoiceApplyTime:
+          previousStage?.invoiceApplyTime ?? item?.invoiceApplyTime ?? null,
+        invoiceVoidTime:
+          previousStage?.invoiceVoidTime ?? item?.invoiceVoidTime ?? null,
       };
     });
   }
@@ -2236,8 +2596,9 @@ export class CrmQuoteOrderService extends BaseService {
     if (!quoteOrderId || stages.length === 0) {
       return;
     }
+    const persistStages = await this.buildStagePersistList(quoteOrderId, stages);
     await this.crmQuoteOrderStageEntity.save(
-      stages.map(item => ({
+      persistStages.map(item => ({
         ...item,
         quoteOrderId,
       }))
@@ -2258,6 +2619,391 @@ export class CrmQuoteOrderService extends BaseService {
       { isDeleted: 1 }
     );
     await this.saveStages(quoteOrderId, stages);
+  }
+
+  private buildAllowanceDecisionSummary(
+    rawStages: any[],
+    normalizedStages: any[],
+    invoices: CrmQuoteInvoiceEntity[]
+  ) {
+    const rawStageList = Array.isArray(rawStages) ? rawStages : [];
+    const stageList =
+      rawStageList.length > 0 ? rawStageList : Array.isArray(normalizedStages) ? normalizedStages : [];
+    const invoiceList = Array.isArray(invoices) ? invoices : [];
+    const uninvoicedAmount = this.toMoney(
+      stageList
+        .filter(item => Number(item?.invoiceStatus || 0) !== 3)
+        .reduce((sum, item) => sum + this.toNumber(item?.amount), 0)
+    );
+    const modifiedStageTotalAmount = this.toMoney(
+      stageList.reduce((sum, item) => sum + this.toNumber(item?.amount), 0)
+    );
+    const expectedIssuedInvoiceAmount = this.toMoney(
+      modifiedStageTotalAmount - uninvoicedAmount
+    );
+    const appliedInvoiceAmount = this.toMoney(
+      invoiceList.reduce((sum, item) => sum + this.toNumber(item?.amount), 0)
+    );
+    const allowanceTotalAmount = this.toMoney(
+      Math.max(0, appliedInvoiceAmount - expectedIssuedInvoiceAmount)
+    );
+    return {
+      modifiedStageTotalAmount,
+      uninvoicedAmount,
+      expectedIssuedInvoiceAmount,
+      appliedInvoiceAmount,
+      allowanceTotalAmount,
+      action:
+        expectedIssuedInvoiceAmount > appliedInvoiceAmount
+          ? 'voidAndReissue'
+          : 'allowance',
+    };
+  }
+
+  private async executeAllowanceInvoiceStrategy(
+    order: any,
+    decision: any,
+    invoices: CrmQuoteInvoiceEntity[],
+    stages: any[]
+  ) {
+    const invoiceList = Array.isArray(invoices) ? invoices : [];
+    if (invoiceList.length === 0) {
+      return;
+    }
+
+    if (decision.action === 'voidAndReissue') {
+      for (const invoice of invoiceList) {
+        await this.voidHistoricalInvoice(invoice, '申請折讓後重新開票');
+      }
+      await this.rebuildInvoiceApplications(order, stages, invoiceList);
+      return;
+    }
+
+    const allowanceDistributions = this.buildAllowanceDistributions(
+      invoiceList,
+      decision.allowanceTotalAmount
+    );
+    for (const item of allowanceDistributions) {
+      if (this.toMoney(item.amount) <= 0) {
+        continue;
+      }
+      await this.allowanceHistoricalInvoice(item.invoice, item.amount, '申請折讓');
+    }
+  }
+
+  private buildAllowanceDistributions(
+    invoices: CrmQuoteInvoiceEntity[],
+    allowanceTotalAmount: number
+  ) {
+    const invoiceList = Array.isArray(invoices) ? invoices : [];
+    const totalAllowanceCents = this.toCent(allowanceTotalAmount);
+    if (invoiceList.length === 0 || totalAllowanceCents <= 0) {
+      return [];
+    }
+
+    const invoiceMetaList = invoiceList
+      .map((invoice, index) => ({
+        invoice,
+        index,
+        amountCents: this.toCent(invoice.amount),
+      }))
+      .filter(item => item.amountCents > 0);
+
+    const issuedTotalCents = invoiceMetaList.reduce(
+      (sum, item) => sum + item.amountCents,
+      0
+    );
+    if (issuedTotalCents <= 0) {
+      return [];
+    }
+
+    const baseRows = invoiceMetaList.map(item => {
+      const rawShare = (totalAllowanceCents * item.amountCents) / issuedTotalCents;
+      const cents = Math.floor(rawShare);
+      return {
+        ...item,
+        cents,
+        remainder: rawShare - cents,
+      };
+    });
+
+    let remainingCents =
+      totalAllowanceCents -
+      baseRows.reduce((sum, item) => sum + item.cents, 0);
+
+    baseRows
+      .sort((a, b) => {
+        if (b.remainder !== a.remainder) {
+          return b.remainder - a.remainder;
+        }
+        return a.index - b.index;
+      })
+      .forEach(item => {
+        if (remainingCents <= 0) {
+          return;
+        }
+        if (item.cents >= item.amountCents) {
+          return;
+        }
+        item.cents += 1;
+        remainingCents -= 1;
+      });
+
+    return baseRows
+      .sort((a, b) => a.index - b.index)
+      .map(item => ({
+        invoice: item.invoice,
+        amount: this.toMoney(item.cents / 100),
+      }));
+  }
+
+  private async voidHistoricalInvoice(
+    invoice: CrmQuoteInvoiceEntity,
+    reason: string
+  ) {
+    if (!invoice.ecpayInvoiceNo) {
+      throw new CoolCommException('歷史發票缺少綠界發票號碼，無法作廢');
+    }
+    if (Number(invoice.ecpayInvalidStatus || 0) === 2 || invoice.voidTime) {
+      return;
+    }
+
+    const invalidTime = this.now();
+    const invalidReason = String(reason || 'CRM發票作廢').trim() || 'CRM發票作廢';
+    const lock = await this.crmQuoteInvoiceEntity
+      .createQueryBuilder()
+      .update(CrmQuoteInvoiceEntity)
+      .set({
+        ecpayInvalidStatus: 1,
+        ecpayInvalidError: null,
+      })
+      .where('id = :id', { id: invoice.id })
+      .andWhere('status = 2')
+      .andWhere('(ecpayInvalidStatus IS NULL OR ecpayInvalidStatus NOT IN (1, 2))')
+      .execute();
+    if (!lock.affected) {
+      return;
+    }
+
+    let result: any = null;
+    try {
+      const ecpayConfig = await this.baseSysParamService.dataByKey('crmEcpayInvoice');
+      const invoiceDates = this.buildEcpayInvalidInvoiceDateCandidates(invoice);
+      if (!invoiceDates.length) {
+        throw new CoolCommException('綠界發票日期為空，無法作廢');
+      }
+      let lastError: any = null;
+      for (const invoiceDate of invoiceDates) {
+        try {
+          result = await this.crmEcpayInvoiceService.invalidB2bInvoice(ecpayConfig, {
+            invoiceNumber: invoice.ecpayInvoiceNo,
+            invoiceDate,
+            reason: invalidReason,
+          });
+          if (
+            invoiceDate !== invoice.ecpayInvoiceDate &&
+            this.normalizeDateValue(invoiceDate) !==
+              this.normalizeDateValue(invoice.ecpayInvoiceDate)
+          ) {
+            await this.crmQuoteInvoiceEntity.update(
+              { id: invoice.id },
+              { ecpayInvoiceDate: invoiceDate }
+            );
+          }
+          lastError = null;
+          break;
+        } catch (error) {
+          lastError = error;
+          if (!this.isEcpayInvoiceNoOrDateError(error)) {
+            throw error;
+          }
+        }
+      }
+      if (lastError) {
+        throw lastError;
+      }
+    } catch (e) {
+      await this.crmQuoteInvoiceEntity.update(
+        { id: invoice.id },
+        {
+          ecpayInvalidStatus: 3,
+          ecpayInvalidError: String(e?.message || e).slice(0, 1000),
+        }
+      );
+      throw e;
+    }
+
+    await this.crmQuoteInvoiceEntity.update(
+      { id: invoice.id },
+      {
+        voidTime: invalidTime,
+        ecpayInvalidStatus: 2,
+        ecpayInvalidTime: invalidTime,
+        ecpayInvalidReason: invalidReason.slice(0, 255),
+        ecpayInvalidError: null,
+        ecpayInvalidResponse: JSON.stringify(result || {}),
+      }
+    );
+  }
+
+  private async allowanceHistoricalInvoice(
+    invoice: CrmQuoteInvoiceEntity,
+    amount: number,
+    remark: string
+  ) {
+    if (!invoice.ecpayInvoiceNo) {
+      throw new CoolCommException('歷史發票缺少綠界發票號碼，無法折讓');
+    }
+    if (Number(invoice.ecpayInvalidStatus || 0) === 2 || invoice.voidTime) {
+      return;
+    }
+
+    const ecpayConfig = await this.baseSysParamService.dataByKey('crmEcpayInvoice');
+    const invoiceDates = this.buildEcpayInvalidInvoiceDateCandidates(invoice);
+    if (!invoiceDates.length) {
+      throw new CoolCommException('綠界發票日期為空，無法折讓');
+    }
+    let result: any = null;
+    let lastError: any = null;
+    for (const invoiceDate of invoiceDates) {
+      try {
+        const historicalItemName =
+          this.resolveHistoricalInvoiceProductName(invoice) ||
+          invoice.invoiceProductName ||
+          invoice.quoteName ||
+          'CRM折讓';
+        result = await this.crmEcpayInvoiceService.allowanceB2bInvoice(ecpayConfig, {
+          invoiceNumber: invoice.ecpayInvoiceNo,
+          invoiceDate,
+          amount: this.toMoney(amount),
+          itemName: historicalItemName,
+          originalSequenceNumber: 1,
+        });
+        lastError = null;
+        break;
+      } catch (error) {
+        lastError = error;
+        if (!this.isEcpayInvoiceNoOrDateError(error)) {
+          throw error;
+        }
+      }
+    }
+    if (lastError) {
+      throw lastError;
+    }
+
+    await this.crmQuoteInvoiceEntity.update(
+      { id: invoice.id },
+      {
+        ecpayInvalidReason: String(remark || '申請折讓').slice(0, 255),
+        ecpayInvalidResponse: JSON.stringify({
+          ...(this.parseJsonObject(invoice.ecpayInvalidResponse) || {}),
+          allowance: result || {},
+        }),
+      }
+    );
+  }
+
+  private resolveHistoricalInvoiceProductName(invoice: CrmQuoteInvoiceEntity) {
+    const issueResponse = this.parseJsonObject(invoice?.ecpayIssueResponse);
+    const items = Array.isArray(issueResponse?.Items)
+      ? issueResponse.Items
+      : Array.isArray(issueResponse?.items)
+        ? issueResponse.items
+        : [];
+
+    for (const item of items) {
+      const itemName = String(item?.ItemName ?? item?.itemName ?? '').trim();
+      if (itemName) {
+        return itemName;
+      }
+    }
+
+    return String(invoice?.invoiceProductName || '').trim() || '';
+  }
+
+  private async rebuildInvoiceApplications(
+    order: any,
+    stages: any[],
+    oldInvoices: CrmQuoteInvoiceEntity[]
+  ) {
+    const currentStages = await this.crmQuoteOrderStageEntity.find({
+      where: { quoteOrderId: Number(order.id), isDeleted: 0 },
+      order: { sortNum: 'ASC', id: 'ASC' },
+    });
+    const issuedStageNos = Array.from(
+      new Set(
+        (oldInvoices || [])
+          .map(item => Number(item.stageNo || 0))
+          .filter(item => item > 0)
+      )
+    );
+
+    for (const stageNo of issuedStageNos) {
+      const stage = currentStages.find(item => Number(item.stageNo || 0) === stageNo);
+      if (!stage || this.toMoney(stage.amount) <= 0) {
+        continue;
+      }
+      const invoiceProductName =
+        String(stage.invoiceProductName || '').trim() ||
+        `${order.quoteName || order.quoteNo || '報價單'}${stage.stageName || `階段${stage.stageNo}`}款項`;
+      const customer = await this.crmCustomerInfoEntity.findOneBy({
+        id: Number(order.customerId),
+        isDeleted: 0,
+      });
+      const invoice = await this.crmQuoteInvoiceEntity.save({
+        invoiceNo: await this.generateInvoiceNo(),
+        quoteOrderId: order.id,
+        quoteStageId: stage.id,
+        quoteNo: order.quoteNo,
+        quoteName: order.quoteName,
+        stageNo: stage.stageNo,
+        stageName: stage.stageName,
+        ratio: stage.ratio,
+        amount: this.toMoney(stage.amount),
+        invoiceProductName,
+        seller: customer?.companyName || customer?.contactName || null,
+        address: customer?.address || null,
+        taxNumber: customer?.taxNumber || null,
+        email: customer?.email || null,
+        salesmanId: order.salesmanId || null,
+        applyUserId: Number(this.ctx.admin?.userId || 0) || null,
+        applyTime: this.now(),
+        status: 1,
+        autoSendEmail: Number(stage.autoSendEmail) === 0 ? 0 : 1,
+        scheduledSendTime: stage.invoiceDate
+          ? `${String(stage.invoiceDate).slice(0, 10)} 12:00:00`
+          : null,
+        sendStatus: 0,
+        sentTime: null,
+        sendError: null,
+        isDeleted: 0,
+      });
+
+      await this.crmQuoteOrderStageEntity.update(
+        { id: stage.id },
+        {
+          invoiceProductName,
+          invoiceStatus: 1,
+          invoiceApplyTime: this.now(),
+          invoiceVoidTime: null,
+        }
+      );
+    }
+  }
+
+  private parseJsonObject(value: any) {
+    if (!value) {
+      return null;
+    }
+    if (typeof value === 'object') {
+      return value;
+    }
+    try {
+      return JSON.parse(String(value));
+    } catch {
+      return null;
+    }
   }
 
   private ensurePaymentStageOnlyUpdatePayload(param: any) {
@@ -2565,9 +3311,9 @@ export class CrmQuoteOrderService extends BaseService {
     );
   }
 
-  private async generateQuoteNo() {
+  private async generateQuoteNoSeed() {
     for (let i = 0; i < 10; i++) {
-      const quoteNo = `Q${moment().format('YYYYMMDDHHmmss')}${this.randomDigits(
+      const quoteNo = `TMP${moment().format('YYYYMMDDHHmmss')}${this.randomDigits(
         6
       )}`;
       const rows = await this.nativeQuery(
@@ -2578,7 +3324,71 @@ export class CrmQuoteOrderService extends BaseService {
         return quoteNo;
       }
     }
-    throw new CoolCommException('????');
+    throw new CoolCommException('報價單編號生成失敗，請稍後再試');
+  }
+
+  private async assignSavedQuoteNo(
+    orderId: number,
+    createTime: any,
+    quoteNoPrefix: string
+  ) {
+    const quoteNo = await this.buildSavedQuoteNo(
+      orderId,
+      createTime,
+      quoteNoPrefix
+    );
+    await this.crmQuoteOrderEntity.update({ id: orderId }, { quoteNo });
+    return quoteNo;
+  }
+
+  private async buildSavedQuoteNo(
+    orderId: number,
+    createTime: any,
+    quoteNoPrefix: string
+  ) {
+    const quoteDate = moment(createTime || this.now());
+    const dayStart = quoteDate
+      .clone()
+      .startOf('day')
+      .format('YYYY-MM-DD HH:mm:ss');
+    const dayEnd = quoteDate
+      .clone()
+      .add(1, 'day')
+      .startOf('day')
+      .format('YYYY-MM-DD HH:mm:ss');
+    const rows = await this.nativeQuery(
+      'SELECT COUNT(1) AS count FROM crm_quote_order WHERE createTime >= ? AND createTime < ? AND id <= ?',
+      [dayStart, dayEnd, Number(orderId || 0)]
+    );
+    const sequence = Number(rows?.[0]?.count || 0);
+    if (sequence <= 0) {
+      throw new CoolCommException('報價單流水號生成失敗，請稍後再試');
+    }
+    const sequenceText = String(sequence).padStart(2, '0');
+    return `${quoteNoPrefix}${quoteDate.format('YYYYMMDD')}${sequenceText}`;
+  }
+
+  private async getQuoteNoPrefix(salesmanId: number) {
+    if (!salesmanId) {
+      throw new CoolCommException('報價單缺少業務員，無法生成報價單編號');
+    }
+    const user = await this.baseSysUserEntity.findOneBy({ id: salesmanId });
+    if (!user) {
+      throw new CoolCommException('找不到對應業務員，無法生成報價單編號');
+    }
+    const englishName = this.normalizeQuoteNoPrefix(user.englishName);
+    if (!englishName) {
+      throw new CoolCommException('業務員尚未設定英文名稱，請先至使用者列表維護');
+    }
+    return englishName;
+  }
+
+  private normalizeQuoteNoPrefix(value: any) {
+    return String(value || '')
+      .trim()
+      .replace(/\s+/g, '')
+      .replace(/[^A-Za-z0-9_-]/g, '')
+      .slice(0, 30);
   }
 
   private async generateInvoiceNo() {
@@ -2748,6 +3558,10 @@ export class CrmQuoteOrderService extends BaseService {
     return Number(this.toNumber(value).toFixed(2));
   }
 
+  private toCent(value: any) {
+    return Math.round(this.toNumber(value) * 100);
+  }
+
   private pickMoneyValue(value: any, fallback: number) {
     if (value === undefined || value === null || value === '') {
       return this.toMoney(fallback);
@@ -2849,7 +3663,7 @@ export class CrmQuoteOrderService extends BaseService {
     );
   }
 
-  private async getScope(): Promise<QuoteScope> {
+  async getScope(): Promise<QuoteScope> {
     const userId = Number(this.ctx.admin?.userId || 0);
     const roleIds: number[] = userId
       ? await this.baseSysRoleService.getByUser(userId)
@@ -2952,7 +3766,7 @@ export class CrmQuoteOrderService extends BaseService {
     );
   }
 
-  private buildPageScopeSql(scope: QuoteScope) {
+  buildPageScopeSql(scope: QuoteScope) {
     if (scope.isBoss) {
       return { sql: '', params: {} };
     }
@@ -3024,8 +3838,9 @@ export class CrmQuoteOrderService extends BaseService {
         `and (
           ${scope.hasDiscountAuditPerm ? 'a.discountAuditStatus = 1 or' : ''}
           a.salesmanId = ?
+          or a.accompanySalesmanId = ?
         )`,
-        [scope.userId]
+        [scope.userId, scope.userId]
       ),
       params: {},
     };
@@ -3126,6 +3941,7 @@ export class CrmQuoteOrderService extends BaseService {
   private buildPermissions(order: any, scope: QuoteScope) {
     return {
       canEdit: this.canEditOrder(order, scope),
+      canApplyAllowance: this.canApplyAllowance(order, scope),
       canDelete: this.canDeleteOrder(order, scope),
       canSubmitAudit: this.canSubmitAudit(order, scope),
       canDiscountAudit: this.canDiscountAudit(order, scope),
@@ -3173,8 +3989,23 @@ export class CrmQuoteOrderService extends BaseService {
   }
 
   private buildEditableFields(order: any, scope: QuoteScope) {
-    if (!this.canEditOrder(order, scope)) {
+    if (!this.canEditOrder(order, scope) && !this.canApplyAllowance(order, scope)) {
       return [];
+    }
+
+    if (this.canApplyAllowance(order, scope)) {
+      return [
+        'customerId',
+        'quoteName',
+        'quoteType',
+        'accompanySalesmanId',
+        'startDate',
+        'endDate',
+        'items',
+        'stages',
+        'remark',
+        'quoteTerms',
+      ];
     }
 
     if (this.isPaymentStageOnlyEditable(order)) {
@@ -3185,6 +4016,7 @@ export class CrmQuoteOrderService extends BaseService {
       'customerId',
       'quoteName',
       'quoteType',
+      'accompanySalesmanId',
       'startDate',
       'endDate',
       'items',
@@ -3216,6 +4048,27 @@ export class CrmQuoteOrderService extends BaseService {
     return Number(order.salesmanId || 0) === Number(scope.userId || 0);
   }
 
+  private canViewOrder(order: any, scope: QuoteScope) {
+    if (this.canAccessOrder(order, scope)) {
+      return true;
+    }
+
+    return (
+      Number(order.accompanySalesmanId || 0) === Number(scope.userId || 0)
+    );
+  }
+
+  private getViewerSalesIdentity(order: any, scope: QuoteScope) {
+    const userId = Number(scope.userId || 0);
+    if (userId > 0 && Number(order.accompanySalesmanId || 0) === userId) {
+      return 'accompany';
+    }
+    if (userId > 0 && Number(order.salesmanId || 0) === userId) {
+      return 'main';
+    }
+    return Number(order.accompanySalesmanId || 0) > 0 ? 'main' : 'normal';
+  }
+
   private buildDiscountAuditFilterSql(value: any) {
     const filter = String(value || 'all');
     if (filter === 'pending') {
@@ -3234,6 +4087,37 @@ export class CrmQuoteOrderService extends BaseService {
     return Number(order.salesmanId || 0) === Number(scope.userId || 0);
   }
 
+  private async normalizeAccompanySalesmanId(value: any, salesmanId: number) {
+    const accompanySalesmanId = Number(value || 0);
+    if (!accompanySalesmanId || accompanySalesmanId === Number(salesmanId || 0)) {
+      return null;
+    }
+    await this.ensureSalesmanRole(accompanySalesmanId);
+    return accompanySalesmanId;
+  }
+
+  private async ensureSalesmanRole(userId: number) {
+    const user = await this.baseSysUserEntity.findOneBy({ id: userId, status: 1 });
+    if (!user) {
+      throw new CoolCommException('陪同管理業務不存在');
+    }
+    const rows = await this.nativeQuery(
+      `
+      SELECT ur.userId
+      FROM base_sys_user_role ur
+      INNER JOIN base_sys_role r ON r.id = ur.roleId
+      WHERE ur.userId = ?
+        AND r.label = ?
+      LIMIT 1
+    `,
+      [userId, SALESMAN_ROLE_LABEL]
+    );
+    if (!rows?.length) {
+      throw new CoolCommException('陪同管理業務必須為業務角色');
+    }
+    return user;
+  }
+
   private canEditOrder(order: any, scope: QuoteScope) {
     if (!this.canSalesOperate(order, scope)) {
       return false;
@@ -3249,6 +4133,13 @@ export class CrmQuoteOrderService extends BaseService {
     }
 
     return businessStatus !== 6;
+  }
+
+  private canApplyAllowance(order: any, scope: QuoteScope) {
+    return (
+      this.canSalesOperate(order, scope) &&
+      this.hasIssuedInvoice(order)
+    );
   }
 
   private canDeleteOrder(order: any, scope: QuoteScope) {
@@ -3336,6 +4227,47 @@ export class CrmQuoteOrderService extends BaseService {
     if (!this.canEditOrder(order, scope)) {
       throw new CoolCommException('????');
     }
+  }
+
+  private async ensureCanApplyAllowance(order: any, scope: QuoteScope) {
+    const hasIssuedInvoice =
+      this.hasIssuedInvoice(order) ||
+      (await this.hasIssuedInvoiceByOrderId(Number(order?.id || 0)));
+
+    if (
+      !this.canSalesOperate(order, scope) ||
+      !hasIssuedInvoice
+    ) {
+      throw new CoolCommException('當前報價單不允許申請折讓');
+    }
+    if (!hasIssuedInvoice) {
+      throw new CoolCommException('只有已開過發票的報價單才可以申請折讓');
+    }
+  }
+
+  private hasIssuedInvoice(order: any) {
+    return Number(order?.issuedInvoiceCount || 0) > 0;
+  }
+
+  private async hasIssuedInvoiceByOrderId(quoteOrderId: number) {
+    if (!quoteOrderId) {
+      return false;
+    }
+
+    const rows = await this.nativeQuery(
+      `
+      SELECT COUNT(1) AS issuedCount
+      FROM crm_quote_invoice
+      WHERE quoteOrderId = ?
+        AND isDeleted = 0
+        AND status = 2
+        AND IFNULL(ecpayInvalidStatus, 0) <> 2
+        AND voidTime IS NULL
+    `,
+      [quoteOrderId]
+    );
+
+    return Number(rows?.[0]?.issuedCount || 0) > 0;
   }
 
   private ensureCanSubmitAudit(order: any, scope: QuoteScope) {

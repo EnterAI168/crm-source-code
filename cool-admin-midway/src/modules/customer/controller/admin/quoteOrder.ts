@@ -37,6 +37,11 @@ export class AdminCrmQuoteOrderController extends BaseController {
     return this.ok(await this.crmQuoteOrderService.update(body));
   }
 
+  @Post('/applyAllowance')
+  async applyAllowance(@Body() body: any) {
+    return this.ok(await this.crmQuoteOrderService.applyAllowance(body));
+  }
+
   @Post('/delete')
   async deleteData(@Body() body: { ids: number[] | number }) {
     await this.crmQuoteOrderService.delete(body?.ids);
@@ -51,6 +56,11 @@ export class AdminCrmQuoteOrderController extends BaseController {
   @Post('/productOptions')
   async productOptions() {
     return this.ok(await this.crmQuoteOrderService.productOptions());
+  }
+
+  @Post('/salesmanOptions')
+  async salesmanOptions() {
+    return this.ok(await this.crmQuoteOrderService.salesmanOptions());
   }
 
   @Post('/assigneeOptions')

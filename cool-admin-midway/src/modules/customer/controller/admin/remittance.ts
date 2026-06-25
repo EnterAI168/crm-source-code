@@ -49,6 +49,11 @@ export class AdminCrmRemittanceController extends BaseController {
     return this.ok(await this.crmRemittanceService.submitRemittance(body));
   }
 
+  @Post('/updateReceivedStatus')
+  async updateReceivedStatus(@Body() body: any) {
+    return this.ok(await this.crmRemittanceService.updateReceivedStatus(body));
+  }
+
   @Post('/quoteOrderOptions')
   async quoteOrderOptions() {
     return this.ok(await this.crmRemittanceService.quoteOrderOptions());

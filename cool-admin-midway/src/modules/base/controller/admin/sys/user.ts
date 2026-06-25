@@ -32,4 +32,22 @@ export class BaseSysUserController extends BaseController {
     await this.baseSysUserService.move(departmentId, userIds);
     return this.ok();
   }
+
+  /**
+   * 離職業務客戶轉入公池
+   */
+  @Post('/transferCustomersToPool', { summary: '離職業務客戶轉入公池' })
+  async transferCustomersToPool(@Body('userId') userId: number) {
+    return this.ok(
+      await this.baseSysUserService.transferCustomersToPool(userId)
+    );
+  }
+
+  /**
+   * 刪除前檢查是否仍有客戶資料
+   */
+  @Post('/deleteCheck', { summary: '刪除前檢查使用者是否仍有客戶' })
+  async deleteCheck(@Body('ids') ids: number[] | number) {
+    return this.ok(await this.baseSysUserService.deleteCheck(ids));
+  }
 }

@@ -115,18 +115,27 @@ export class CrmRemittanceService extends BaseService {
       ORDER BY a.createTime DESC
     `;
 
-    return await this.sqlRenderPage(sql, query, false);
+    const result: any = await this.sqlRenderPage(sql, query, false);
+    result.list = Array.isArray(result?.list)
+      ? result.list.map((item: any) => ({
+          ...item,
+          canToggleReceivedStatus: scope.isFinance ? 1 : 0,
+        }))
+      : [];
+    return result;
   }
 
   async info(id: number | string) {
     const remittance = await this.getRemittanceById(Number(id));
     const detail = await this.fetchRemittanceDetail(remittance.id);
+    const scope = await this.getQuoteOptionScope();
 
     const stages = await this.fetchRemittanceStages(remittance.id);
 
     return {
       ...detail,
       stages,
+      canToggleReceivedStatus: scope.isFinance ? 1 : 0,
     };
   }
 
@@ -170,6 +179,9 @@ export class CrmRemittanceService extends BaseService {
     const remittanceNo = await this.resolveCreateRemittanceNo(param?.remittanceNo);
     const stages = this.normalizeStages(param?.stages || [], totalAmount, quoteOrderId);
     const salesmanId = quoteOrder?.salesmanId || this.ctx.admin?.userId || null;
+    const scope = await this.getQuoteOptionScope();
+    const uploadFiles = this.normalizeFileList(param?.uploadFiles);
+    const invoiceFiles = this.normalizeFileList(param?.invoiceFiles);
 
     const saved = await this.crmRemittanceEntity.save({
       remittanceNo,
@@ -181,12 +193,23 @@ export class CrmRemittanceService extends BaseService {
       supplierAddress: supplier?.address || String(param?.supplierAddress || '').trim() || null,
       supplierUnifiedNo: supplier?.unifiedNo || String(param?.supplierUnifiedNo || '').trim() || null,
       supplierEmail: supplier?.email || String(param?.supplierEmail || '').trim() || null,
+      accountInfo: String(param?.accountInfo || '').trim() || null,
       totalAmount,
       paidAmount: 0,
       status: 1,
       salesmanId,
-      uploadFiles: this.normalizeFileList(param?.uploadFiles),
-      invoiceFiles: this.normalizeFileList(param?.invoiceFiles),
+      uploadFiles,
+      invoiceFiles,
+      receivedLaborInsurance: this.resolveReceivedStatusForCreate(
+        uploadFiles,
+        param?.receivedLaborInsurance,
+        scope.isFinance
+      ),
+      receivedInvoice: this.resolveReceivedStatusForCreate(
+        invoiceFiles,
+        param?.receivedInvoice,
+        scope.isFinance
+      ),
       remark: String(param?.remark || '').trim() || null,
       isDeleted: 0,
     });
@@ -245,6 +268,9 @@ export class CrmRemittanceService extends BaseService {
 
     const stages = await this.normalizeStagesForUpdate(param?.stages || [], totalAmount, oldRow.id, quoteOrderId);
     const salesmanId = quoteOrder?.salesmanId || oldRow.salesmanId || this.ctx.admin?.userId || null;
+    const scope = await this.getQuoteOptionScope();
+    const uploadFiles = this.normalizeFileList(param?.uploadFiles);
+    const invoiceFiles = this.normalizeFileList(param?.invoiceFiles);
 
     await this.crmRemittanceEntity.update(
       { id: oldRow.id },
@@ -257,16 +283,58 @@ export class CrmRemittanceService extends BaseService {
         supplierAddress: supplier?.address || String(param?.supplierAddress || '').trim() || null,
         supplierUnifiedNo: supplier?.unifiedNo || String(param?.supplierUnifiedNo || '').trim() || null,
         supplierEmail: supplier?.email || String(param?.supplierEmail || '').trim() || null,
+        accountInfo: String(param?.accountInfo || '').trim() || null,
         totalAmount,
         salesmanId,
-        uploadFiles: this.normalizeFileList(param?.uploadFiles),
-        invoiceFiles: this.normalizeFileList(param?.invoiceFiles),
+        uploadFiles,
+        invoiceFiles,
+        receivedLaborInsurance: this.resolveReceivedStatusForUpdate(
+          oldRow.uploadFiles,
+          uploadFiles,
+          oldRow.receivedLaborInsurance,
+          param?.receivedLaborInsurance,
+          scope.isFinance
+        ),
+        receivedInvoice: this.resolveReceivedStatusForUpdate(
+          oldRow.invoiceFiles,
+          invoiceFiles,
+          oldRow.receivedInvoice,
+          param?.receivedInvoice,
+          scope.isFinance
+        ),
         remark: String(param?.remark || '').trim() || null,
       }
     );
 
     await this.replaceStages(oldRow.id, stages);
     await this.refreshRemittanceStatus(oldRow.id);
+  }
+
+  async updateReceivedStatus(param: any) {
+    const id = Number(param?.id || 0);
+    const remittance = await this.getRemittanceById(id);
+    const scope = await this.getQuoteOptionScope();
+    if (!scope.isFinance) {
+      throw new CoolCommException('只有財務角色可以修改收到狀態');
+    }
+
+    const updateData: any = {};
+    if (param?.receivedLaborInsurance !== undefined) {
+      updateData.receivedLaborInsurance = this.toTinyint(param?.receivedLaborInsurance);
+    }
+    if (param?.receivedInvoice !== undefined) {
+      updateData.receivedInvoice = this.toTinyint(param?.receivedInvoice);
+    }
+    if (!Object.keys(updateData).length) {
+      throw new CoolCommException('缺少需要更新的收到狀態');
+    }
+
+    await this.crmRemittanceEntity.update({ id: remittance.id }, updateData);
+
+    return {
+      id: remittance.id,
+      ...updateData,
+    };
   }
 
   async delete(ids: number[] | number) {
@@ -458,27 +526,26 @@ export class CrmRemittanceService extends BaseService {
       throw new CoolCommException('匯款階段不能為空');
     }
 
-    const normalized = stages.map((item, index) => {
-      const ratio = this.normalizeRate(item?.ratio);
-      const amount = ratio > 0 && totalAmount > 0 ? this.toMoney(totalAmount * ratio) : this.toMoney(item?.amount);
-
-      return {
+    const normalized = this.applyAmountDrivenRatios(
+      stages.map((item, index) => ({
         stageOrder: index + 1,
         quoteOrderId: this.toNullableNumber(item?.quoteOrderId) || defaultQuoteOrderId || null,
         stageName: String(item?.stageName || `階段${index + 1}`).trim(),
-        ratio: this.toNumber(ratio),
-        amount: this.toMoney(amount),
+        ratio: 0,
+        amount: this.toMoney(item?.amount),
         expectedRemittanceTime: this.normalizeDateTime(item?.expectedRemittanceTime),
         actualRemittanceTime: null,
         nextStageRemittanceTime: this.normalizeDateTime(item?.nextStageRemittanceTime),
         paidAmount: 0,
         voucherFile: null,
+        laborInsuranceNo: String(item?.laborInsuranceNo || '').trim() || null,
         paymentStatus: 0,
         paymentUserId: null,
         paymentTime: null,
         remark: String(item?.remark || '').trim() || null,
-      };
-    });
+      })),
+      totalAmount
+    );
 
     this.validateStageRatios(normalized);
 
@@ -511,7 +578,7 @@ export class CrmRemittanceService extends BaseService {
       throw new CoolCommException('已匯款階段不允許刪除');
     }
 
-    const normalized = stages.map((item, index) => {
+    const stageDrafts = stages.map((item, index) => {
       const stageId = Number(item?.id || 0);
       const isPaid = paidStageIds.has(stageId);
 
@@ -529,6 +596,7 @@ export class CrmRemittanceService extends BaseService {
           nextStageRemittanceTime: existing?.nextStageRemittanceTime || null,
           paidAmount: existing?.paidAmount || 0,
           voucherFile: existing?.voucherFile || null,
+          laborInsuranceNo: existing?.laborInsuranceNo || null,
           paymentStatus: existing?.paymentStatus || 0,
           paymentUserId: existing?.paymentUserId || null,
           paymentTime: existing?.paymentTime || null,
@@ -536,27 +604,27 @@ export class CrmRemittanceService extends BaseService {
         };
       }
 
-      const ratio = this.normalizeRate(item?.ratio);
-      const amount = ratio > 0 && totalAmount > 0 ? this.toMoney(totalAmount * ratio) : this.toMoney(item?.amount);
-
       return {
         id: stageId > 0 ? stageId : undefined,
         stageOrder: index + 1,
         quoteOrderId: this.toNullableNumber(item?.quoteOrderId) || defaultQuoteOrderId || null,
         stageName: String(item?.stageName || `階段${index + 1}`).trim(),
-        ratio: this.toNumber(ratio),
-        amount: this.toMoney(amount),
+        ratio: 0,
+        amount: this.toMoney(item?.amount),
         expectedRemittanceTime: this.normalizeDateTime(item?.expectedRemittanceTime),
         actualRemittanceTime: null,
         nextStageRemittanceTime: this.normalizeDateTime(item?.nextStageRemittanceTime),
         paidAmount: 0,
         voucherFile: null,
+        laborInsuranceNo: String(item?.laborInsuranceNo || '').trim() || null,
         paymentStatus: 0,
         paymentUserId: null,
         paymentTime: null,
         remark: String(item?.remark || '').trim() || null,
       };
     });
+
+    const normalized = this.applyAmountDrivenRatios(stageDrafts, totalAmount);
 
     this.validateStageRatios(normalized, true);
 
@@ -672,6 +740,10 @@ export class CrmRemittanceService extends BaseService {
     return Number(this.toNumber(value).toFixed(2));
   }
 
+  private toRatio(value: any) {
+    return Number(this.toNumber(value).toFixed(4));
+  }
+
   private normalizeRate(value: any) {
     const ratio = this.toNumber(value);
     if (ratio > 1) {
@@ -701,6 +773,38 @@ export class CrmRemittanceService extends BaseService {
     }
   }
 
+  private applyAmountDrivenRatios(stages: any[], totalAmount: number) {
+    const normalizedAmounts = stages.map(item => this.toMoney(item?.amount));
+    const calculatedTotalAmount = this.toMoney(
+      normalizedAmounts.reduce((sum, amount) => sum + amount, 0)
+    );
+
+    if (Math.abs(calculatedTotalAmount - totalAmount) > 0.01) {
+      throw new CoolCommException('匯款總價必須等於付款階段金額合計');
+    }
+
+    let ratioSum = 0;
+
+    return stages.map((item, index) => {
+      let ratio = 0;
+
+      if (calculatedTotalAmount > 0) {
+        if (index === stages.length - 1) {
+          ratio = this.toRatio(Math.max(0, 1 - ratioSum));
+        } else {
+          ratio = this.toRatio(normalizedAmounts[index] / calculatedTotalAmount);
+          ratioSum = this.toRatio(ratioSum + ratio);
+        }
+      }
+
+      return {
+        ...item,
+        ratio,
+        amount: normalizedAmounts[index],
+      };
+    });
+  }
+
   private toNullableNumber(value: any) {
     if (value === undefined || value === null || value === '') {
       return null;
@@ -720,6 +824,74 @@ export class CrmRemittanceService extends BaseService {
       .map(item => String(item || '').trim())
       .filter(Boolean);
     return normalized.length ? JSON.stringify(normalized) : null;
+  }
+
+  private parseFileList(value: any): string[] {
+    if (Array.isArray(value)) {
+      return value.map(item => String(item || '').trim()).filter(Boolean);
+    }
+    const text = String(value || '').trim();
+    if (!text) {
+      return [];
+    }
+    if (text.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(text);
+        return Array.isArray(parsed)
+          ? parsed.map(item => String(item?.url || item || '').trim()).filter(Boolean)
+          : [];
+      } catch {
+        return [];
+      }
+    }
+    return text
+      .split(',')
+      .map(item => item.trim())
+      .filter(Boolean);
+  }
+
+  private hasUploadedFiles(value: any) {
+    return this.parseFileList(value).length > 0;
+  }
+
+  private resolveReceivedStatusForCreate(
+    fileValue: any,
+    manualValue: any,
+    canManualUpdate: boolean
+  ) {
+    const autoValue = this.hasUploadedFiles(fileValue) ? 1 : 0;
+    if (canManualUpdate && manualValue !== undefined) {
+      return this.toTinyint(manualValue);
+    }
+    return autoValue;
+  }
+
+  private resolveReceivedStatusForUpdate(
+    oldFileValue: any,
+    newFileValue: any,
+    oldStatusValue: any,
+    manualValue: any,
+    canManualUpdate: boolean
+  ) {
+    if (canManualUpdate && manualValue !== undefined) {
+      return this.toTinyint(manualValue);
+    }
+
+    const hasNewFiles = this.hasUploadedFiles(newFileValue);
+    if (!hasNewFiles) {
+      return 0;
+    }
+
+    const hadOldFiles = this.hasUploadedFiles(oldFileValue);
+    if (!hadOldFiles) {
+      return 1;
+    }
+
+    return this.toTinyint(oldStatusValue);
+  }
+
+  private toTinyint(value: any) {
+    return Number(value) === 1 || value === true || String(value) === '1' ? 1 : 0;
   }
 
   private normalizeDateTime(value: any) {

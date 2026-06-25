@@ -11,6 +11,7 @@ import { BaseSysDepartmentEntity } from '../../entity/sys/department';
 import { CachingFactory, MidwayCache } from '@midwayjs/cache-manager';
 import { BaseSysRoleEntity } from '../../entity/sys/role';
 import { BaseSysParamService } from './param';
+import { CrmCustomerInfoEntity } from '../../../customer/entity/info';
 
 /**
  * 系統使用者
@@ -43,6 +44,9 @@ export class BaseSysUserService extends BaseService {
   @InjectEntityModel(BaseSysRoleEntity)
   baseSysRoleEntity: Repository<BaseSysRoleEntity>;
 
+  @InjectEntityModel(CrmCustomerInfoEntity)
+  crmCustomerInfoEntity: Repository<CrmCustomerInfoEntity>;
+
   @InjectClient(CachingFactory, 'default')
   midwayCache: MidwayCache;
 
@@ -60,7 +64,7 @@ export class BaseSysUserService extends BaseService {
    * @param query
    */
   async page(query) {
-    const { keyWord, status, departmentIds = [], name, username, phone, email } = query;
+    const { keyWord, status, departmentIds = [], name, englishName, username, phone, email } = query;
     const userId = this.ctx.admin.userId;
     const roleLabels = await this.getCurrentRoleLabels();
     const canViewAll = roleLabels.some(label =>
@@ -76,7 +80,7 @@ export class BaseSysUserService extends BaseService {
         : [];
     const sql = `
         SELECT
-            a.id,a.name,a.nickName,a.headImg,a.email,a.remark,a.salary,a.withholdingSalary,a.level,a.status,a.createTime,a.updateTime,a.username,a.phone,a.departmentId,
+            a.id,a.name,a.englishName,a.nickName,a.headImg,a.email,a.remark,a.salary,a.withholdingSalary,a.level,a.status,a.createTime,a.updateTime,a.username,a.phone,a.departmentId,
             b.name as "departmentName"
         FROM
             base_sys_user a
@@ -89,6 +93,7 @@ export class BaseSysUserService extends BaseService {
             )}
             ${this.setSql(status, 'and a.status = ?', [status])}
             ${this.setSql(name, 'and a.name LIKE ?', [`%${name}%`])}
+            ${this.setSql(englishName, 'and a.englishName LIKE ?', [`%${englishName}%`])}
             ${this.setSql(username, 'and a.username LIKE ?', [`%${username}%`])}
             ${this.setSql(phone, 'and a.phone LIKE ?', [`%${phone}%`])}
             ${this.setSql(email, 'and a.email LIKE ?', [`%${email}%`])}
@@ -169,6 +174,10 @@ export class BaseSysUserService extends BaseService {
    */
   async add(param) {
     param.name = String(param.name || param.nickName || '').trim();
+    param.englishName = String(param.englishName || '').trim() || null;
+    if (!param.englishName) {
+      throw new CoolCommException('英文名稱不能為空');
+    }
     param.nickName = param.name;
     if (!_.isEmpty(param.username)) {
       param.phone = param.username;
@@ -225,6 +234,12 @@ export class BaseSysUserService extends BaseService {
       param.name = String(param.name || param.nickName || '').trim();
       param.nickName = param.name;
     }
+    if (param.englishName !== undefined) {
+      param.englishName = String(param.englishName || '').trim() || null;
+      if (!param.englishName) {
+        throw new CoolCommException('英文名稱不能為空');
+      }
+    }
     if (!_.isEmpty(param.password)) {
       param.password = md5(param.password);
       const oldPassword = md5(param.oldPassword);
@@ -258,6 +273,10 @@ export class BaseSysUserService extends BaseService {
       throw new CoolCommException('非法操作~');
     }
     param.name = String(param.name || param.nickName || '').trim();
+    param.englishName = String(param.englishName || '').trim() || null;
+    if (!param.englishName) {
+      throw new CoolCommException('英文名稱不能為空');
+    }
     param.nickName = param.name;
     if (!_.isEmpty(param.username)) {
       param.phone = param.username;
@@ -283,6 +302,88 @@ export class BaseSysUserService extends BaseService {
     await this.applyWithholdingSalary(param);
     await this.baseSysUserEntity.save(param);
     await this.updateUserRole(param);
+  }
+
+  async transferCustomersToPool(userId: number) {
+    const targetUserId = Number(userId || 0);
+    if (!targetUserId) {
+      throw new CoolCommException('使用者不存在');
+    }
+
+    const roleLabels = await this.getCurrentRoleLabels();
+    const canOperate = roleLabels.some(label =>
+      [this.BOSS_LABEL, this.ADMIN_LABEL].includes(label)
+    );
+    if (!canOperate) {
+      throw new CoolCommException('僅老闆或超級管理員可操作');
+    }
+
+    const user = await this.baseSysUserEntity.findOneBy({ id: targetUserId });
+    if (!user) {
+      throw new CoolCommException('使用者不存在');
+    }
+
+    const movedCount = await this.crmCustomerInfoEntity.count({
+      where: {
+        salesmanId: targetUserId,
+        isDeleted: 0,
+      },
+    });
+
+    if (movedCount > 0) {
+      await this.crmCustomerInfoEntity.update(
+        { salesmanId: targetUserId, isDeleted: 0 },
+        { salesmanId: null }
+      );
+    }
+
+    return {
+      movedCount,
+      userName: user.name || user.nickName || user.username || '',
+    };
+  }
+
+  async deleteCheck(ids: number[] | number) {
+    const userIds = this.normalizeUserIds(ids);
+    if (_.isEmpty(userIds)) {
+      return [];
+    }
+
+    const users = await this.baseSysUserEntity.findBy({ id: In(userIds) });
+    const customerRows = await this.nativeQuery(
+      `
+      SELECT salesmanId, COUNT(1) AS customerCount
+      FROM crm_customer_info
+      WHERE isDeleted = 0
+        AND salesmanId in (?)
+      GROUP BY salesmanId
+      `,
+      [userIds]
+    );
+
+    const customerCountMap = new Map<number, number>();
+    for (const item of customerRows || []) {
+      customerCountMap.set(
+        Number(item.salesmanId || 0),
+        Number(item.customerCount || 0)
+      );
+    }
+
+    return users.map(user => ({
+      userId: Number(user.id),
+      userName: user.name || user.nickName || user.username || '',
+      customerCount: customerCountMap.get(Number(user.id)) || 0,
+    }));
+  }
+
+  async delete(ids: number[] | number) {
+    const userIds = this.normalizeUserIds(ids);
+    await this.ensureUsersHaveNoAssignedCustomers(userIds);
+    await this.revokeUserSessions(userIds);
+    if (!_.isEmpty(userIds)) {
+      await this.baseSysUserRoleEntity.delete({ userId: In(userIds) });
+    }
+    await super.delete(userIds);
   }
 
   private normalizeRoleIdList(roleIdList: number[] | number | undefined): number[] {
@@ -369,6 +470,49 @@ export class BaseSysUserService extends BaseService {
    */
   async forbidden(userId) {
     await this.midwayCache.del(`admin:token:${userId}`);
+  }
+
+  private async revokeUserSessions(userIds: number[]) {
+    for (const userId of userIds) {
+      await this.midwayCache.del(`admin:department:${userId}`);
+      await this.midwayCache.del(`admin:perms:${userId}`);
+      await this.midwayCache.del(`admin:token:${userId}`);
+      await this.midwayCache.del(`admin:token:refresh:${userId}`);
+      await this.midwayCache.del(`admin:passwordVersion:${userId}`);
+    }
+  }
+
+  private normalizeUserIds(ids: number[] | number): number[] {
+    if (Array.isArray(ids)) {
+      return ids
+        .map(id => Number(id))
+        .filter(id => Number.isFinite(id) && id > 0);
+    }
+
+    const id = Number(ids || 0);
+    return Number.isFinite(id) && id > 0 ? [id] : [];
+  }
+
+  private async ensureUsersHaveNoAssignedCustomers(userIds: number[]) {
+    if (_.isEmpty(userIds)) {
+      return;
+    }
+
+    const blockedUsers = await this.deleteCheck(userIds);
+    const usersWithCustomers = blockedUsers.filter(
+      item => Number(item.customerCount || 0) > 0
+    );
+
+    if (!usersWithCustomers.length) {
+      return;
+    }
+
+    const names = usersWithCustomers
+      .map(item => item.userName || `ID:${item.userId}`)
+      .join('、');
+    throw new CoolCommException(
+      `請先將 ${names} 的客戶轉移到客戶公池後再刪除`
+    );
   }
 
   private async getCurrentRoleLabels(): Promise<string[]> {

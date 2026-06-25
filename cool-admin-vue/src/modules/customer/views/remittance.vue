@@ -53,10 +53,17 @@
 			<el-descriptions-item label="供應商地址">{{ detailData.supplierAddress || '-' }}</el-descriptions-item>
 			<el-descriptions-item label="統一編號">{{ detailData.supplierUnifiedNo || '-' }}</el-descriptions-item>
 			<el-descriptions-item label="郵箱">{{ detailData.supplierEmail || '-' }}</el-descriptions-item>
+			<el-descriptions-item label="賬戶資訊">{{ detailData.accountInfo || '-' }}</el-descriptions-item>
 			<el-descriptions-item label="匯款型別">{{ getRemittanceTypeLabel(detailData.remittanceType) }}</el-descriptions-item>
 			<el-descriptions-item label="業務員">{{ detailData.salesmanName || '-' }}</el-descriptions-item>
 			<el-descriptions-item label="匯款總額">{{ toMoney(detailData.totalAmount) }}</el-descriptions-item>
 			<el-descriptions-item label="已匯款金額">{{ toMoney(detailData.paidAmount) }}</el-descriptions-item>
+			<el-descriptions-item label="是否收到勞保單">
+				{{ Number(detailData.receivedLaborInsurance || 0) === 1 ? '是' : '否' }}
+			</el-descriptions-item>
+			<el-descriptions-item label="是否收到發票">
+				{{ Number(detailData.receivedInvoice || 0) === 1 ? '是' : '否' }}
+			</el-descriptions-item>
 			<el-descriptions-item label="備註">
 				<div class="remittance-remark">{{ detailData.remark || '-' }}</div>
 			</el-descriptions-item>
@@ -168,6 +175,7 @@
 						<span v-else>-</span>
 					</template>
 				</el-table-column>
+				<el-table-column prop="laborInsuranceNo" label="勞保單" min-width="160" show-overflow-tooltip />
 				<el-table-column label="匯款狀態" width="120">
 					<template #default="{ row }">{{ getPaymentStatusLabel(row.paymentStatus) }}</template>
 				</el-table-column>
@@ -238,9 +246,9 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, h, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useCrud, useTable } from '@cool-vue/crud'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox, ElSwitch } from 'element-plus'
 import { checkPerm } from '/$/base'
 import RemittanceService from '../service/remittance'
 import RemittanceDialog from '../components/remittance-dialog.vue'
@@ -272,6 +280,7 @@ const remittanceVisible = ref(false)
 const remittanceSubmitting = ref(false)
 const remittanceStageRows = ref<any[]>([])
 const currentRemittanceId = ref(0)
+const receivedStatusLoadingMap = ref<Record<string, boolean>>({})
 
 const searchItems = computed(() => [
 	{
@@ -344,6 +353,66 @@ function getRemittanceStatusLabel(value: any) {
 
 function getPaymentStatusLabel(value: any) {
 	return Number(value) === 1 ? '已匯款' : '未匯款'
+}
+
+function toSwitchValue(value: any) {
+	return Number(value) === 1
+}
+
+function getReceivedStatusLoadingKey(row: any, field: 'receivedLaborInsurance' | 'receivedInvoice') {
+	return `${Number(row?.id || 0)}-${field}`
+}
+
+function isReceivedStatusLoading(row: any, field: 'receivedLaborInsurance' | 'receivedInvoice') {
+	return !!receivedStatusLoadingMap.value[getReceivedStatusLoadingKey(row, field)]
+}
+
+function setReceivedStatusLoading(
+	row: any,
+	field: 'receivedLaborInsurance' | 'receivedInvoice',
+	loading: boolean
+) {
+	const key = getReceivedStatusLoadingKey(row, field)
+	receivedStatusLoadingMap.value = {
+		...receivedStatusLoadingMap.value,
+		[key]: loading
+	}
+}
+
+function canToggleReceivedStatus(row: any) {
+	return Number(row?.canToggleReceivedStatus || 0) === 1
+}
+
+async function onReceivedStatusChange(
+	row: any,
+	field: 'receivedLaborInsurance' | 'receivedInvoice',
+	value: boolean
+) {
+	if (!row?.id) {
+		return
+	}
+
+	const oldValue = Number(row?.[field] || 0)
+	const nextValue = value ? 1 : 0
+	if (oldValue === nextValue) {
+		return
+	}
+
+	setReceivedStatusLoading(row, field, true)
+	row[field] = nextValue
+
+	try {
+		await remittanceService.updateReceivedStatus({
+			id: Number(row.id),
+			[field]: nextValue
+		})
+		ElMessage.success(field === 'receivedLaborInsurance' ? '勞保單收到狀態已更新' : '發票收到狀態已更新')
+	} catch (error: any) {
+		row[field] = oldValue
+		ElMessage.error(getErrorMessage(error, '更新收到狀態失敗'))
+	} finally {
+		setReceivedStatusLoading(row, field, false)
+	}
 }
 
 function getRemittanceTypeLabel(value: any) {
@@ -552,6 +621,7 @@ useTable({
 		{ type: 'selection', width: 60 },
 		{ label: '匯款專案名稱', prop: 'remittanceName', minWidth: 180, showOverflowTooltip: true },
 		{ label: '供應商', prop: 'supplierCompanyName', minWidth: 180, showOverflowTooltip: true },
+		{ label: '賬戶資訊', prop: 'accountInfo', minWidth: 180, showOverflowTooltip: true },
 		{ label: '業務員', prop: 'salesmanName', width: 120 },
 		{
 			label: '匯款總金額',
@@ -603,6 +673,40 @@ useTable({
 			prop: 'currentNextStageRemittanceTime',
 			minWidth: 190,
 			showOverflowTooltip: true
+		},
+		{
+			label: '是否收到勞保單',
+			prop: 'receivedLaborInsurance',
+			minWidth: 150,
+			align: 'center',
+			render(row: any) {
+				return h(ElSwitch, {
+					modelValue: toSwitchValue(row?.receivedLaborInsurance),
+					disabled: !canToggleReceivedStatus(row) || isReceivedStatusLoading(row, 'receivedLaborInsurance'),
+					loading: isReceivedStatusLoading(row, 'receivedLaborInsurance'),
+					'active-text': '是',
+					'inactive-text': '否',
+					'onUpdate:modelValue': (value: boolean) =>
+						onReceivedStatusChange(row, 'receivedLaborInsurance', value)
+				})
+			}
+		},
+		{
+			label: '是否收到發票',
+			prop: 'receivedInvoice',
+			minWidth: 150,
+			align: 'center',
+			render(row: any) {
+				return h(ElSwitch, {
+					modelValue: toSwitchValue(row?.receivedInvoice),
+					disabled: !canToggleReceivedStatus(row) || isReceivedStatusLoading(row, 'receivedInvoice'),
+					loading: isReceivedStatusLoading(row, 'receivedInvoice'),
+					'active-text': '是',
+					'inactive-text': '否',
+					'onUpdate:modelValue': (value: boolean) =>
+						onReceivedStatusChange(row, 'receivedInvoice', value)
+				})
+			}
 		},
 		{
 			type: 'op',

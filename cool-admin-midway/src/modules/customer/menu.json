@@ -467,6 +467,18 @@
             "keepAlive": false,
             "isShow": false,
             "childMenus": []
+          },
+          {
+            "name": "申請折讓",
+            "router": null,
+            "perms": "crm:quoteOrder:applyAllowance",
+            "type": 2,
+            "icon": null,
+            "orderNum": 18,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
           }
         ]
       }

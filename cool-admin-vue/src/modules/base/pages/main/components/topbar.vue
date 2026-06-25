@@ -126,7 +126,7 @@ defineOptions({
 
 import { computed, markRaw, onMounted, reactive } from 'vue';
 import { isFunction, orderBy } from 'lodash-es';
-import { useBase } from '/$/base';
+import { checkPerm, useBase } from '/$/base';
 import { module, useCool } from '/@/cool';
 import { ElMessageBox } from 'element-plus';
 import { Bell } from '@element-plus/icons-vue';
@@ -140,6 +140,11 @@ const { router, service, browser } = useCool();
 const { user, app } = useBase();
 const { t } = useI18n();
 const contractReminderService = new ContractReminderService();
+const canViewContractReminder = computed(() =>
+	checkPerm({
+		or: ['crm:quoteOrder:page', 'crm:customerList:page', 'crm:performance:page']
+	})
+);
 
 const reminder = reactive({
 	visible: false,
@@ -168,6 +173,10 @@ async function onCommand(name: string) {
 }
 
 async function loadReminderCount() {
+	if (!canViewContractReminder.value) {
+		reminder.unreadCount = 0;
+		return;
+	}
 	try {
 		const res: any = await contractReminderService.unreadCount();
 		reminder.unreadCount = Number(res?.count || 0);
@@ -177,6 +186,10 @@ async function loadReminderCount() {
 }
 
 async function openReminders() {
+	if (!canViewContractReminder.value) {
+		reminder.rows = [];
+		return;
+	}
 	reminder.loading = true;
 	try {
 		const res: any = await contractReminderService.page({ page: 1, size: 5 });
@@ -187,6 +200,9 @@ async function openReminders() {
 }
 
 async function markAllRemindersRead() {
+	if (!canViewContractReminder.value) {
+		return;
+	}
 	await contractReminderService.markRead({});
 	await loadReminderCount();
 	await openReminders();

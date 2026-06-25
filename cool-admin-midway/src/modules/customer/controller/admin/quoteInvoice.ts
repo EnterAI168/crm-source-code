@@ -42,6 +42,11 @@ export class AdminCrmQuoteInvoiceController extends BaseController {
     return this.ok(await this.crmQuoteInvoiceService.send(body));
   }
 
+  @Post('/void')
+  async voidInvoice(@Body() body: any) {
+    return this.ok(await this.crmQuoteInvoiceService.voidInvoice(body));
+  }
+
   @Post('/downloadPdf')
   async downloadPdf(@Body() body: any) {
     const file = await this.crmQuoteInvoiceService.downloadPdf(body);

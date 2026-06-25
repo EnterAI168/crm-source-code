@@ -17,6 +17,9 @@ export class BaseSysUserEntity extends BaseEntity {
   @Column({ comment: '姓名', nullable: true })
   name: string;
 
+  @Column({ comment: '英文名稱', nullable: true, length: 100 })
+  englishName: string;
+
   @Index({ unique: true })
   @Column({ comment: '使用者名稱', length: 100 })
   username: string;

@@ -93,6 +93,7 @@
 		:preset-customer-id="getCustomerIdFromRoute()"
 		:readonly="quoteReadonly"
 		:cost-accounting="quoteCostAccounting"
+		:apply-allowance="quoteApplyAllowance"
 		@saved="onQuoteSaved"
 	/>
 
@@ -627,6 +628,8 @@ const canAssignPerm = computed(() => checkPerm('crm:quoteOrder:assign'));
 
 const canUpdate = computed(() => checkPerm('crm:quoteOrder:update'));
 
+const canApplyAllowancePerm = computed(() => checkPerm('crm:quoteOrder:applyAllowance'));
+
 const canDelete = computed(() => checkPerm('crm:quoteOrder:delete'));
 
 const canUploadContractPerm = computed(() => checkPerm('crm:quoteOrder:uploadContract'));
@@ -670,6 +673,8 @@ const quoteEditId = ref(0);
 const quoteReadonly = ref(false);
 
 const quoteCostAccounting = ref(false);
+
+const quoteApplyAllowance = ref(false);
 
 const contractVisible = ref(false);
 
@@ -886,6 +891,17 @@ function getDiscountAuditStatusLabel(value: any) {
 	if (status === 3) return '已同意扣獎金';
 	if (status === 4) return '已拒絕';
 	return '無需審批';
+}
+
+function getViewerSalesIdentityLabel(row: any) {
+	const identity = String(row?.viewerSalesIdentity || '');
+	if (identity === 'accompany') {
+		return '陪同報價單';
+	}
+	if (identity === 'main') {
+		return '主業務報價單';
+	}
+	return '一般報價單';
 }
 
 function toStageRatio(value: any) {
@@ -1202,6 +1218,15 @@ useTable({
 			}
 		},
 
+		{
+			label: '報價單身份',
+			prop: 'viewerSalesIdentity',
+			minWidth: 120,
+			formatter(row: any) {
+				return getViewerSalesIdentityLabel(row);
+			}
+		},
+
 		{ label: '狀態', prop: 'status', width: 100, dict: quoteStatusOptions },
 
 		{
@@ -1262,6 +1287,14 @@ function getQuoteOperationActions(row: any) {
 			onClick() {
 				if (!perms.canEdit) return;
 				openEdit(row);
+			}
+		},
+		{
+			label: '申請折讓',
+			type: 'warning',
+			hidden: !(canApplyAllowancePerm.value && perms.canApplyAllowance),
+			onClick() {
+				openApplyAllowance(row);
 			}
 		},
 		{
@@ -1461,6 +1494,8 @@ function openAdd() {
 
 	quoteCostAccounting.value = false;
 
+	quoteApplyAllowance.value = false;
+
 	quoteDialogVisible.value = true;
 }
 
@@ -1470,6 +1505,8 @@ function openEdit(row: any) {
 	quoteReadonly.value = false;
 
 	quoteCostAccounting.value = false;
+
+	quoteApplyAllowance.value = false;
 
 	quoteDialogVisible.value = true;
 }
@@ -1481,6 +1518,8 @@ function openDetail(row: any) {
 
 	quoteCostAccounting.value = false;
 
+	quoteApplyAllowance.value = false;
+
 	quoteDialogVisible.value = true;
 }
 
@@ -1490,6 +1529,25 @@ function openCostAccounting(row: any) {
 	quoteReadonly.value = false;
 
 	quoteCostAccounting.value = true;
+
+	quoteApplyAllowance.value = false;
+
+	quoteDialogVisible.value = true;
+}
+
+function openApplyAllowance(row: any) {
+	if (!row?.permissions?.canApplyAllowance) {
+		ElMessage.warning('當前報價單不允許申請折讓');
+		return;
+	}
+
+	quoteEditId.value = Number(row?.id || 0);
+
+	quoteReadonly.value = false;
+
+	quoteCostAccounting.value = false;
+
+	quoteApplyAllowance.value = true;
 
 	quoteDialogVisible.value = true;
 }

@@ -10,7 +10,6 @@ import { CrmCustomerInfoEntity } from '../entity/info';
 import { BaseSysUserEntity } from '../../base/entity/sys/user';
 import { BaseSysParamService } from '../../base/service/sys/param';
 import { CrmCustomerInfoService } from './info';
-import { CrmMailService } from './mail';
 import { CrmEcpayInvoiceService } from './ecpayInvoice';
 import * as moment from 'moment';
 import axios from 'axios';
@@ -76,16 +75,23 @@ export class CrmQuoteInvoiceService extends BaseService {
   crmCustomerInfoService: CrmCustomerInfoService;
 
   @Inject()
-  crmMailService: CrmMailService;
-
-  @Inject()
   crmEcpayInvoiceService: CrmEcpayInvoiceService;
 
   @Inject()
   baseSysParamService: BaseSysParamService;
 
   async page(query: any) {
-    const { invoiceNo, status, seller, address, page = 1, size = 20 } = query || {};
+    const {
+      invoiceNo,
+      month,
+      status,
+      customerId,
+      salesmanId,
+      seller,
+      address,
+      page = 1,
+      size = 20,
+    } = query || {};
     const where: string[] = ['a.isDeleted = 0'];
     const params: any[] = [];
 
@@ -93,9 +99,21 @@ export class CrmQuoteInvoiceService extends BaseService {
       where.push('a.invoiceNo LIKE ?');
       params.push(`%${String(invoiceNo).trim()}%`);
     }
+    if (month) {
+      where.push("DATE_FORMAT(a.createTime, '%Y-%m') = ?");
+      params.push(String(month).trim());
+    }
     if (status) {
       where.push('a.status = ?');
       params.push(Number(status));
+    }
+    if (customerId) {
+      where.push('o.customerId = ?');
+      params.push(Number(customerId));
+    }
+    if (salesmanId) {
+      where.push('a.salesmanId = ?');
+      params.push(Number(salesmanId));
     }
     if (seller) {
       where.push('a.seller LIKE ?');
@@ -109,13 +127,26 @@ export class CrmQuoteInvoiceService extends BaseService {
     const offset = (Math.max(1, Number(page)) - 1) * Math.max(1, Number(size));
     const limit = Math.max(1, Number(size));
     const countRows = await this.nativeQuery(
-      `SELECT COUNT(1) AS count FROM crm_quote_invoice a WHERE ${where.join(' AND ')}`,
+      `
+      SELECT COUNT(1) AS count
+      FROM crm_quote_invoice a
+      LEFT JOIN crm_quote_order o ON o.id = a.quoteOrderId AND o.isDeleted = 0
+      WHERE ${where.join(' AND ')}
+    `,
       params
     );
     const list = await this.nativeQuery(
       `
-      SELECT a.*, u.name AS salesmanName, u.nickName AS salesmanNickName, u.username AS salesmanUsername
+      SELECT
+        a.*,
+        o.customerId,
+        c.companyName AS customerName,
+        u.name AS salesmanName,
+        u.nickName AS salesmanNickName,
+        u.username AS salesmanUsername
       FROM crm_quote_invoice a
+      LEFT JOIN crm_quote_order o ON o.id = a.quoteOrderId AND o.isDeleted = 0
+      LEFT JOIN crm_customer_info c ON c.id = o.customerId AND c.isDeleted = 0
       LEFT JOIN base_sys_user u ON u.id = a.salesmanId
       WHERE ${where.join(' AND ')}
       ORDER BY a.createTime DESC, a.id DESC
@@ -124,7 +155,7 @@ export class CrmQuoteInvoiceService extends BaseService {
       [...params, limit, offset]
     );
     return {
-      list,
+      list: (list || []).map(item => this.decorateInvoiceRow(item)),
       pagination: {
         page: Number(page),
         size: limit,
@@ -141,7 +172,7 @@ export class CrmQuoteInvoiceService extends BaseService {
     if (!row) {
       throw new CoolCommException('發票記錄不存在');
     }
-    return row;
+    return this.decorateInvoiceRow(row);
   }
 
   async audit(param: any) {
@@ -204,16 +235,17 @@ export class CrmQuoteInvoiceService extends BaseService {
     const untaxedAmount =
       amount > 0 && dutyRate > 0 ? this.toMoney(amount / (1 + dutyRate)) : amount;
     const taxAmount = this.toMoney(amount - untaxedAmount);
-    const invoiceSealUrl = this.normalizeFileParam(
-      await this.baseSysParamService.dataByKey('invoice_company_seal')
-    );
+    const partyB = await this.baseSysParamService.dataByKey('quote_party_b');
+    const partyBInfo = this.normalizeInvoicePartyBInfo(partyB);
     return {
       ...row,
       invoiceDate: row.auditTime || row.applyTime || row.createTime,
       displayInvoiceNo: row.ecpayInvoiceNo || row.invoiceNo,
       formatNo: '25',
       randomNo: row.ecpayRandomNumber || String(row.id || 0).padStart(4, '0'),
-      invoiceSealUrl,
+      companyName: partyBInfo.companyName,
+      companyTaxNumber: partyBInfo.taxNumber,
+      companyAddress: partyBInfo.address,
       untaxedAmount,
       taxAmount,
       totalAmount: amount,
@@ -222,12 +254,13 @@ export class CrmQuoteInvoiceService extends BaseService {
 
   async send(param: any) {
     const id = Number(param?.id || 0);
-    const result = await this.sendInvoiceEmail(id);
+    const result = await this.notifyInvoiceEmail(id);
     await this.crmQuoteInvoiceEntity.update(
       { id },
       {
-        autoSendEmail: 0,
-        scheduledSendTime: null,
+        sendStatus: 2,
+        sentTime: this.now(),
+        sendError: null,
       }
     );
     return result;
@@ -248,7 +281,181 @@ export class CrmQuoteInvoiceService extends BaseService {
     if (Number(row.ecpayInvalidStatus) === 2 || row.voidTime) {
       throw new CoolCommException('已作廢發票不可下載');
     }
-    return this.buildInvoicePdfAttachment(row);
+    if (!row.ecpayInvoiceNo) {
+      throw new CoolCommException('該發票未取得綠界發票號碼，無法下載綠界PDF');
+    }
+
+    const ecpayConfig = await this.baseSysParamService.dataByKey('crmEcpayInvoice');
+    const invoiceDates = this.buildEcpayInvalidInvoiceDateCandidates(row);
+    if (!invoiceDates.length) {
+      throw new CoolCommException('綠界發票日期為空，無法下載綠界PDF');
+    }
+
+    let pdfBuffer: Buffer | null = null;
+    let matchedInvoiceDate = '';
+    let lastError: any = null;
+
+    for (const invoiceDate of invoiceDates) {
+      try {
+        pdfBuffer = await this.crmEcpayInvoiceService.downloadB2bInvoicePdf(
+          ecpayConfig,
+          {
+            invoiceNumber: row.ecpayInvoiceNo,
+            invoiceDate,
+          }
+        );
+        matchedInvoiceDate = invoiceDate;
+        lastError = null;
+        break;
+      } catch (error) {
+        lastError = error;
+        if (!this.isEcpayInvoiceNoOrDateError(error)) {
+          throw error;
+        }
+      }
+    }
+
+    if (!pdfBuffer) {
+      throw lastError || new CoolCommException('綠界發票下載PDF失敗');
+    }
+
+    if (
+      matchedInvoiceDate &&
+      matchedInvoiceDate !== row.ecpayInvoiceDate &&
+      this.normalizeDateValue(matchedInvoiceDate) !==
+        this.normalizeDateValue(row.ecpayInvoiceDate)
+    ) {
+      await this.crmQuoteInvoiceEntity.update(
+        { id: row.id },
+        { ecpayInvoiceDate: matchedInvoiceDate }
+      );
+    }
+
+    const quoteName = row.quoteName || row.invoiceNo || row.ecpayInvoiceNo || '發票';
+    const periodText = this.formatInvoicePeriod(row.stageNo);
+    return {
+      filename: `${this.safeFileName(`${quoteName}${periodText || ''}-發票`)}.pdf`,
+      content: pdfBuffer,
+      contentType: 'application/pdf',
+    };
+    // 本地PDF保留作為備用方案，暫不啟用
+    // return this.buildInvoicePdfAttachment(row);
+  }
+
+  async voidInvoice(param: any) {
+    const id = Number(param?.id || 0);
+    const row = await this.crmQuoteInvoiceEntity.findOneBy({
+      id,
+      isDeleted: 0,
+    });
+    if (!row) {
+      throw new CoolCommException('發票記錄不存在');
+    }
+    if (Number(row.status) !== 2) {
+      throw new CoolCommException('只有審核通過的發票可以作廢');
+    }
+    if (!row.ecpayInvoiceNo) {
+      throw new CoolCommException('該發票未取得綠界發票號碼，無法作廢');
+    }
+    if (Number(row.ecpayInvalidStatus) === 2 || row.voidTime) {
+      throw new CoolCommException('發票已作廢，請勿重複操作');
+    }
+
+    const lock = await this.crmQuoteInvoiceEntity
+      .createQueryBuilder()
+      .update(CrmQuoteInvoiceEntity)
+      .set({
+        ecpayInvalidStatus: 1,
+        ecpayInvalidError: null,
+      })
+      .where('id = :id', { id })
+      .andWhere('status = 2')
+      .andWhere('(ecpayInvalidStatus IS NULL OR ecpayInvalidStatus NOT IN (1, 2))')
+      .execute();
+    if (!lock.affected) {
+      throw new CoolCommException('發票作廢處理中，請稍後再試');
+    }
+
+    const invalidTime = this.now();
+    const invalidReason = String(param?.reason || '').trim() || 'CRM發票作廢';
+    let result: any = null;
+    try {
+      const ecpayConfig = await this.baseSysParamService.dataByKey('crmEcpayInvoice');
+      const invoiceDates = this.buildEcpayInvalidInvoiceDateCandidates(row);
+      if (!invoiceDates.length) {
+        throw new CoolCommException('綠界發票日期為空，無法作廢');
+      }
+      let lastError: any = null;
+      for (const invoiceDate of invoiceDates) {
+        try {
+          result = await this.crmEcpayInvoiceService.invalidB2bInvoice(
+            ecpayConfig,
+            {
+              invoiceNumber: row.ecpayInvoiceNo,
+              invoiceDate,
+              reason: invalidReason,
+            }
+          );
+          if (
+            invoiceDate !== row.ecpayInvoiceDate &&
+            this.normalizeDateValue(invoiceDate) !==
+              this.normalizeDateValue(row.ecpayInvoiceDate)
+          ) {
+            await this.crmQuoteInvoiceEntity.update(
+              { id: row.id },
+              { ecpayInvoiceDate: invoiceDate }
+            );
+          }
+          lastError = null;
+          break;
+        } catch (error) {
+          lastError = error;
+          if (!this.isEcpayInvoiceNoOrDateError(error)) {
+            throw error;
+          }
+        }
+      }
+      if (lastError) {
+        throw lastError;
+      }
+    } catch (e) {
+      const message = e.message || String(e);
+      await this.crmQuoteInvoiceEntity.update(
+        { id: row.id },
+        {
+          ecpayInvalidStatus: 3,
+          ecpayInvalidError: message.slice(0, 1000),
+        }
+      );
+      throw e;
+    }
+
+    await this.crmQuoteInvoiceEntity.update(
+      { id: row.id },
+      {
+        voidTime: invalidTime,
+        ecpayInvalidStatus: 2,
+        ecpayInvalidTime: invalidTime,
+        ecpayInvalidReason: invalidReason.slice(0, 255),
+        ecpayInvalidError: null,
+        ecpayInvalidResponse: JSON.stringify(result || {}),
+      }
+    );
+
+    await this.crmQuoteOrderStageEntity.update(
+      { id: Number(row.quoteStageId || 0) },
+      {
+        invoiceStatus: 2,
+        invoiceVoidTime: invalidTime,
+      }
+    );
+
+    await this.refreshOrderInvoiceStatus(Number(row.quoteOrderId || 0));
+
+    return {
+      id: row.id,
+      invoiceStatus: 2,
+    };
   }
 
   async handleScheduledInvoices() {
@@ -283,7 +490,7 @@ export class CrmQuoteInvoiceService extends BaseService {
         AND IFNULL(s.autoSendEmail, 0) = 1
         AND s.invoiceDate IS NOT NULL
         AND s.invoiceDate <> ''
-        AND DATE(s.invoiceDate) <= DATE(DATE_ADD(NOW(), INTERVAL 2 DAY))
+        AND DATE(s.invoiceDate) <= DATE(DATE_ADD(NOW(), INTERVAL 10 DAY))
       ORDER BY s.invoiceDate ASC, s.sortNum ASC, s.id ASC
       LIMIT 100
     `
@@ -310,35 +517,10 @@ export class CrmQuoteInvoiceService extends BaseService {
   }
 
   async sendDueInvoices() {
-    const rows = await this.crmQuoteInvoiceEntity
-      .createQueryBuilder('a')
-      .where('a.isDeleted = 0')
-      .andWhere('a.status = 2')
-      .andWhere('a.autoSendEmail = 1')
-      .andWhere('(a.sendStatus IS NULL OR a.sendStatus IN (0, 3))')
-      .andWhere('a.scheduledSendTime IS NOT NULL')
-      .andWhere('a.scheduledSendTime <> :empty', { empty: '' })
-      .andWhere('a.scheduledSendTime <= :now', { now: this.now() })
-      .orderBy('a.scheduledSendTime', 'ASC')
-      .addOrderBy('a.id', 'ASC')
-      .limit(50)
-      .getMany();
-
-    let success = 0;
-    const errors: string[] = [];
-    for (const row of rows || []) {
-      try {
-        await this.sendInvoiceEmail(row.id);
-        success++;
-      } catch (e) {
-        errors.push(e.message || String(e));
-      }
-    }
-
     return {
-      total: rows?.length || 0,
-      success,
-      errors,
+      total: 0,
+      success: 0,
+      errors: [],
     };
   }
 
@@ -397,9 +579,7 @@ export class CrmQuoteInvoiceService extends BaseService {
       applyTime: this.now(),
       status: 1,
       autoSendEmail: Number(row.autoSendEmail) === 0 ? 0 : 1,
-      scheduledSendTime: row.invoiceDate
-        ? `${String(row.invoiceDate).slice(0, 10)} 12:00:00`
-        : null,
+      scheduledSendTime: null,
       sendStatus: 0,
       sentTime: null,
       sendError: null,
@@ -419,7 +599,7 @@ export class CrmQuoteInvoiceService extends BaseService {
     return invoice.id > 0;
   }
 
-  private async sendInvoiceEmail(id: number, force = false) {
+  private async notifyInvoiceEmail(id: number) {
     const row = await this.crmQuoteInvoiceEntity.findOneBy({
       id,
       isDeleted: 0,
@@ -428,67 +608,36 @@ export class CrmQuoteInvoiceService extends BaseService {
       throw new CoolCommException('發票記錄不存在');
     }
     if (Number(row.status) !== 2) {
-      throw new CoolCommException('只有審核通過的發票可以發送郵件');
+      throw new CoolCommException('只有審核通過的發票可以補發通知');
     }
     if (Number(row.ecpayInvalidStatus) === 2 || row.voidTime) {
-      throw new CoolCommException('已作廢發票不可發送郵件');
-    }
-    if (!force && Number(row.sendStatus) === 2) {
-      return {
-        id: row.id,
-        sendStatus: 2,
-        sentTime: row.sentTime,
-      };
-    }
-
-    const lock = await this.crmQuoteInvoiceEntity
-      .createQueryBuilder()
-      .update(CrmQuoteInvoiceEntity)
-      .set({
-        sendStatus: 1,
-        sendError: null,
-      })
-      .where('id = :id', { id })
-      .andWhere('status = 2')
-      .andWhere('(sendStatus IS NULL OR sendStatus <> 1)')
-      .execute();
-    if (!lock.affected) {
-      throw new CoolCommException('發票郵件正在發送中，請稍後再試');
+      throw new CoolCommException('已作廢發票不可補發通知');
     }
 
     try {
-      const customerEmail = await this.getQuoteCustomerEmail(
-        Number(row.quoteOrderId)
-      );
-      const mail = await this.crmMailService.buildTemplateMail({
-        key: 'crmInvoiceMailTemplate',
-        fallbackSubject: `確認鍵發票_${row.quoteName || row.quoteNo || ''}${this.formatInvoicePeriod(row.stageNo)}`,
-        fallbackHtml: this.buildInvoiceMailHtml(row),
-        fallbackText: this.buildInvoiceMailText(row),
-        variables: this.buildInvoiceMailVariables(row, customerEmail),
-      });
-      const invoicePdf = await this.buildInvoicePdfAttachment(row);
-      await this.crmMailService.send({
-        to: customerEmail,
-        subject: mail.subject,
-        html: mail.html,
-        text: mail.text,
-        attachments: [...(mail.attachments || []), invoicePdf],
-      });
-      const sentTime = this.now();
-      await this.crmQuoteInvoiceEntity.update(
-        { id },
+      const customerEmail = await this.getQuoteCustomerEmail(Number(row.quoteOrderId));
+      const result = await this.crmEcpayInvoiceService.notifyB2bInvoice(
+        await this.baseSysParamService.dataByKey('crmEcpayInvoice'),
         {
-          email: customerEmail,
-          sendStatus: 2,
-          sentTime,
-          sendError: null,
+          invoiceNumber: row.ecpayInvoiceNo || row.invoiceNo,
+          invoiceDate: String(
+            row.ecpayInvoiceDate || row.auditTime || row.applyTime || row.createTime || ''
+          ),
+          notifyMail: customerEmail,
         }
       );
+      const sentTime = this.now();
+      await this.crmQuoteInvoiceEntity.update({ id }, {
+        email: customerEmail,
+        sendStatus: 2,
+        sentTime,
+        sendError: null,
+      });
       return {
         id,
         sendStatus: 2,
         sentTime,
+        result,
       };
     } catch (e) {
       const message = e.message || String(e);
@@ -528,73 +677,6 @@ export class CrmQuoteInvoiceService extends BaseService {
     return this.crmEcpayInvoiceService.diagnose(
       await this.baseSysParamService.dataByKey('crmEcpayInvoice')
     );
-  }
-
-  private buildInvoiceMailHtml(row: CrmQuoteInvoiceEntity) {
-    const escape = (value: any) =>
-      String(value ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    const quoteName = row.quoteName || row.quoteNo || '';
-    const periodText = this.formatInvoicePeriod(row.stageNo);
-    return `
-      <div style="font-family: Arial, 'Microsoft JhengHei', sans-serif; line-height: 1.8; color: #333;">
-        <p>您好：</p>
-        <p>附件為「${escape(quoteName)}${escape(periodText)}」發票，敬請查收。</p>
-        <p>若有任何問題，再請不吝告知，謝謝。</p>
-        <p>祝 順心</p>
-        <p>確認鍵智創科技股份有限公司</p>
-      </div>
-    `;
-  }
-
-  private buildInvoiceMailText(row: CrmQuoteInvoiceEntity) {
-    const quoteName = row.quoteName || row.quoteNo || '';
-    const periodText = this.formatInvoicePeriod(row.stageNo);
-    return [
-      '您好，',
-      `附件為「${quoteName}${periodText}」發票，敬請查收。`,
-      '若有任何問題，再請不吝告知，謝謝。',
-      '祝 順心',
-      '確認鍵智創科技股份有限公司',
-    ].join('\n');
-  }
-
-  private buildInvoiceMailVariables(
-    row: CrmQuoteInvoiceEntity,
-    customerEmail: string
-  ) {
-    const amount = Number(row.amount || 0).toLocaleString('zh-CN', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    });
-    const invoiceNo = this.displayInvoiceNo(row);
-    const invoicePeriodText = this.formatInvoicePeriod(row.stageNo);
-    return {
-      invoiceNo,
-      internalInvoiceNo: row.invoiceNo || '',
-      ecpayInvoiceNo: row.ecpayInvoiceNo || '',
-      ecpayInvoiceDate: row.ecpayInvoiceDate || '',
-      ecpayRandomNumber: row.ecpayRandomNumber || '',
-      quoteNo: row.quoteNo || '',
-      quoteName: row.quoteName || '',
-      stageNo: row.stageNo || '',
-      stageName: row.stageName || `階段${row.stageNo || ''}`,
-      invoicePeriodText,
-      ratio: row.ratio || '',
-      amount,
-      rawAmount: row.amount || 0,
-      invoiceProductName: row.invoiceProductName || '',
-      seller: row.seller || '',
-      address: row.address || '',
-      taxNumber: row.taxNumber || '',
-      email: customerEmail,
-      auditTime: row.auditTime || '',
-      applyTime: row.applyTime || '',
-    };
   }
 
   private async buildInvoicePdfAttachment(row: CrmQuoteInvoiceEntity) {
@@ -771,20 +853,39 @@ export class CrmQuoteInvoiceService extends BaseService {
       10,
       { maxWidth: widths[2] + widths[3] - 16 }
     );
-    addText('營業人蓋統一發票專用章', centers[4].x, footerY - 50, 9, {
-      align: 'center',
-      maxWidth: widths[4] - 10,
+    addText('營業人蓋統一發票專用章', columnX[4] + 6, footerY - 18, 8.5, {
+      maxWidth: widths[4] - 12,
     });
-    const sealImage = await this.loadInvoiceSealImage(preview.invoiceSealUrl);
-    if (sealImage) {
-      images.push({
-        ...sealImage,
-        x: centers[4].x - 50,
-        y: footerY - 132,
-        width: 100,
-        height: 100,
-      });
-    }
+    addText('（已係統登入資料者得免蓋章）', columnX[4] + 6, footerY - 34, 8.5, {
+      maxWidth: widths[4] - 12,
+    });
+    addText(
+      `賣　方：${preview.companyName || '-'}`,
+      columnX[4] + 6,
+      footerY - 56,
+      8.5,
+      {
+        maxWidth: widths[4] - 12,
+      }
+    );
+    addText(
+      `統一編號：${preview.companyTaxNumber || '-'}`,
+      columnX[4] + 6,
+      footerY - 74,
+      8.5,
+      {
+        maxWidth: widths[4] - 12,
+      }
+    );
+    addText(
+      `地　址：${preview.companyAddress || '-'}`,
+      columnX[4] + 6,
+      footerY - 92,
+      8.5,
+      {
+        maxWidth: widths[4] - 12,
+      }
+    );
 
     return this.createInvoicePdf(
       pageWidth,
@@ -971,54 +1072,6 @@ export class CrmQuoteInvoiceService extends BaseService {
       text: row,
       y: item.y - index * ((item.size || 10) + 4),
     }));
-  }
-
-  private async loadInvoiceSealImage(url: any) {
-    const sealUrl = String(url || '').trim();
-    if (!sealUrl || !/\.jpe?g(?:[?#].*)?$/i.test(sealUrl)) {
-      return null;
-    }
-    try {
-      const response = await axios.get(sealUrl, {
-        responseType: 'arraybuffer',
-        timeout: 8000,
-      });
-      const data = Buffer.from(response.data);
-      const size = this.getJpegSize(data);
-      if (!size) {
-        return null;
-      }
-      return {
-        data,
-        imageWidth: size.width,
-        imageHeight: size.height,
-      };
-    } catch (e) {
-      return null;
-    }
-  }
-
-  private getJpegSize(data: Buffer) {
-    if (data.length < 4 || data[0] !== 0xff || data[1] !== 0xd8) {
-      return null;
-    }
-    let offset = 2;
-    while (offset < data.length) {
-      if (data[offset] !== 0xff) {
-        offset++;
-        continue;
-      }
-      const marker = data[offset + 1];
-      const length = data.readUInt16BE(offset + 2);
-      if (marker >= 0xc0 && marker <= 0xc3) {
-        return {
-          height: data.readUInt16BE(offset + 5),
-          width: data.readUInt16BE(offset + 7),
-        };
-      }
-      offset += 2 + length;
-    }
-    return null;
   }
 
   private wrapPdfText(text: string, width: number, size: number) {
@@ -1251,6 +1304,23 @@ export class CrmQuoteInvoiceService extends BaseService {
     return String(value || '發票').replace(/[\\/:*?"<>|]/g, '_');
   }
 
+  private normalizeInvoicePartyBInfo(value: any) {
+    let source = value;
+    if (typeof source === 'string') {
+      try {
+        source = JSON.parse(source);
+      } catch {
+        source = {};
+      }
+    }
+
+    return {
+      companyName: String(source?.companyName || '').trim(),
+      taxNumber: String(source?.taxNumber || '').trim(),
+      address: String(source?.address || '').trim(),
+    };
+  }
+
   private toChineseCurrency(value: any) {
     const digits = ['零', '壹', '貳', '參', '肆', '伍', '陸', '柒', '捌', '玖'];
     const units = ['', '拾', '佰', '仟', '萬', '拾', '佰', '仟', '億'];
@@ -1386,6 +1456,101 @@ export class CrmQuoteInvoiceService extends BaseService {
 
   private displayInvoiceNo(row: CrmQuoteInvoiceEntity) {
     return row.ecpayInvoiceNo || row.invoiceNo || '';
+  }
+
+  private decorateInvoiceRow(row: any) {
+    const allowance = this.resolveAllowanceMeta(row);
+    return {
+      ...row,
+      allowanceStatus: allowance.status,
+      allowanceNo: allowance.no,
+      allowanceAmount: allowance.amount,
+      allowanceTime: allowance.time,
+    };
+  }
+
+  private resolveAllowanceMeta(row: any) {
+    const response = this.parseJsonObject(row?.ecpayInvalidResponse);
+    const allowance = this.parseJsonObject(response?.allowance);
+    if (!allowance || Number(allowance?.RtnCode || 0) !== 1) {
+      return {
+        status: 0,
+        no: '',
+        amount: 0,
+        time: '',
+      };
+    }
+
+    const issueAmount = this.parseJsonObject(
+      allowance?.__crmIssueAmount || allowance?.['__crmIssueAmount']
+    );
+    return {
+      status: 1,
+      no: String(
+        allowance?.AllowanceNo ||
+          allowance?.IA_Allow_No ||
+          allowance?.AllowNo ||
+          ''
+      ).trim(),
+      amount: this.toMoney(
+        issueAmount?.totalAmount ??
+          issueAmount?.TotalAmount ??
+          0
+      ),
+      time: String(
+        allowance?.AllowanceDate ||
+          allowance?.CreateTime ||
+          ''
+      ).trim(),
+    };
+  }
+
+  private parseJsonObject(value: any) {
+    if (!value) {
+      return null;
+    }
+    if (typeof value === 'object') {
+      return value;
+    }
+    try {
+      return JSON.parse(String(value));
+    } catch {
+      return null;
+    }
+  }
+
+  private normalizeDateValue(value: any) {
+    return String(value || '')
+      .trim()
+      .replace(/\//g, '-')
+      .replace(/\s+/g, ' ');
+  }
+
+  private buildEcpayInvalidInvoiceDateCandidates(invoice: CrmQuoteInvoiceEntity) {
+    const values = [
+      invoice.ecpayInvoiceDate,
+      invoice.auditTime,
+      invoice.applyTime,
+      invoice.createTime,
+    ];
+    const list: string[] = [];
+    for (const value of values) {
+      const date = this.normalizeDateValue(value);
+      if (date && !list.includes(date)) {
+        list.push(date);
+      }
+    }
+    return list;
+  }
+
+  private isEcpayInvoiceNoOrDateError(error: any) {
+    const message = String(error?.message || error || '');
+    return (
+      message.includes('綠界發票號碼') ||
+      message.includes('綠界發票日期') ||
+      message.includes('InvoiceNumber') ||
+      message.includes('InvoiceDate')
+    );
   }
 
   private async refreshOrderInvoiceStatus(quoteOrderId: number) {

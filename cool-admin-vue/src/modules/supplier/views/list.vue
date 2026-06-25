@@ -115,6 +115,11 @@ const searchItems = computed(() => [
 		label: '郵箱',
 		prop: 'email',
 		component: { name: 'el-input', props: { clearable: true, placeholder: '請輸入郵箱' } }
+	},
+	{
+		label: '匯款資訊',
+		prop: 'remittanceInfo',
+		component: { name: 'el-input', props: { clearable: true, placeholder: '請輸入匯款資訊' } }
 	}
 ]);
 
@@ -124,6 +129,7 @@ useTable({
 		{ label: '公司名稱', prop: 'companyName', minWidth: 180, showOverflowTooltip: true },
 		{ label: '廠商分類', prop: 'category', minWidth: 120, dict: categoryTableOptions },
 		{ label: '分類', prop: 'businessCategory', minWidth: 120, dict: businessCategoryTableOptions },
+		{ label: '匯款資訊', prop: 'remittanceInfo', minWidth: 180, showOverflowTooltip: true },
 		{ label: '統一編號', prop: 'unifiedNo', minWidth: 150, showOverflowTooltip: true },
 		{ label: '地址', prop: 'address', minWidth: 220, showOverflowTooltip: true },
 		{ label: '郵箱', prop: 'email', minWidth: 180, showOverflowTooltip: true },
@@ -208,6 +214,14 @@ const Upsert = useUpsert({
 					trigger: 'blur'
 				}
 			]
+		},
+		{
+			label: '匯款資訊',
+			prop: 'remittanceInfo',
+			component: {
+				name: 'el-input',
+				props: { clearable: true, placeholder: '請輸入匯款資訊' }
+			}
 		},
 		{
 			label: '備註',

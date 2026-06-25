@@ -56,6 +56,9 @@ export class CrmRemittanceStageEntity extends BaseEntity {
   @Column({ comment: '匯款憑證檔案地址', nullable: true, length: 500 })
   voucherFile: string;
 
+  @Column({ comment: '勞保單', nullable: true, length: 100 })
+  laborInsuranceNo: string;
+
   @Column({ comment: '匯款狀態 0-未匯款 1-已匯款', default: 0, type: 'tinyint' })
   paymentStatus: number;
 

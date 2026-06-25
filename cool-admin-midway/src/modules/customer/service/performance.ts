@@ -633,6 +633,262 @@ export class CrmPerformanceService extends BaseService {
     };
   }
 
+  async internalStatistics() {
+    const scope = await this.getStatisticsScope();
+    if (
+      !scope.isBoss &&
+      !scope.isOfficeClerkManager &&
+      !scope.isOfficeClerk
+    ) {
+      throw new CoolCommException('無權限檢視內勤統計');
+    }
+
+    const now = moment();
+    const quoteScope = this.buildQuoteStatisticsScopeSql(scope, 'q');
+    const currentMonthStart = now
+      .clone()
+      .startOf('month')
+      .format('YYYY-MM-DD HH:mm:ss');
+    const currentMonthEnd = now
+      .clone()
+      .endOf('month')
+      .format('YYYY-MM-DD HH:mm:ss');
+    const trendStart = now
+      .clone()
+      .subtract(5, 'month')
+      .startOf('month')
+      .format('YYYY-MM-DD HH:mm:ss');
+    const trendMonths = Array.from({ length: 6 }, (_, index) =>
+      now
+        .clone()
+        .subtract(5 - index, 'month')
+        .format('YYYY-MM')
+    );
+
+    const [
+      flowSummaryRows,
+      currentMonthQuoteRows,
+      currentMonthCompletedRows,
+      quoteTrendRows,
+      completedTrendRows,
+      departmentRows,
+      assigneeRows,
+    ] = await Promise.all([
+      this.nativeQuery(
+        `
+        SELECT
+          COUNT(DISTINCT CASE WHEN da.auditStatus = 1 THEN da.quoteOrderId END) AS pendingAuditCount,
+          COUNT(DISTINCT CASE WHEN da.auditStatus = 2 AND da.assignStatus IN (0, 1) THEN da.quoteOrderId END) AS pendingAssignCount,
+          COUNT(DISTINCT CASE WHEN da.auditStatus = 2 AND da.assignStatus = 2 AND da.costStatus = 0 THEN da.quoteOrderId END) AS pendingCostCount,
+          COUNT(DISTINCT CASE WHEN da.auditStatus = 2 AND da.assignStatus = 2 AND da.costStatus = 1 THEN da.quoteOrderId END) AS completedCount
+        FROM crm_quote_order_department_audit da
+        INNER JOIN crm_quote_order q ON q.id = da.quoteOrderId AND q.isDeleted = 0
+        WHERE da.isDeleted = 0
+          ${quoteScope.sql}
+        `,
+        quoteScope.params
+      ),
+      this.nativeQuery(
+        `
+        SELECT
+          COUNT(DISTINCT q.id) AS quoteCount,
+          COALESCE(SUM(q.finalAmount), 0) AS amount
+        FROM crm_quote_order q
+        WHERE q.isDeleted = 0
+          AND q.createTime >= ?
+          AND q.createTime <= ?
+          ${quoteScope.sql}
+        `,
+        [currentMonthStart, currentMonthEnd, ...quoteScope.params]
+      ),
+      this.nativeQuery(
+        `
+        SELECT
+          COUNT(DISTINCT da.quoteOrderId) AS completedCount,
+          COALESCE(SUM(q.finalAmount), 0) AS amount
+        FROM crm_quote_order_department_audit da
+        INNER JOIN crm_quote_order q ON q.id = da.quoteOrderId AND q.isDeleted = 0
+        WHERE da.isDeleted = 0
+          AND da.auditStatus = 2
+          AND da.assignStatus = 2
+          AND da.costStatus = 1
+          AND da.costTime IS NOT NULL
+          AND da.costTime <> ''
+          AND da.costTime >= ?
+          AND da.costTime <= ?
+          ${quoteScope.sql}
+        `,
+        [currentMonthStart, currentMonthEnd, ...quoteScope.params]
+      ),
+      this.nativeQuery(
+        `
+        SELECT
+          DATE_FORMAT(q.createTime, '%Y-%m') AS monthKey,
+          COUNT(DISTINCT q.id) AS quoteCount,
+          COALESCE(SUM(q.finalAmount), 0) AS amount
+        FROM crm_quote_order q
+        WHERE q.isDeleted = 0
+          AND q.createTime >= ?
+          AND q.createTime <= ?
+          ${quoteScope.sql}
+        GROUP BY DATE_FORMAT(q.createTime, '%Y-%m')
+        ORDER BY monthKey ASC
+        `,
+        [trendStart, currentMonthEnd, ...quoteScope.params]
+      ),
+      this.nativeQuery(
+        `
+        SELECT
+          DATE_FORMAT(da.costTime, '%Y-%m') AS monthKey,
+          COUNT(DISTINCT da.quoteOrderId) AS completedCount
+        FROM crm_quote_order_department_audit da
+        INNER JOIN crm_quote_order q ON q.id = da.quoteOrderId AND q.isDeleted = 0
+        WHERE da.isDeleted = 0
+          AND da.auditStatus = 2
+          AND da.assignStatus = 2
+          AND da.costStatus = 1
+          AND da.costTime IS NOT NULL
+          AND da.costTime <> ''
+          AND da.costTime >= ?
+          AND da.costTime <= ?
+          ${quoteScope.sql}
+        GROUP BY DATE_FORMAT(da.costTime, '%Y-%m')
+        ORDER BY monthKey ASC
+        `,
+        [trendStart, currentMonthEnd, ...quoteScope.params]
+      ),
+      this.nativeQuery(
+        `
+        SELECT
+          COALESCE(NULLIF(d.name, ''), '未設置部門') AS name,
+          COUNT(DISTINCT da.quoteOrderId) AS quoteCount,
+          COALESCE(SUM(q.finalAmount), 0) AS amount
+        FROM crm_quote_order_department_audit da
+        INNER JOIN crm_quote_order q ON q.id = da.quoteOrderId AND q.isDeleted = 0
+        LEFT JOIN base_sys_department d ON d.id = da.departmentId
+        WHERE da.isDeleted = 0
+          ${quoteScope.sql}
+        GROUP BY da.departmentId, d.name
+        ORDER BY quoteCount DESC, amount DESC
+        LIMIT 8
+        `,
+        quoteScope.params
+      ),
+      this.nativeQuery(
+        `
+        SELECT
+          COALESCE(NULLIF(u.name, ''), NULLIF(u.nickName, ''), NULLIF(u.username, ''), '未分配') AS name,
+          COUNT(DISTINCT da.quoteOrderId) AS assignedCount,
+          COUNT(DISTINCT CASE WHEN da.assignStatus = 2 AND da.costStatus = 0 THEN da.quoteOrderId END) AS pendingCostCount,
+          COUNT(DISTINCT CASE WHEN da.assignStatus = 2 AND da.costStatus = 1 THEN da.quoteOrderId END) AS completedCount,
+          COALESCE(SUM(CASE WHEN da.assignStatus = 2 AND da.costStatus = 1 THEN q.finalAmount ELSE 0 END), 0) AS completedAmount
+        FROM crm_quote_order_department_audit da
+        INNER JOIN crm_quote_order q ON q.id = da.quoteOrderId AND q.isDeleted = 0
+        LEFT JOIN base_sys_user u ON u.id = da.assigneeId
+        WHERE da.isDeleted = 0
+          AND da.assigneeId IS NOT NULL
+          ${quoteScope.sql}
+        GROUP BY da.assigneeId, name
+        ORDER BY assignedCount DESC, completedAmount DESC
+        LIMIT 10
+        `,
+        quoteScope.params
+      ),
+    ]);
+
+    const flowSummary = flowSummaryRows?.[0] || {};
+    const currentMonthQuote = currentMonthQuoteRows?.[0] || {};
+    const currentMonthCompleted = currentMonthCompletedRows?.[0] || {};
+
+    const quoteTrendMap = new Map<string, any>();
+    (quoteTrendRows || []).forEach(row => {
+      quoteTrendMap.set(String(row.monthKey || ''), row);
+    });
+
+    const completedTrendMap = new Map<string, any>();
+    (completedTrendRows || []).forEach(row => {
+      completedTrendMap.set(String(row.monthKey || ''), row);
+    });
+
+    const statusDistribution = [
+      { name: '待審核', value: this.toMoney(flowSummary.pendingAuditCount) },
+      { name: '待分配', value: this.toMoney(flowSummary.pendingAssignCount) },
+      { name: '待填成本', value: this.toMoney(flowSummary.pendingCostCount) },
+      { name: '已完成', value: this.toMoney(flowSummary.completedCount) },
+    ].filter(item => item.value > 0);
+
+    return {
+      summary: [
+        {
+          label: '待審核案件',
+          value: this.toMoney(flowSummary.pendingAuditCount),
+          unit: '件',
+          hint: '等待部門主管審核',
+        },
+        {
+          label: '待分配案件',
+          value: this.toMoney(flowSummary.pendingAssignCount),
+          unit: '件',
+          hint: '已通過部門審核，等待分配',
+        },
+        {
+          label: '待填成本案件',
+          value: this.toMoney(flowSummary.pendingCostCount),
+          unit: '件',
+          hint: '已分配內勤，待完成成本填寫',
+        },
+        {
+          label: '本月執案金額',
+          value: this.toMoney(currentMonthQuote.amount),
+          unit: '元',
+          hint: '本月新增且納入內勤流程案件金額',
+        },
+        {
+          label: '本月新增案件',
+          value: this.toMoney(currentMonthQuote.quoteCount),
+          unit: '件',
+          hint: '本月可視範圍新增案件數',
+        },
+        {
+          label: '本月完成金額',
+          value: this.toMoney(currentMonthCompleted.amount),
+          unit: '元',
+          hint: '本月完成成本填寫案件金額',
+        },
+      ],
+      trend: {
+        months: trendMonths.map(monthKey =>
+          `${Number(monthKey.split('-')[1] || 0)}月`
+        ),
+        quoteCount: trendMonths.map(monthKey =>
+          this.toMoney(quoteTrendMap.get(monthKey)?.quoteCount)
+        ),
+        completedCount: trendMonths.map(monthKey =>
+          this.toMoney(completedTrendMap.get(monthKey)?.completedCount)
+        ),
+        amount: trendMonths.map(monthKey =>
+          this.toMoney(quoteTrendMap.get(monthKey)?.amount)
+        ),
+      },
+      statusDistribution: statusDistribution.length
+        ? statusDistribution
+        : [{ name: '暫無資料', value: 0 }],
+      departmentWorkload: (departmentRows || []).map(row => ({
+        name: String(row.name || '未設置部門'),
+        quoteCount: this.toMoney(row.quoteCount),
+        amount: this.toMoney(row.amount),
+      })),
+      assigneeRanking: (assigneeRows || []).map((row, index) => ({
+        rank: index + 1,
+        name: String(row.name || '未分配'),
+        assignedCount: this.toMoney(row.assignedCount),
+        pendingCostCount: this.toMoney(row.pendingCostCount),
+        completedCount: this.toMoney(row.completedCount),
+        completedAmount: this.toMoney(row.completedAmount),
+      })),
+    };
+  }
+
   async page(query: any) {
     const month =
       this.normalizeMonth(query?.month) || moment().format('YYYY-MM');
@@ -1110,6 +1366,10 @@ export class CrmPerformanceService extends BaseService {
         rows.reduce((sum, item) => sum + this.toMoney(item.sourceAmount), 0)
       ),
       mainAmount: this.toMoney(monthlyMainAmount),
+      mainThresholdAmount: this.toMoney(ctx.mainMonthThreshold),
+      expectedBonusNoticeBonus: passMainThreshold
+        ? this.toMoney(detailBonusTotal + tierBonus)
+        : this.toMoney((monthlyMainAmount * ctx.salesMainRate) / 100),
       secondaryAmount: this.toMoney(
         rows.reduce(
           (sum, item) => sum + this.toMoney(item.secondaryPerformance),

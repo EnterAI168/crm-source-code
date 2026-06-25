@@ -125,6 +125,9 @@
 				<span v-if="toNumber(detailData.contractDeductionTotal) < 0">合約逾期扣款：{{ toMoney(detailData.contractDeductionTotal) }}</span>
 				<span v-if="toNumber(detailData.caseMeetingDeductionTotal) < 0">案情會議扣款：{{ toMoney(detailData.caseMeetingDeductionTotal) }}</span>
 			</div>
+			<div v-if="expectedBonusNotice" class="detail-note">
+				{{ expectedBonusNotice }}
+			</div>
 
 			<template v-if="detailType === 'internal'">
 				<div class="internal-detail-summary">
@@ -275,6 +278,22 @@ const internalTierBonus = computed(() =>
 		.filter((item: any) => String(item.bonusName || '').includes('級距'))
 		.reduce((sum: number, item: any) => sum + toNumber(item.bonusAmount), 0)
 );
+const expectedBonusNotice = computed(() => {
+	if (detailType.value !== 'expected') {
+		return '';
+	}
+	const amountTotal = toNumber(detailData.value.amountTotal);
+	const mainAmount = toNumber(detailData.value.mainAmount);
+	const thresholdAmount = toNumber(detailData.value.mainThresholdAmount) || 300000;
+	const noticeBonus = toNumber(detailData.value.expectedBonusNoticeBonus) || toNumber(detailData.value.bonusTotal);
+	if (mainAmount >= thresholdAmount) {
+		return '';
+	}
+	if (amountTotal <= 0) {
+		return '';
+	}
+	return `當前主力產品審核通過未達 30 萬，預計獎金為 ${toMoney(noticeBonus)}（依主力產品業績 × 主力獎金比例計算，以實際為準）`;
+});
 const detailTitle = computed(() => {
 	const month = detailData.value.performanceMonth ? `${Number(String(detailData.value.performanceMonth).slice(5, 7))}月` : '';
 	if (detailType.value === 'internal') {
@@ -461,6 +480,17 @@ onMounted(() => {
 	margin-bottom: 24px;
 	font-size: 16px;
 	color: #303133;
+}
+
+.detail-note {
+	margin: -12px 0 18px;
+	padding: 10px 14px;
+	border: 1px solid #f59e0b;
+	border-radius: 4px;
+	background: #fff7ed;
+	font-size: 14px;
+	line-height: 20px;
+	color: #9a3412;
 }
 
 .detail-empty {

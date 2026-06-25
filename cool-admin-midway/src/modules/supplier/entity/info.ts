@@ -37,6 +37,9 @@ export class CrmSupplierInfoEntity extends BaseEntity {
   @Column({ comment: '郵箱', nullable: true, length: 120 })
   email: string;
 
+  @Column({ comment: '匯款資訊', nullable: true, length: 500 })
+  remittanceInfo: string;
+
   @Index()
   @Column({ comment: '狀態 1-啟用 0-停用', default: 1, type: 'tinyint' })
   status: number;

@@ -13,6 +13,11 @@ export default class QuoteOrderService extends BaseService {
 		return Array.isArray(data) ? data : [];
 	}
 
+	async salesmanOptions(): Promise<any[]> {
+		const data = await this.request({ url: '/salesmanOptions', method: 'POST' });
+		return Array.isArray(data) ? data : [];
+	}
+
 	async assigneeOptions(): Promise<any[]> {
 		const data = await this.request({ url: '/assigneeOptions', method: 'POST' });
 		return Array.isArray(data) ? data : [];
@@ -42,6 +47,14 @@ export default class QuoteOrderService extends BaseService {
 	async audit(data: { id: number; auditStatus: number; auditRemark?: string }) {
 		return this.request({
 			url: '/audit',
+			method: 'POST',
+			data
+		});
+	}
+
+	async applyAllowance(data: any) {
+		return this.request({
+			url: '/applyAllowance',
 			method: 'POST',
 			data
 		});

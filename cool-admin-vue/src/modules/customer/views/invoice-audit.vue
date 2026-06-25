@@ -5,9 +5,51 @@
 				<el-form-item label="發票ID">
 					<el-input v-model="query.invoiceNo" clearable placeholder="請輸入發票ID" />
 				</el-form-item>
+				<el-form-item label="月份">
+					<el-date-picker
+						v-model="query.month"
+						type="month"
+						value-format="YYYY-MM"
+						clearable
+						placeholder="請選擇月份"
+						style="width: 160px"
+					/>
+				</el-form-item>
 				<el-form-item label="狀態">
 					<el-select v-model="query.status" clearable placeholder="請選擇狀態" style="width: 180px">
 						<el-option v-for="item in statusOptions" :key="item.value" :label="item.label" :value="item.value" />
+					</el-select>
+				</el-form-item>
+				<el-form-item label="客戶">
+					<el-select
+						v-model="query.customerId"
+						clearable
+						filterable
+						placeholder="請選擇客戶"
+						style="width: 220px"
+					>
+						<el-option
+							v-for="item in customerOptions"
+							:key="item.value"
+							:label="item.label"
+							:value="item.value"
+						/>
+					</el-select>
+				</el-form-item>
+				<el-form-item label="業務">
+					<el-select
+						v-model="query.salesmanId"
+						clearable
+						filterable
+						placeholder="請選擇業務"
+						style="width: 180px"
+					>
+						<el-option
+							v-for="item in salesmanOptions"
+							:key="item.value"
+							:label="item.label"
+							:value="item.value"
+						/>
 					</el-select>
 				</el-form-item>
 				<el-form-item label="賣方">
@@ -17,74 +59,113 @@
 					<el-input v-model="query.address" clearable placeholder="請輸入地址" />
 				</el-form-item>
 				<el-form-item>
-					<el-button type="primary" @click="loadList">搜尋</el-button>
+					<el-button type="primary" @click="search">搜尋</el-button>
 					<el-button @click="resetSearch">重置</el-button>
 				</el-form-item>
 			</el-form>
 
-			<div class="invoice-table-wrap">
-				<el-table v-loading="loading" :data="rows" border size="small" height="100%">
-					<el-table-column prop="invoiceNo" label="ID" min-width="180" show-overflow-tooltip />
-					<el-table-column prop="seller" label="賣方" min-width="160" show-overflow-tooltip />
-					<el-table-column prop="address" label="地址" min-width="180" show-overflow-tooltip />
-					<el-table-column label="發票金額" width="120">
-						<template #default="{ row }">{{ toMoney(row.amount) }}</template>
-					</el-table-column>
-					<el-table-column label="狀態" width="170">
-						<template #default="{ row }">
-							<el-tag :type="getStatusTag(row)">{{ getStatusLabel(row) }}</el-tag>
-						</template>
-					</el-table-column>
-					<el-table-column label="業務員" width="130">
-						<template #default="{ row }">{{ row.salesmanName || row.salesmanNickName || row.salesmanUsername || '--' }}</template>
-					</el-table-column>
-					<el-table-column prop="applyTime" label="申請時間" width="180" />
-					<el-table-column prop="createTime" label="建立時間" width="180" />
-					<el-table-column label="操作" width="380" fixed="right" align="center">
-						<template #default="{ row }">
-							<el-button
-								v-if="canQuoteInfo"
-								type="primary"
-								plain
-								size="small"
-								@click="openQuote(row)"
-							>
-								檢視報價單
-							</el-button>
-							<el-button
-								v-if="canAuditPerm"
-								type="warning"
-								plain
-								size="small"
-								:disabled="!canAuditInvoice(row)"
-								@click="openAudit(row)"
-							>
-								審核
-							</el-button>
-							<el-button
-								v-if="canSendPerm"
-								type="success"
-								plain
-								size="small"
-								:disabled="!canSendInvoice(row)"
-								:loading="sendingInvoiceId === Number(row.id)"
-								@click="sendInvoice(row)"
-							>
-								發送發票
-							</el-button>
-							<el-button
-								v-if="canPreviewPerm"
-								type="info"
-								plain
-								size="small"
-								:disabled="!canPreviewInvoice(row)"
-								@click="openPreview(row)"
-							>
-								預覽
-							</el-button>
-						</template>
-					</el-table-column>
-				</el-table>
+			<div
+				ref="invoiceTableWrapRef"
+				class="invoice-table-wrap"
+				@wheel="onInvoiceTableWheel"
+			>
+				<div class="invoice-table-main">
+					<el-table
+						v-loading="loading"
+						:data="rows"
+						border
+						size="small"
+						height="100%"
+						class="invoice-audit-table"
+					>
+						<el-table-column prop="invoiceNo" label="ID" min-width="180" show-overflow-tooltip />
+						<el-table-column prop="seller" label="賣方" min-width="160" show-overflow-tooltip />
+						<el-table-column prop="address" label="地址" min-width="180" show-overflow-tooltip />
+						<el-table-column label="發票金額" width="120">
+							<template #default="{ row }">{{ toMoney(row.amount) }}</template>
+						</el-table-column>
+						<el-table-column label="狀態" width="170">
+							<template #default="{ row }">
+								<el-tag :type="getStatusTag(row)">{{ getStatusLabel(row) }}</el-tag>
+							</template>
+						</el-table-column>
+						<el-table-column label="折讓狀態" width="120">
+							<template #default="{ row }">
+								<el-tag :type="Number(row.allowanceStatus) === 1 ? 'success' : 'info'">
+									{{ Number(row.allowanceStatus) === 1 ? '已折讓' : '未折讓' }}
+								</el-tag>
+							</template>
+						</el-table-column>
+						<el-table-column prop="allowanceNo" label="折讓編號" min-width="150" show-overflow-tooltip />
+						<el-table-column label="折讓金額" width="120">
+							<template #default="{ row }">
+								{{ Number(row.allowanceStatus) === 1 ? toMoney(row.allowanceAmount) : '--' }}
+							</template>
+						</el-table-column>
+						<el-table-column label="業務員" width="130">
+							<template #default="{ row }">{{ row.salesmanName || row.salesmanNickName || row.salesmanUsername || '--' }}</template>
+						</el-table-column>
+						<el-table-column prop="allowanceTime" label="折讓時間" width="180" show-overflow-tooltip />
+						<el-table-column prop="applyTime" label="申請時間" width="180" />
+						<el-table-column prop="auditTime" label="審核時間" width="180" />
+						<el-table-column label="操作" width="320" fixed="right" align="center">
+							<template #default="{ row }">
+								<div class="invoice-audit-actions">
+									<el-button
+										v-if="canQuoteInfo"
+										type="primary"
+										plain
+										size="small"
+										@click="openQuote(row)"
+									>
+										檢視報價單
+									</el-button>
+									<el-button
+										v-if="canAuditPerm"
+										type="warning"
+										plain
+										size="small"
+										:disabled="!canAuditInvoice(row)"
+										@click="openAudit(row)"
+									>
+										審核
+									</el-button>
+									<el-dropdown
+										v-if="getInvoiceMoreActions(row).length"
+										trigger="click"
+										@command="(index: number) => getInvoiceMoreActions(row)[Number(index)]?.onClick()"
+									>
+										<el-button type="primary" plain size="small">
+											更多
+										</el-button>
+										<template #dropdown>
+											<el-dropdown-menu>
+												<el-dropdown-item
+													v-for="(action, index) in getInvoiceMoreActions(row)"
+													:key="action.key"
+													:command="index"
+													:disabled="!!action.disabled"
+												>
+													{{ action.label }}
+												</el-dropdown-item>
+											</el-dropdown-menu>
+										</template>
+									</el-dropdown>
+								</div>
+							</template>
+						</el-table-column>
+					</el-table>
+				</div>
+				<div
+					ref="invoiceXScrollRef"
+					class="invoice-audit-x-scroll"
+					@scroll="onInvoiceXScroll"
+				>
+					<div
+						class="invoice-audit-x-scroll__inner"
+						:style="{ width: `${invoiceScrollWidth}px` }"
+					></div>
+				</div>
 			</div>
 
 			<div class="invoice-pagination">
@@ -115,6 +196,18 @@
 				<el-table-column label="開票狀態" width="120" align="center">
 					<template #default="{ row }">{{ getStatusLabel(row) }}</template>
 				</el-table-column>
+				<el-table-column label="折讓狀態" width="110" align="center">
+					<template #default="{ row }">
+						<el-tag :type="Number(row.allowanceStatus) === 1 ? 'success' : 'info'">
+							{{ Number(row.allowanceStatus) === 1 ? '已折讓' : '未折讓' }}
+						</el-tag>
+					</template>
+				</el-table-column>
+				<el-table-column label="折讓金額" width="110" align="center">
+					<template #default="{ row }">
+						{{ Number(row.allowanceStatus) === 1 ? toMoney(row.allowanceAmount) : '--' }}
+					</template>
+				</el-table-column>
 				<el-table-column label="操作" width="100" align="center" fixed="right">
 					<template #default="{ row }">
 						<el-button
@@ -130,13 +223,6 @@
 					</template>
 				</el-table-column>
 			</el-table>
-			<div class="invoice-mail-row">
-				<div>
-					<div>是否郵件發送</div>
-					<div class="invoice-mail-tip">開啟後，審核通過併到達發票票期當天12:00自動發送給客戶</div>
-				</div>
-				<el-switch v-model="auditAutoSendEmail" />
-			</div>
 			<template #footer>
 				<el-button
 					v-if="canAuditPerm"
@@ -202,13 +288,11 @@
 								<td colspan="3">銷售額合計</td>
 								<td>{{ toMoney(previewData.untaxedAmount ?? previewData.amount) }}</td>
 								<td rowspan="4" class="invoice-seal-cell">
-									<img
-										v-if="previewData.invoiceSealUrl"
-										class="invoice-seal-img"
-										:src="previewData.invoiceSealUrl"
-										alt="發票公章"
-									/>
-									<span>營業人蓋統一發票專用章</span>
+									<div class="invoice-seal-text">
+										<div class="invoice-seal-text__row">賣　方：{{ previewData.companyName || previewData.partyBCompanyName || '--' }}</div>
+										<div class="invoice-seal-text__row">統一編號：{{ previewData.companyTaxNumber || previewData.partyBTaxNumber || '--' }}</div>
+										<div class="invoice-seal-text__row">地　址：{{ previewData.companyAddress || previewData.partyBAddress || '--' }}</div>
+									</div>
 								</td>
 							</tr>
 							<tr>
@@ -248,13 +332,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue';
-import { ElMessage } from 'element-plus';
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { checkPerm } from '/$/base';
 import QuoteInvoiceService from '../service/invoice';
+import QuoteOrderService from '../service/quote';
 import QuoteOrderDialog from '../components/quote-order-dialog.vue';
+import { downloadBlob } from '../utils/download';
 
 const invoiceService = new QuoteInvoiceService();
+const quoteOrderService = new QuoteOrderService();
 
 const statusOptions = [
 	{ label: '待審核', value: 1 },
@@ -264,13 +351,18 @@ const statusOptions = [
 
 const query = reactive({
 	invoiceNo: '',
+	month: '',
 	status: undefined as number | undefined,
+	customerId: undefined as number | undefined,
+	salesmanId: undefined as number | undefined,
 	seller: '',
 	address: ''
 });
 const pagination = reactive({ page: 1, size: 20, total: 0 });
 const rows = ref<any[]>([]);
 const loading = ref(false);
+const customerOptions = ref<{ label: string; value: number }[]>([]);
+const salesmanOptions = ref<{ label: string; value: number }[]>([]);
 const auditVisible = ref(false);
 const auditRows = ref<any[]>([]);
 const auditAutoSendEmail = ref(true);
@@ -280,11 +372,22 @@ const previewData = ref<any>({});
 const quoteVisible = ref(false);
 const quoteViewId = ref(0);
 const sendingInvoiceId = ref(0);
+const downloadingInvoiceId = ref(0);
+const voidingInvoiceId = ref(0);
+const invoiceTableWrapRef = ref<HTMLElement | null>(null);
+const invoiceXScrollRef = ref<HTMLElement | null>(null);
+const invoiceScrollWidth = ref(0);
+
+let invoiceResizeObserver: ResizeObserver | null = null;
+let invoiceScrollTarget: HTMLElement | null = null;
+let isSyncingInvoiceScroll = false;
 
 const canQuoteInfo = computed(() => checkPerm('crm:quoteInvoice:quoteInfo'));
 const canAuditPerm = computed(() => checkPerm('crm:quoteInvoice:audit'));
 const canPreviewPerm = computed(() => checkPerm('crm:quoteInvoice:preview'));
 const canSendPerm = computed(() => checkPerm('crm:quoteInvoice:send'));
+const canDownloadPerm = computed(() => checkPerm('crm:quoteInvoice:downloadPdf'));
+const canVoidPerm = computed(() => checkPerm('crm:quoteInvoice:void'));
 
 function toNumber(value: any) {
 	const num = Number(value ?? 0);
@@ -375,11 +478,8 @@ function getStatusLabel(value: any) {
 	const status = Number(row.status);
 	const sendStatus = Number(row.sendStatus ?? 0);
 	if (Number(row.ecpayInvalidStatus) === 2 || row.voidTime) return '已作廢';
-	if (status === 2 && sendStatus === 2) return '已發送客戶';
-	if (status === 2 && sendStatus === 3) return '發送失敗';
-	if (status === 2 && Number(row.autoSendEmail) !== 0 && row.scheduledSendTime) {
-		return '審核通過待發送客戶';
-	}
+	if (status === 2 && sendStatus === 2) return '已補發通知';
+	if (status === 2 && sendStatus === 3) return '補發通知失敗';
 	if (status === 2) return '審核通過';
 	if (status === 3) return '已拒絕';
 	return '申請中';
@@ -403,7 +503,6 @@ function canAuditInvoice(row: any) {
 function canSendInvoice(row: any) {
 	return (
 		Number(row?.status) === 2 &&
-		Number(row?.sendStatus) !== 2 &&
 		Number(row?.ecpayInvalidStatus) !== 2 &&
 		!row?.voidTime
 	);
@@ -411,6 +510,139 @@ function canSendInvoice(row: any) {
 
 function canPreviewInvoice(row: any) {
 	return Number(row?.status) === 2 && Number(row?.ecpayInvalidStatus) !== 2 && !row?.voidTime;
+}
+
+function canDownloadInvoice(row: any) {
+	return Number(row?.status) === 2 && Number(row?.ecpayInvalidStatus) !== 2 && !row?.voidTime;
+}
+
+function canVoidInvoice(row: any) {
+	return Number(row?.status) === 2 && Number(row?.ecpayInvalidStatus) !== 2 && !row?.voidTime;
+}
+
+function getInvoiceMoreActions(row: any) {
+	return [
+		{
+			key: 'send',
+			label: '補發通知',
+			hidden: !canSendPerm.value,
+			disabled: !canSendInvoice(row) || sendingInvoiceId.value === Number(row?.id || 0),
+			onClick() {
+				sendInvoice(row);
+			}
+		},
+		{
+			key: 'preview',
+			label: '預覽',
+			hidden: !canPreviewPerm.value,
+			disabled: !canPreviewInvoice(row),
+			onClick() {
+				openPreview(row);
+			}
+		},
+		{
+			key: 'download',
+			label: '下載發票',
+			hidden: !canDownloadPerm.value,
+			disabled: !canDownloadInvoice(row) || downloadingInvoiceId.value === Number(row?.id || 0),
+			onClick() {
+				downloadInvoice(row);
+			}
+		},
+		{
+			key: 'void',
+			label: '發票作廢',
+			hidden: !canVoidPerm.value,
+			disabled: !canVoidInvoice(row) || voidingInvoiceId.value === Number(row?.id || 0),
+			onClick() {
+				voidInvoice(row);
+			}
+		}
+	].filter(item => !item.hidden);
+}
+
+function getInvoiceScrollTarget() {
+	const root = invoiceTableWrapRef.value;
+	if (!root) return null;
+
+	const candidates = root.querySelectorAll<HTMLElement>(
+		'.el-scrollbar__wrap, .el-table__body-wrapper'
+	);
+
+	return Array.from(candidates).find(item => item.scrollWidth > item.clientWidth) || null;
+}
+
+function bindInvoiceScrollTarget(target: HTMLElement | null) {
+	if (invoiceScrollTarget === target) return;
+
+	if (invoiceScrollTarget) {
+		invoiceScrollTarget.removeEventListener('scroll', syncInvoiceScrollFromTable);
+	}
+
+	invoiceScrollTarget = target;
+
+	if (invoiceScrollTarget) {
+		invoiceScrollTarget.addEventListener('scroll', syncInvoiceScrollFromTable);
+	}
+}
+
+function scheduleInvoiceScrollBarUpdate() {
+	[0, 80, 240].forEach(delay => {
+		window.setTimeout(updateInvoiceScrollBar, delay);
+	});
+}
+
+async function updateInvoiceScrollBar() {
+	await nextTick();
+
+	const target = getInvoiceScrollTarget();
+	bindInvoiceScrollTarget(target);
+	invoiceScrollWidth.value = target ? target.scrollWidth : 0;
+	syncInvoiceScrollFromTable();
+}
+
+function syncInvoiceScrollFromTable() {
+	if (isSyncingInvoiceScroll) return;
+
+	const scroll = invoiceXScrollRef.value;
+	const target = invoiceScrollTarget || getInvoiceScrollTarget();
+
+	if (!scroll || !target) return;
+
+	isSyncingInvoiceScroll = true;
+	scroll.scrollLeft = target.scrollLeft;
+
+	requestAnimationFrame(() => {
+		isSyncingInvoiceScroll = false;
+	});
+}
+
+function onInvoiceXScroll(event: Event) {
+	if (isSyncingInvoiceScroll) return;
+
+	const target = invoiceScrollTarget || getInvoiceScrollTarget();
+	const scroll = event.target as HTMLElement;
+
+	if (!target || !scroll) return;
+
+	isSyncingInvoiceScroll = true;
+	target.scrollLeft = scroll.scrollLeft;
+
+	requestAnimationFrame(() => {
+		isSyncingInvoiceScroll = false;
+	});
+}
+
+function onInvoiceTableWheel(event: WheelEvent) {
+	const target = invoiceScrollTarget || getInvoiceScrollTarget();
+	if (!target) return;
+
+	const delta = event.shiftKey ? event.deltaY : event.deltaX;
+	if (!delta) return;
+
+	event.preventDefault();
+	target.scrollLeft += delta;
+	syncInvoiceScrollFromTable();
 }
 
 async function loadList() {
@@ -425,16 +657,45 @@ async function loadList() {
 		pagination.total = Number(res?.pagination?.total || 0);
 	} finally {
 		loading.value = false;
+		scheduleInvoiceScrollBarUpdate();
 	}
+}
+
+function search() {
+	pagination.page = 1;
+	loadList();
 }
 
 function resetSearch() {
 	query.invoiceNo = '';
+	query.month = '';
 	query.status = undefined;
+	query.customerId = undefined;
+	query.salesmanId = undefined;
 	query.seller = '';
 	query.address = '';
 	pagination.page = 1;
 	loadList();
+}
+
+async function loadOptions() {
+	try {
+		const [customers, salesmen] = await Promise.all([
+			quoteOrderService.customerOptions(),
+			quoteOrderService.salesmanOptions()
+		]);
+		customerOptions.value = (customers || []).map((item: any) => ({
+			label: item.companyName || `客戶${item.id}`,
+			value: Number(item.id)
+		}));
+		salesmanOptions.value = (salesmen || []).map((item: any) => ({
+			label: item.name || item.nickName || item.username || `使用者${item.id}`,
+			value: Number(item.id)
+		}));
+	} catch {
+		customerOptions.value = [];
+		salesmanOptions.value = [];
+	}
 }
 
 function openQuote(row: any) {
@@ -496,16 +757,83 @@ async function sendInvoice(row: any) {
 	sendingInvoiceId.value = id;
 	try {
 		await invoiceService.send({ id });
-		ElMessage.success('發票發送成功');
+		ElMessage.success('綠界補發通知成功');
 		await loadList();
 	} catch (error: any) {
-		ElMessage.error(error?.message || '發票發送失敗');
+		ElMessage.error(error?.message || '綠界補發通知失敗');
 	} finally {
 		sendingInvoiceId.value = 0;
 	}
 }
 
-onMounted(loadList);
+async function downloadInvoice(row: any) {
+	const id = Number(row?.id || 0);
+	if (!id || !canDownloadInvoice(row) || downloadingInvoiceId.value) {
+		return;
+	}
+
+	downloadingInvoiceId.value = id;
+	try {
+		const blob = await invoiceService.downloadPdf({ id });
+		downloadBlob(blob as unknown as Blob, `${row.invoiceNo || '發票'}.pdf`);
+	} catch (error: any) {
+		ElMessage.error(error?.message || '發票下載失敗');
+	} finally {
+		downloadingInvoiceId.value = 0;
+	}
+}
+
+async function voidInvoice(row: any) {
+	const id = Number(row?.id || 0);
+	if (!id || !canVoidInvoice(row) || voidingInvoiceId.value) {
+		return;
+	}
+
+	let reason = '';
+	try {
+		const { value } = await ElMessageBox.prompt('請輸入作廢原因', '發票作廢', {
+			type: 'warning',
+			inputType: 'textarea',
+			inputPlaceholder: '請輸入作廢原因',
+			inputValidator: value => {
+				return String(value || '').trim() ? true : '請輸入作廢原因';
+			},
+			confirmButtonText: '確認',
+			cancelButtonText: '取消'
+		});
+		reason = String(value || '').trim();
+	} catch {
+		return;
+	}
+
+	voidingInvoiceId.value = id;
+	try {
+		await invoiceService.void({ id, reason });
+		ElMessage.success('發票已作廢');
+		await loadList();
+	} catch (error: any) {
+		ElMessage.error(error?.message || '發票作廢失敗');
+	} finally {
+		voidingInvoiceId.value = 0;
+	}
+}
+
+onMounted(async () => {
+	await loadOptions();
+	await loadList();
+
+	if (typeof ResizeObserver !== 'undefined' && invoiceTableWrapRef.value) {
+		invoiceResizeObserver = new ResizeObserver(() => scheduleInvoiceScrollBarUpdate());
+		invoiceResizeObserver.observe(invoiceTableWrapRef.value);
+	}
+});
+
+onBeforeUnmount(() => {
+	invoiceResizeObserver?.disconnect();
+	if (invoiceScrollTarget) {
+		invoiceScrollTarget.removeEventListener('scroll', syncInvoiceScrollFromTable);
+	}
+});
 </script>
 
 <style scoped>
@@ -534,6 +862,15 @@ onMounted(loadList);
 .invoice-table-wrap {
 	min-height: 0;
 	flex: 1;
+	display: flex;
+	flex-direction: column;
+	overflow: visible;
+	overscroll-behavior-x: contain;
+}
+
+.invoice-table-main {
+	min-height: 0;
+	flex: 1;
 }
 
 .invoice-pagination {
@@ -542,6 +879,31 @@ onMounted(loadList);
 	justify-content: flex-end;
 	padding-top: 14px;
 	background: #fff;
+}
+
+.invoice-audit-x-scroll {
+	width: 100%;
+	height: 16px;
+	margin-top: 2px;
+	overflow-x: auto;
+	overflow-y: hidden;
+	cursor: pointer;
+}
+
+.invoice-audit-x-scroll__inner {
+	height: 1px;
+}
+
+.invoice-audit-actions {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-wrap: nowrap;
+	gap: 8px;
+}
+
+:deep(.invoice-audit-table .el-scrollbar__bar.is-horizontal) {
+	opacity: 1;
 }
 
 :deep(.invoice-blue-table .el-table__header th) {
@@ -632,29 +994,20 @@ onMounted(loadList);
 }
 
 .invoice-seal-cell {
-	position: relative;
 	width: 128px;
 	min-width: 128px;
-	text-align: center;
+	padding: 8px 10px;
+	text-align: left;
 	vertical-align: middle;
 }
 
-.invoice-seal-cell span {
-	position: relative;
-	z-index: 1;
-	display: inline-block;
-	max-width: 92px;
-	line-height: 1.5;
+.invoice-seal-text {
+	font-size: 12px;
+	line-height: 1.6;
+	word-break: break-word;
 }
 
-.invoice-seal-img {
-	position: absolute;
-	left: 50%;
-	top: 50%;
-	z-index: 0;
-	max-width: 140px;
-	max-height: 140px;
-	object-fit: contain;
-	transform: translate(-50%, -50%);
+.invoice-seal-text__row {
+	margin-top: 4px;
 }
 </style>

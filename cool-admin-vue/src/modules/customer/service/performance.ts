@@ -88,4 +88,11 @@ export default class PerformanceService extends BaseService {
 			method: 'POST'
 		});
 	}
+
+	async internalStatistics() {
+		return this.request({
+			url: '/internalStatistics',
+			method: 'POST'
+		});
+	}
 }
