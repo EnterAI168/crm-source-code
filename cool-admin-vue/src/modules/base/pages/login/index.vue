@@ -64,7 +64,7 @@
 			<cl-svg name="bg"></cl-svg>
 		</div>
 
-		<a href="https://cool-js.com" class="copyright"> Copyright © COOL </a>
+		<div class="copyright">@EnterAI.IMC內部CRM系統</div>
 	</div>
 </template>
 
