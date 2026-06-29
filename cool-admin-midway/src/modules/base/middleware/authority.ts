@@ -446,6 +446,9 @@ export class BaseAuthorityMiddleware
                 'crmPerformance/invoiceStatistics': [
                   'crm/invoiceStatistics/page',
                 ],
+                'crmPerformance/internalStatistics': [
+                  'crm/internalStatistics/page',
+                ],
                 'crmPerformance/bonusAccountingPage': [
                   'crm/bonusAccounting/page',
                 ],
