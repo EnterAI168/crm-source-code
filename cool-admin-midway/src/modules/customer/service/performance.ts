@@ -1653,6 +1653,7 @@ export class CrmPerformanceService extends BaseService {
         qi.productName,
         qi.specName,
         qi.subtotalAmount,
+        qi.subtotalCostAmount,
         qi.grossProfitAmount,
         qi.departmentId,
         q.quoteNo,
@@ -1660,11 +1661,13 @@ export class CrmPerformanceService extends BaseService {
         q.quoteType,
         q.startDate,
         q.endDate,
+        q.finalAmount,
         da.auditUserId,
         da.assigneeId,
         da.costUserId,
         da.auditTime,
-        da.costTime
+        da.costTime,
+        qt.totalAmount AS quoteItemAmount
       FROM crm_quote_order_item qi
       INNER JOIN crm_quote_order q ON q.id = qi.quoteOrderId
       INNER JOIN base_sys_user u ON u.id = ?
@@ -1673,6 +1676,12 @@ export class CrmPerformanceService extends BaseService {
        AND da.departmentId = qi.departmentId
        AND da.isDeleted = 0
        AND da.auditStatus = 2
+      LEFT JOIN (
+        SELECT quoteOrderId, COALESCE(SUM(subtotalAmount), 0) AS totalAmount
+        FROM crm_quote_order_item
+        WHERE isDeleted = 0
+        GROUP BY quoteOrderId
+      ) qt ON qt.quoteOrderId = q.id
       WHERE qi.isDeleted = 0
         AND q.isDeleted = 0
         AND q.startDate IS NOT NULL
@@ -1680,11 +1689,11 @@ export class CrmPerformanceService extends BaseService {
         AND q.startDate <= ?
         AND q.endDate >= ?
         AND da.auditStatus = 2
-        AND da.assignStatus = 2
-        AND da.costStatus = 1
-        AND da.assigneeId = ?
-        AND da.costUserId = ?
-        AND qi.departmentId = u.departmentId
+       AND da.assignStatus = 2
+       AND da.costStatus = 1
+       AND da.assigneeId = ?
+       AND da.costUserId = ?
+       AND qi.departmentId = u.departmentId
       ORDER BY q.id ASC, qi.sortNum ASC, qi.id ASC
       `,
       [userId, range.end, range.start, userId, userId]
@@ -1692,18 +1701,32 @@ export class CrmPerformanceService extends BaseService {
 
     return rows.map(row => {
       const monthCount = this.getProjectMonthCount(row.startDate, row.endDate);
+      const quoteItemAmount = this.toMoney(row.quoteItemAmount);
+      const itemSubtotalAmount = this.toMoney(row.subtotalAmount);
+      const discountedUntaxedQuoteAmount = this.toUntaxedAmount(
+        row.finalAmount,
+        ctx.dutyRate
+      );
+      const itemRatio =
+        quoteItemAmount > 0 ? itemSubtotalAmount / quoteItemAmount : 0;
+      const discountedItemAmount =
+        quoteItemAmount > 0
+          ? this.toMoney(discountedUntaxedQuoteAmount * itemRatio)
+          : itemSubtotalAmount;
+      const itemSubtotalCostAmount = this.toMoney(row.subtotalCostAmount);
+      const monthCostAmount = this.toMoney(itemSubtotalCostAmount / monthCount);
       const sourceAmount = this.toMoney(
-        this.toMoney(row.subtotalAmount) / monthCount
+        discountedItemAmount / monthCount
       );
       const grossRate =
-        this.toMoney(row.subtotalAmount) > 0
+        itemSubtotalAmount > 0
           ? (this.toMoney(row.grossProfitAmount) /
-              this.toMoney(row.subtotalAmount)) *
+              itemSubtotalAmount) *
             100
           : 0;
       const isMain = grossRate >= ctx.mainMarginThreshold;
       const grossProfitAmount = this.toMoney(
-        this.toMoney(row.grossProfitAmount) / monthCount
+        sourceAmount - monthCostAmount
       );
       return {
         stageId: row.itemId,
@@ -1743,9 +1766,11 @@ export class CrmPerformanceService extends BaseService {
       `
       SELECT
         qi.*,
+        q.finalAmount AS quoteFinalAmount,
         pi.isOneTimePayment AS isOneTimePayment,
         pc.name AS categoryName
       FROM crm_quote_order_item qi
+      INNER JOIN crm_quote_order q ON q.id = qi.quoteOrderId AND q.isDeleted = 0
       LEFT JOIN product_info pi ON pi.id = qi.productId AND pi.isDeleted = 0
       LEFT JOIN product_category pc ON pc.id = pi.categoryId AND pc.isDeleted = 0
       WHERE qi.quoteOrderId in (?)
@@ -1766,58 +1791,87 @@ export class CrmPerformanceService extends BaseService {
         (sum, item) => sum + this.toMoney(item.subtotalAmount),
         0
       );
+      const discountedTotalAmount = this.toUntaxedAmount(
+        list?.[0]?.quoteFinalAmount || 0,
+        ctx.dutyRate
+      );
+      const discountFactor =
+        totalAmount > 0 ? discountedTotalAmount / totalAmount : 1;
       const mainItems = list.filter(item => this.isMainQuoteItem(item));
       const secondaryItems = list.filter(item => !this.isMainQuoteItem(item));
       const oneTimeEligibleMainItems = mainItems.filter(
         item => !this.isOneTimeAddExcludedCategory(item)
       );
-      const mainAmount = mainItems.reduce(
-        (sum, item) => sum + this.toMoney(item.subtotalAmount),
+      const mainAmount = this.toMoney(
+        mainItems.reduce(
+          (sum, item) => sum + this.toMoney(item.subtotalAmount),
+          0
+        ) * discountFactor
+      );
+      const oneTimeEligibleMainAmount = this.toMoney(
+        oneTimeEligibleMainItems.reduce(
+          (sum, item) => sum + this.toMoney(item.subtotalAmount),
+          0
+        ) * discountFactor
+      );
+      const secondaryAmount = this.toMoney(
+        secondaryItems.reduce(
+          (sum, item) => sum + this.toMoney(item.subtotalAmount),
+          0
+        ) * discountFactor
+      );
+      const totalCostAmount = list.reduce(
+        (sum, item) => sum + this.toMoney(item.subtotalCostAmount),
         0
       );
-      const oneTimeEligibleMainAmount = oneTimeEligibleMainItems.reduce(
-        (sum, item) => sum + this.toMoney(item.subtotalAmount),
-        0
-      );
-      const secondaryAmount = secondaryItems.reduce(
-        (sum, item) => sum + this.toMoney(item.subtotalAmount),
-        0
-      );
-      const grossProfitAmount = list.reduce(
-        (sum, item) => sum + this.toMoney(item.grossProfitAmount),
-        0
-      );
-      const secondaryGrossProfit = secondaryItems.reduce(
-        (sum, item) => sum + this.toMoney(item.grossProfitAmount),
-        0
+      const grossProfitAmount = this.toMoney(
+        discountedTotalAmount - totalCostAmount
       );
       const secondaryOriginalCostAmount = this.toMoney(
-        secondaryAmount - secondaryGrossProfit
+        secondaryItems.reduce(
+          (sum, item) => sum + this.toMoney(item.subtotalCostAmount),
+          0
+        )
       );
-      const mainRatio = totalAmount > 0 ? mainAmount / totalAmount : 0;
+      const secondaryGrossProfit = this.toMoney(
+        secondaryAmount - secondaryOriginalCostAmount
+      );
+      const mainRatio =
+        discountedTotalAmount > 0 ? mainAmount / discountedTotalAmount : 0;
       const oneTimeEligibleMainRatio =
-        totalAmount > 0 ? oneTimeEligibleMainAmount / totalAmount : 0;
+        discountedTotalAmount > 0
+          ? oneTimeEligibleMainAmount / discountedTotalAmount
+          : 0;
       const secondaryRatio =
-        totalAmount > 0 ? secondaryAmount / totalAmount : 0;
-      const secondarySalesAmount = this.toMoney(totalAmount * secondaryRatio);
+        discountedTotalAmount > 0
+          ? secondaryAmount / discountedTotalAmount
+          : 0;
+      const secondarySalesAmount = this.toMoney(
+        discountedTotalAmount * secondaryRatio
+      );
       const secondaryCostAmount = this.toMoney(
         secondaryOriginalCostAmount
       );
       map.set(quoteId, {
         mainRatio,
-        totalAmount,
+        totalAmount: discountedTotalAmount,
         mainAmount,
         secondaryAmount,
         secondarySalesAmount,
         items: list,
         oneTimeEligibleMainRatio,
         secondaryRatio,
-        grossProfitRatio: totalAmount > 0 ? grossProfitAmount / totalAmount : 0,
+        grossProfitRatio:
+          discountedTotalAmount > 0
+            ? grossProfitAmount / discountedTotalAmount
+            : 0,
         grossProfitAmount,
         secondaryGrossProfitAmount: secondaryGrossProfit,
         secondaryCostAmount,
         secondaryGrossProfitRatio:
-          totalAmount > 0 ? secondaryGrossProfit / totalAmount : 0,
+          discountedTotalAmount > 0
+            ? secondaryGrossProfit / discountedTotalAmount
+            : 0,
       });
     });
 
