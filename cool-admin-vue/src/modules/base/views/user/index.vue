@@ -82,6 +82,43 @@
 			<cl-pagination />
 		</cl-row>
 
+		<el-dialog
+			v-model="resetPasswordVisible"
+			title="重置密碼"
+			width="420px"
+			destroy-on-close
+			:close-on-click-modal="false"
+		>
+			<el-form ref="ResetPasswordFormRef" :model="resetPasswordForm" :rules="resetPasswordRules" label-width="96px">
+				<el-form-item label="密碼" prop="password">
+					<el-input
+						v-model="resetPasswordForm.password"
+						show-password
+						placeholder="請輸入密碼"
+						@keyup.enter="handleResetPassword"
+					/>
+				</el-form-item>
+
+				<el-form-item label="確認密碼" prop="confirmPassword">
+					<el-input
+						v-model="resetPasswordForm.confirmPassword"
+						show-password
+						placeholder="請再次輸入密碼"
+						@keyup.enter="handleResetPassword"
+					/>
+				</el-form-item>
+			</el-form>
+
+			<template #footer>
+				<div class="reset-password-dialog__footer">
+					<el-button @click="closeResetPasswordDialog">取消</el-button>
+					<el-button type="primary" :loading="resetPasswordLoading" @click="handleResetPassword">
+						確認
+					</el-button>
+				</div>
+			</template>
+		</el-dialog>
+
 		<cl-upsert ref="Upsert">
 			<template #slot-login-phone>
 				<div class="user-login-phone-field">
@@ -156,7 +193,8 @@ import { useTable, useUpsert, useCrud } from '@cool-vue/crud';
 import { useCool } from '/@/cool';
 import { BaseService } from '/@/cool/service/base';
 import { Plugins } from '/#/crud';
-import { ElMessage, ElMessageBox } from 'element-plus';
+import { checkPerm } from '../../utils/permission';
+import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus';
 import { computed, h, onMounted, ref } from 'vue';
 import { deepTree } from '/@/cool/utils';
 
@@ -173,6 +211,40 @@ const levelOptions = ref<{ label: string; value: string }[]>([]);
 const levelSelectDisabled = ref(false);
 const showLevel = ref(false);
 const employeeWithholdingRate = ref(0);
+const resetPasswordVisible = ref(false);
+const resetPasswordLoading = ref(false);
+const resetPasswordUserId = ref<number>();
+const ResetPasswordFormRef = ref<FormInstance>();
+const resetPasswordForm = ref({
+	password: '',
+	confirmPassword: ''
+});
+
+const resetPasswordRules: FormRules = {
+	password: [
+		{ required: true, message: '請輸入密碼', trigger: 'blur' },
+		{ min: 6, max: 16, message: '密碼長度在 6 到 16 個字元', trigger: 'blur' }
+	],
+	confirmPassword: [
+		{ required: true, message: '請再次輸入密碼', trigger: 'blur' },
+		{
+			trigger: 'blur',
+			validator: (_rule, value, callback) => {
+				if (!value) {
+					callback(new Error('請再次輸入密碼'));
+					return;
+				}
+
+				if (value !== resetPasswordForm.value.password) {
+					callback(new Error('兩次輸入的密碼不一致'));
+					return;
+				}
+
+				callback();
+			}
+		}
+	]
+};
 
 let roleLoading: Promise<void> | null = null;
 let departmentLoading: Promise<void> | null = null;
@@ -259,6 +331,7 @@ const canTransferCustomersToPool = computed(() => {
 	const perms = service.base.sys.user?._permission || {};
 	return !!(perms.update || perms.page);
 });
+const canResetPassword = computed(() => checkPerm('base:sys:user:resetPassword'));
 
 const Table = useTable({
 	columns: [
@@ -302,6 +375,14 @@ const Table = useTable({
 					hidden: !canShowTransferCustomersButton(scope.row),
 					onClick() {
 						handleTransferCustomersToPool(scope.row);
+					}
+				},
+				{
+					label: '重置密碼',
+					type: 'primary',
+					hidden: !canResetPassword.value,
+					onClick() {
+						openResetPasswordDialog(scope.row);
 					}
 				},
 				'delete'
@@ -561,6 +642,61 @@ function canShowTransferCustomersButton(row: any) {
 	const roleName = String(row?.roleName || '');
 	const departmentName = String(row?.departmentName || '');
 	return roleName.includes('業務') || departmentName.includes('業務');
+}
+
+function resetResetPasswordForm() {
+	resetPasswordForm.value.password = '';
+	resetPasswordForm.value.confirmPassword = '';
+	ResetPasswordFormRef.value?.clearValidate();
+}
+
+function closeResetPasswordDialog() {
+	resetPasswordVisible.value = false;
+	resetPasswordUserId.value = undefined;
+	resetPasswordLoading.value = false;
+	resetResetPasswordForm();
+}
+
+function openResetPasswordDialog(row: any) {
+	const userId = Number(row?.id || 0);
+	if (!userId) {
+		ElMessage.warning('找不到使用者資料');
+		return;
+	}
+
+	resetPasswordUserId.value = userId;
+	resetPasswordVisible.value = true;
+	resetResetPasswordForm();
+}
+
+async function handleResetPassword() {
+	if (!resetPasswordUserId.value) {
+		ElMessage.warning('找不到使用者資料');
+		return;
+	}
+
+	try {
+		const valid = await ResetPasswordFormRef.value?.validate();
+		if (!valid) return;
+
+		resetPasswordLoading.value = true;
+		await service.base.sys.user.request({
+			url: '/resetPassword',
+			method: 'POST',
+			data: {
+				id: resetPasswordUserId.value,
+				password: resetPasswordForm.value.password
+			}
+		});
+		ElMessage.success('重置密碼成功');
+		closeResetPasswordDialog();
+	} catch (error: any) {
+		if (error?.message) {
+			ElMessage.error(error.message);
+		}
+	} finally {
+		resetPasswordLoading.value = false;
+	}
 }
 
 async function handleTransferCustomersToPool(row: any) {

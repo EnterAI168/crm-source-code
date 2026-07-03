@@ -376,6 +376,39 @@ export class BaseSysUserService extends BaseService {
     }));
   }
 
+  /**
+   * 重置使用者密碼
+   * @param param
+   */
+  async resetPassword(param: { id: number; password: string }) {
+    const userId = Number(param?.id || 0);
+    const password = String(param?.password || '').trim();
+
+    if (!userId) {
+      throw new CoolCommException('使用者不存在');
+    }
+
+    if (!password) {
+      throw new CoolCommException('密碼不能為空');
+    }
+
+    const userInfo = await this.baseSysUserEntity.findOneBy({ id: userId });
+    if (!userInfo) {
+      throw new CoolCommException('使用者不存在');
+    }
+
+    const passwordV = Number(userInfo.passwordV || 0) + 1;
+    await this.midwayCache.set(`admin:passwordVersion:${userId}`, passwordV);
+
+    await this.baseSysUserEntity.update(
+      { id: userId },
+      {
+        password: md5(password),
+        passwordV,
+      }
+    );
+  }
+
   async delete(ids: number[] | number) {
     const userIds = this.normalizeUserIds(ids);
     await this.ensureUsersHaveNoAssignedCustomers(userIds);

@@ -26,26 +26,7 @@
 				</cl-row>
 
 				<!-- 新增、編輯 -->
-				<cl-upsert ref="Upsert">
-					<template #slot-value="{ scope }">
-						<div>
-							<el-input
-								v-model="scope.value"
-								:placeholder="$t('請填寫值')"
-								clearable
-								type="textarea"
-								:rows="4"
-								class="mb-2"
-							/>
-
-							<cl-upload-space
-								:text="$t('使用檔案')"
-								:limit="1"
-								@confirm="onFileConfirm"
-							/>
-						</div>
-					</template>
-				</cl-upsert>
+				<cl-upsert ref="Upsert" />
 			</cl-crud>
 		</template>
 	</cl-view-group>
@@ -123,21 +104,6 @@ const Upsert = useUpsert({
 	},
 	items: [
 		{
-			label: t('上級節點'),
-			prop: 'parentId',
-			component: {
-				name: 'cl-select',
-				props: {
-					labelKey: 'name',
-					valueKey: 'id',
-					checkStrictly: true,
-					tree: true,
-					current: true,
-					defaultExpandAll: true
-				}
-			}
-		},
-		{
 			label: t('名稱'),
 			prop: 'name',
 			required: true,
@@ -146,7 +112,15 @@ const Upsert = useUpsert({
 		{
 			label: t('值'),
 			prop: 'value',
-			component: { name: 'slot-value' }
+			required: true,
+			component: {
+				name: 'el-input',
+				props: {
+					type: 'textarea',
+					rows: 4,
+					placeholder: t('請填寫值')
+				}
+			}
 		},
 		{
 			label: t('排序'),
@@ -272,10 +246,5 @@ function append(row: any) {
 		parentId: row.id,
 		orderNum: 1
 	});
-}
-
-// 檔案選擇
-function onFileConfirm(selection: any[]) {
-	Upsert.value?.setForm('value', selection[0]?.url);
 }
 </script>

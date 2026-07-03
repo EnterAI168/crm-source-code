@@ -65,7 +65,7 @@
 					<el-col :span="12">
 						<el-form-item label="客戶" required>
 							<el-select
-								v-if="!presetCustomer && !isViewMode"
+								v-if="!presetCustomer && !isViewMode && canSelectCurrentCustomer"
 								v-model="quoteForm.customerId"
 								filterable
 								clearable
@@ -1216,6 +1216,14 @@ const currentCustomerInfo = computed(() => {
 const currentCustomerLabel = computed(() => {
 	const info = currentCustomerInfo.value || {};
 	return info.contactName || info.companyName || '--';
+});
+const canSelectCurrentCustomer = computed(() => {
+	if (!quoteForm.customerId) {
+		return true;
+	}
+	return customerOptions.value.some(
+		item => Number(item?.id || 0) === Number(quoteForm.customerId || 0)
+	);
 });
 const showVipDiscountTip = computed(
 	() => !isEditMode.value && Number(currentCustomerInfo.value?.isVip || 0) === 1

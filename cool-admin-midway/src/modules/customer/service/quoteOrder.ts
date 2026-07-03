@@ -306,9 +306,7 @@ export class CrmQuoteOrderService extends BaseService {
       param?.stages || [],
       summary.finalAmount
     );
-    const salesmanId = Number(
-      customer.salesmanId || this.ctx.admin?.userId || 0
-    );
+    const salesmanId = Number(this.ctx.admin?.userId || customer.salesmanId || 0);
     const accompanySalesmanId = await this.normalizeAccompanySalesmanId(
       param?.accompanySalesmanId,
       salesmanId
@@ -755,7 +753,7 @@ export class CrmQuoteOrderService extends BaseService {
       .map(row => row.id);
 
     if (allowedIds.length === 0) {
-      throw new CoolCommException('????');
+      throw new CoolCommException('暫無可刪除的報價單');
     }
 
     await this.crmQuoteOrderEntity.update(
@@ -896,7 +894,7 @@ export class CrmQuoteOrderService extends BaseService {
   async assigneeOptions() {
     const scope = await this.getScope();
     if (!scope.isOfficeClerkManager) {
-      throw new CoolCommException('????');
+      throw new CoolCommException('僅內勤主管可查看內勤人員選項');
     }
 
     const rows = await this.nativeQuery(
@@ -966,7 +964,7 @@ export class CrmQuoteOrderService extends BaseService {
 
     const auditStatus = Number(param?.auditStatus);
     if (![2, 3].includes(auditStatus)) {
-      throw new CoolCommException('????');
+      throw new CoolCommException('請選擇審核結果');
     }
 
     const auditTime = this.now();
@@ -1072,7 +1070,7 @@ export class CrmQuoteOrderService extends BaseService {
 
     const assigneeId = Number(param?.assigneeId || 0);
     if (!assigneeId) {
-      throw new CoolCommException('璇烽€夋嫨鍐呭嫟浜哄憳');
+      throw new CoolCommException('請選擇內勤人員');
     }
 
     const assignee = await this.ensureAssigneeRole(assigneeId);
@@ -1134,12 +1132,12 @@ export class CrmQuoteOrderService extends BaseService {
       Number(param?.departmentId || 0)
     );
     if (!this.canAuditDepartment(audit, scope)) {
-      throw new CoolCommException('????');
+      throw new CoolCommException('當前無權限進行部門審核');
     }
 
     const auditStatus = Number(param?.auditStatus);
     if (![2, 3].includes(auditStatus)) {
-      throw new CoolCommException('????');
+      throw new CoolCommException('請選擇部門審核結果');
     }
 
     await this.crmQuoteOrderDepartmentAuditEntity.update(
@@ -1170,12 +1168,12 @@ export class CrmQuoteOrderService extends BaseService {
       Number(param?.departmentId || 0)
     );
     if (!this.canAssignDepartment(audit, scope)) {
-      throw new CoolCommException('????');
+      throw new CoolCommException('當前無權限分配內勤人員');
     }
 
     const assigneeId = Number(param?.assigneeId || 0);
     if (!assigneeId) {
-      throw new CoolCommException('璇烽€夋嫨鍐呭嫟浜哄憳');
+      throw new CoolCommException('請選擇內勤人員');
     }
     const assignee = await this.ensureDepartmentAssigneeRole(
       assigneeId,
@@ -1205,7 +1203,7 @@ export class CrmQuoteOrderService extends BaseService {
     const scope = await this.getScope();
     const departmentId = Number(param?.departmentId || 0);
     if (!departmentId || !this.canManageDepartment(departmentId, scope)) {
-      throw new CoolCommException('????');
+      throw new CoolCommException('當前無權限查看內勤人員');
     }
     return this.listDepartmentInternalUsers(departmentId);
   }
@@ -1218,12 +1216,12 @@ export class CrmQuoteOrderService extends BaseService {
       Number(param?.departmentId || 0)
     );
     if (!this.canSubmitDepartmentCost(audit, scope)) {
-      throw new CoolCommException('????');
+      throw new CoolCommException('當前無權限提交成本');
     }
 
     const items = Array.isArray(param?.items) ? param.items : [];
     if (!items.length) {
-      throw new CoolCommException('????');
+      throw new CoolCommException('成本明細不能為空');
     }
     const itemIds = items
       .map(item => Number(item?.id || 0))
@@ -1291,7 +1289,7 @@ export class CrmQuoteOrderService extends BaseService {
       });
       email = String(customer?.email || '').trim();
       if (!email) {
-        throw new CoolCommException('鍙戦€侀偖浠舵椂蹇呴』濉啟瀹㈡埛閭');
+        throw new CoolCommException('發送郵件時必須填寫客戶郵箱');
       }
     }
 
@@ -1326,7 +1324,7 @@ export class CrmQuoteOrderService extends BaseService {
 
     const fileId = String(param?.fileId || '').trim();
     if (!fileId) {
-      throw new CoolCommException('璇峰厛涓婁紶鍚堝悓鏂囦歡');
+      throw new CoolCommException('請先上傳合約文件');
     }
 
     const fileName =
@@ -1414,7 +1412,7 @@ export class CrmQuoteOrderService extends BaseService {
 
     const stageId = Number(param?.stageId || 0);
     if (!stageId) {
-      throw new CoolCommException('緙哄皯鍥炴闃舵');
+      throw new CoolCommException('缺少回款階段');
     }
 
     const stage = await this.crmQuoteOrderStageEntity.findOneBy({
@@ -1423,7 +1421,7 @@ export class CrmQuoteOrderService extends BaseService {
       isDeleted: 0,
     });
     if (!stage) {
-      throw new CoolCommException('????');
+      throw new CoolCommException('付款階段不存在');
     }
 
     const receiptAmount = this.toMoney(param?.receiptAmount);
@@ -1433,7 +1431,7 @@ export class CrmQuoteOrderService extends BaseService {
     const paidAmount = this.toMoney(stage.receiptAmount);
     const nextReceiptAmount = this.toMoney(paidAmount + receiptAmount);
     if (nextReceiptAmount > this.toMoney(stage.amount)) {
-      throw new CoolCommException('????');
+      throw new CoolCommException('回款金額不能超過付款階段金額');
     }
 
     await this.crmQuoteOrderStageEntity.update(
@@ -1999,7 +1997,7 @@ export class CrmQuoteOrderService extends BaseService {
       isDeleted: 0,
     });
     if (!history) {
-      throw new CoolCommException('鎶ヤ環鍗曞巻鍙茶褰曚笉瀛樺湪');
+      throw new CoolCommException('報價單歷史記錄不存在');
     }
     const order = await this.getOrderById(Number(history.quoteOrderId || 0), scope);
     const customer = await this.crmCustomerInfoEntity.findOneBy({
@@ -2155,7 +2153,7 @@ export class CrmQuoteOrderService extends BaseService {
       isDeleted: 0,
     });
     if (!history) {
-      throw new CoolCommException('鎶ヤ環鍗曞巻鍙茶褰曚笉瀛樺湪');
+      throw new CoolCommException('報價單歷史記錄不存在');
     }
 
     const order = await this.getOrderById(
@@ -2198,7 +2196,7 @@ export class CrmQuoteOrderService extends BaseService {
 
   private async getCustomerById(id: number, write = false) {
     if (!id) {
-      throw new CoolCommException('瀹㈡埛涓嶈兘涓虹┖');
+      throw new CoolCommException('客戶不能為空');
     }
 
     const row = await this.crmCustomerInfoEntity.findOneBy({
@@ -2206,15 +2204,19 @@ export class CrmQuoteOrderService extends BaseService {
       isDeleted: 0,
     });
     if (!row) {
-      throw new CoolCommException('????');
+      throw new CoolCommException('客戶不存在');
     }
-    if (!row.salesmanId) {
-      throw new CoolCommException('????');
+    if (!row.salesmanId && !write) {
+      throw new CoolCommException('客戶尚未分配業務員');
     }
 
     const scope = await this.getScope();
-    if (!scope.isBoss && Number(row.salesmanId || 0) !== scope.userId) {
-      throw new CoolCommException('????');
+    if (
+      !scope.isBoss &&
+      Number(row.salesmanId || 0) > 0 &&
+      Number(row.salesmanId || 0) !== scope.userId
+    ) {
+      throw new CoolCommException('當前無權限操作此客戶');
     }
     return row;
   }
@@ -2225,7 +2227,7 @@ export class CrmQuoteOrderService extends BaseService {
     options?: { allowFinanceRead?: boolean }
   ) {
     if (!id) {
-      throw new CoolCommException('鎶ヤ環鍗曚笉瀛樺湪');
+      throw new CoolCommException('報價單不存在');
     }
 
     const row = await this.crmQuoteOrderEntity.findOneBy({
@@ -2233,7 +2235,7 @@ export class CrmQuoteOrderService extends BaseService {
       isDeleted: 0,
     });
     if (!row) {
-      throw new CoolCommException('鎶ヤ環鍗曚笉瀛樺湪');
+      throw new CoolCommException('報價單不存在');
     }
 
     const currentScope = scope || (await this.getScope());
@@ -2256,7 +2258,7 @@ export class CrmQuoteOrderService extends BaseService {
       !hasDiscountAuditAccess &&
       !hasDepartmentAccess
     ) {
-      throw new CoolCommException('????');
+      throw new CoolCommException('當前無權限查看此報價單');
     }
     if (
       currentScope.isOfficeClerk &&
@@ -2266,7 +2268,7 @@ export class CrmQuoteOrderService extends BaseService {
       !hasAssigneeAccess &&
       Number(row.currentAssigneeId || 0) !== Number(currentScope.userId || 0)
     ) {
-      throw new CoolCommException('????');
+      throw new CoolCommException('當前無權限查看此報價單');
     }
     if (
       !this.canViewOrder(row, currentScope) &&
@@ -2274,7 +2276,7 @@ export class CrmQuoteOrderService extends BaseService {
       !hasDiscountAuditAccess &&
       !hasAssigneeAccess
     ) {
-      throw new CoolCommException('????');
+      throw new CoolCommException('當前無權限查看此報價單');
     }
 
     return row;
@@ -2319,7 +2321,7 @@ export class CrmQuoteOrderService extends BaseService {
 
   private async normalizeItems(items: any[]) {
     if (!Array.isArray(items) || items.length === 0) {
-      throw new CoolCommException('鎶ヤ環鏄庣粏涓嶈兘涓虹┖');
+      throw new CoolCommException('報價明細不能為空');
     }
 
     const productIds = items
@@ -2327,7 +2329,7 @@ export class CrmQuoteOrderService extends BaseService {
       .filter(id => !Number.isNaN(id) && id > 0);
 
     if (productIds.length === 0) {
-      throw new CoolCommException('鎶ヤ環鏄庣粏緙哄皯浜у搧');
+      throw new CoolCommException('報價明細缺少產品');
     }
 
     const specIds = items
@@ -2362,12 +2364,12 @@ export class CrmQuoteOrderService extends BaseService {
       const specId = this.toNullableNumber(item?.specId);
       const product = productMap.get(productId);
       if (!product) {
-        throw new CoolCommException('????');
+        throw new CoolCommException('報價明細中的產品不存在');
       }
 
       const spec = specId ? specMap.get(specId) : null;
       if (spec && Number(spec.productId || 0) !== productId) {
-        throw new CoolCommException('????');
+        throw new CoolCommException('產品規格與產品不匹配');
       }
 
       const actualPrice = this.toMoney(
@@ -2427,7 +2429,7 @@ export class CrmQuoteOrderService extends BaseService {
         ? stages
         : [
             {
-              stageName: '絎竴闃舵',
+              stageName: '第一階段',
               ratio: 1,
               amount: finalAmount,
               needManualInvoice: 0,
@@ -2452,7 +2454,7 @@ export class CrmQuoteOrderService extends BaseService {
       return {
         id: Number(item?.id || 0) || undefined,
         stageNo: index + 1,
-        stageName: String(item?.stageName || `闃舵${index + 1}`).trim(),
+        stageName: String(item?.stageName || `階段${index + 1}`).trim(),
         ratio: this.toNumber(ratio),
         amount: this.toMoney(amount),
         invoiceDate: this.normalizeDateTime(item?.invoiceDate),
@@ -3067,7 +3069,7 @@ export class CrmQuoteOrderService extends BaseService {
       quoteNo: order.quoteNo,
       quoteName: order.quoteName,
       stageNo: 0,
-      stageName: '鍏ㄩ儴闃舵',
+      stageName: '全部階段',
       amount: order.finalAmount,
       remark: order.remark,
       snapshot: {
@@ -3212,7 +3214,7 @@ export class CrmQuoteOrderService extends BaseService {
 
   private async getDepartmentAudit(quoteOrderId: number, departmentId: number) {
     if (!quoteOrderId || !departmentId) {
-      throw new CoolCommException('????');
+      throw new CoolCommException('部門審核資料不存在');
     }
     const row = await this.crmQuoteOrderDepartmentAuditEntity.findOneBy({
       quoteOrderId,
@@ -3220,7 +3222,7 @@ export class CrmQuoteOrderService extends BaseService {
       isDeleted: 0,
     });
     if (!row) {
-      throw new CoolCommException('????');
+      throw new CoolCommException('部門審核資料不存在');
     }
     return row;
   }
@@ -3933,7 +3935,7 @@ export class CrmQuoteOrderService extends BaseService {
       !user ||
       (!scope.isBoss && !this.canManageDepartment(departmentId, scope))
     ) {
-      throw new CoolCommException('????');
+      throw new CoolCommException('所選內勤人員不在當前部門或無權指派');
     }
     return user;
   }
@@ -4225,7 +4227,7 @@ export class CrmQuoteOrderService extends BaseService {
 
   private ensureCanEdit(order: any, scope: QuoteScope) {
     if (!this.canEditOrder(order, scope)) {
-      throw new CoolCommException('????');
+      throw new CoolCommException('當前無權限修改報價單');
     }
   }
 
@@ -4272,7 +4274,7 @@ export class CrmQuoteOrderService extends BaseService {
 
   private ensureCanSubmitAudit(order: any, scope: QuoteScope) {
     if (!this.canSubmitAudit(order, scope)) {
-      throw new CoolCommException('褰撳墠鐘舵€佷笉鍏佽鎻愪氦瀹℃牳');
+      throw new CoolCommException('當前狀態不允許提交審核');
     }
   }
 
@@ -4290,31 +4292,31 @@ export class CrmQuoteOrderService extends BaseService {
 
   private ensureCanAudit(order: any, scope: QuoteScope) {
     if (!this.canAuditOrder(order, scope)) {
-      throw new CoolCommException('褰撳墠鐘舵€佷笉鍏佽瀹℃牳');
+      throw new CoolCommException('當前狀態不允許審核');
     }
   }
 
   private ensureCanAssign(order: any, scope: QuoteScope) {
     if (!this.canAssignOrder(order, scope)) {
-      throw new CoolCommException('褰撳墠鐘舵€佷笉鍏佽鍒嗛厤');
+      throw new CoolCommException('當前狀態不允許分配');
     }
   }
 
   private ensureCanSendQuote(order: any, scope: QuoteScope) {
     if (!this.canSendQuote(order, scope)) {
-      throw new CoolCommException('????');
+      throw new CoolCommException('當前狀態不允許發送報價單');
     }
   }
 
   private ensureCanUploadContract(order: any, scope: QuoteScope) {
     if (!this.canUploadContract(order, scope)) {
-      throw new CoolCommException('褰撳墠鐘舵€佷笉鍏佽鍥炰紶鍚堝悓');
+      throw new CoolCommException('當前狀態不允許回傳合約');
     }
   }
 
   private ensureCanHandleReceipt(order: any, scope: QuoteScope) {
     if (!this.canHandleReceipt(order, scope)) {
-      throw new CoolCommException('褰撳墠鐘舵€佷笉鍏佽鐧昏鍥炴');
+      throw new CoolCommException('當前狀態不允許登記回款');
     }
   }
 
@@ -4366,7 +4368,7 @@ export class CrmQuoteOrderService extends BaseService {
   private async ensureAssigneeRole(userId: number) {
     const user = await this.baseSysUserEntity.findOneBy({ id: userId });
     if (!user || Number(user.status) !== 1) {
-      throw new CoolCommException('????');
+      throw new CoolCommException('內勤人員不存在或已停用');
     }
 
     const rows = await this.nativeQuery(
@@ -4382,7 +4384,7 @@ export class CrmQuoteOrderService extends BaseService {
     );
 
     if (!rows?.length) {
-      throw new CoolCommException('????');
+      throw new CoolCommException('所選使用者不是內勤人員');
     }
 
     return user;

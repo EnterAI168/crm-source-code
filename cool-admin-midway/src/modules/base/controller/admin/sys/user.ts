@@ -50,4 +50,16 @@ export class BaseSysUserController extends BaseController {
   async deleteCheck(@Body('ids') ids: number[] | number) {
     return this.ok(await this.baseSysUserService.deleteCheck(ids));
   }
+
+  /**
+   * 重置使用者密碼
+   */
+  @Post('/resetPassword', { summary: '重置使用者密碼' })
+  async resetPassword(
+    @Body('id') id: number,
+    @Body('password') password: string
+  ) {
+    await this.baseSysUserService.resetPassword({ id, password });
+    return this.ok();
+  }
 }

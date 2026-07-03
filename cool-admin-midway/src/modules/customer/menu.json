@@ -237,6 +237,18 @@
             "keepAlive": false,
             "isShow": false,
             "childMenus": []
+          },
+          {
+            "name": "Quote Add",
+            "router": null,
+            "perms": "crm:customerPool:quotationAdd",
+            "type": 2,
+            "icon": null,
+            "orderNum": 8,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": false,
+            "childMenus": []
           }
         ]
       }

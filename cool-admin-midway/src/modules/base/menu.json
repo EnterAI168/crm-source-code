@@ -832,6 +832,18 @@
                         "keepAlive": true,
                         "isShow": true,
                         "childMenus": []
+                    },
+                    {
+                        "name": "重置密碼",
+                        "router": null,
+                        "perms": "base:sys:user:resetPassword",
+                        "type": 2,
+                        "icon": null,
+                        "orderNum": 0,
+                        "viewPath": null,
+                        "keepAlive": true,
+                        "isShow": true,
+                        "childMenus": []
                     }
                 ]
             },

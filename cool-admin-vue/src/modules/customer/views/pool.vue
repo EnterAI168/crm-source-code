@@ -123,6 +123,12 @@
 			<el-button type="primary" @click="submitAssign">確定</el-button>
 		</template>
 	</el-dialog>
+
+	<quote-order-dialog
+		v-model="sharedQuoteDialogVisible"
+		:customer="quoteCustomer"
+		@saved="handleSharedQuoteSaved"
+	/>
 </template>
 
 <script lang="ts" setup>
@@ -136,6 +142,7 @@ import { checkPerm } from '/$/base';
 import { useCrmIndustryDict } from '../utils/industryDict';
 import { useCrmCustomerStatusDict } from '../utils/statusDict';
 import CustomerPoolService from '../service/pool';
+import QuoteOrderDialog from '../components/quote-order-dialog.vue';
 import {
 	customerEmailRules,
 	EMAIL_PATTERN,
@@ -206,6 +213,9 @@ const poolSearchItems = computed(() => [
 const canAssign = computed(() => checkPerm('crm:customerPool:assignSalesman'));
 const canImport = computed(() => checkPerm('crm:customerPool:import'));
 const canSendMail = computed(() => checkPerm('crm:customerPool:sendMail'));
+const canQuotationAdd = computed(
+	() => checkPerm('crm:customerPool:quotationAdd') && checkPerm('crm:quoteOrder:add')
+);
 
 const assignVisible = ref(false);
 const assignForm = ref<{ id: number | null; salesmanId: number | undefined }>({
@@ -218,6 +228,8 @@ const importDialogVisible = ref(false);
 const importing = ref(false);
 const exporting = ref(false);
 const sendingMail = ref(false);
+const sharedQuoteDialogVisible = ref(false);
+const quoteCustomer = ref<Record<string, any> | null>(null);
 
 useTable({
 	columns: [
@@ -269,6 +281,14 @@ useTable({
 			width: 320,
 			fixed: 'right',
 			buttons: ({ scope }) => [
+				{
+					label: '新增報價單',
+					type: 'primary',
+					hidden: !canQuotationAdd.value,
+					onClick() {
+						openQuoteDialog(scope.row);
+					}
+				},
 				{
 					label: '分配',
 					type: 'primary',
@@ -415,6 +435,47 @@ function toMoney(value: any) {
 		minimumFractionDigits: 0,
 		maximumFractionDigits: 2
 	})}`;
+}
+
+function validateCustomerRequiredForQuote(row: any) {
+	const requiredFields = [
+		{ key: 'companyName', label: '公司名稱' },
+		{ key: 'address', label: '地址' },
+		{ key: 'taxNumber', label: '統一編號' },
+		{ key: 'remittanceLast5', label: '匯款本公司' },
+		{ key: 'contactName', label: '聯絡人' },
+		{ key: 'mobile', label: '手機號' },
+		{ key: 'email', label: '郵箱' }
+	];
+	const missingFields = requiredFields
+		.filter(item => String(row?.[item.key] ?? '').trim() === '')
+		.map(item => item.label);
+
+	if (missingFields.length > 0) {
+		ElMessage.warning(`請先補全客戶必填資訊：${missingFields.join('、')}`);
+		return false;
+	}
+
+	const email = String(row?.email || '').trim();
+	if (!EMAIL_PATTERN.test(email)) {
+		ElMessage.warning('請先補全正確的客戶郵箱後再新增報價單');
+		return false;
+	}
+
+	return true;
+}
+
+function openQuoteDialog(row: any) {
+	if (!validateCustomerRequiredForQuote(row)) {
+		return;
+	}
+	quoteCustomer.value = row ? { ...row } : null;
+	sharedQuoteDialogVisible.value = true;
+}
+
+async function handleSharedQuoteSaved() {
+	sharedQuoteDialogVisible.value = false;
+	await Crud.value?.refresh();
 }
 
 async function loadUsers() {
