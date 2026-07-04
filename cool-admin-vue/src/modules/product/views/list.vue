@@ -23,7 +23,7 @@
 
 			<template #slot-spec-title>
 				<div class="product-section-title product-section-title--spaced">
-					規格資訊 <span class="product-section-title__required">*</span>
+					規格資訊
 				</div>
 			</template>
 
@@ -739,7 +739,6 @@ const Upsert = useUpsert({
 			label: '商品圖片',
 			prop: 'logo',
 			span: 24,
-			required: true,
 			component: { name: 'slot-logo' }
 		},
 		{
@@ -841,7 +840,6 @@ const Upsert = useUpsert({
 		if (!data.name?.trim()) return stopSubmit('商品名稱必填');
 		if (!data.categoryId) return stopSubmit('商品分類必填');
 		if (!data.departmentId) return stopSubmit('內勤部門必填');
-		if (!data.logo) return stopSubmit('商品圖片必填');
 		if (!Array.isArray(data.specs) || data.specs.length === 0) {
 			return stopSubmit('規格資訊必填，且至少一條');
 		}
@@ -849,7 +847,6 @@ const Upsert = useUpsert({
 		for (const [index, row] of data.specs.entries()) {
 			const n = index + 1;
 			if (!row.name?.trim()) return stopSubmit(`第${n}條規格名稱必填`);
-			if (normalizeImages(row.image).length === 0) return stopSubmit(`第${n}條規格圖必填`);
 		}
 
 		next(data);
