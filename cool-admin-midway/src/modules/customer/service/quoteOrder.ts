@@ -774,6 +774,28 @@ export class CrmQuoteOrderService extends BaseService {
     const scope = await this.getScope();
     const userId = scope.userId;
 
+    if (scope.isFinance) {
+      const sql = `
+      SELECT DISTINCT
+        a.id,
+        a.companyName,
+        a.address,
+        a.taxNumber,
+        a.remittanceLast5,
+        a.contactName,
+        a.mobile,
+        a.email,
+        a.isVip,
+        a.salesmanId,
+        b.name AS salesmanName
+      FROM crm_customer_info a
+      LEFT JOIN base_sys_user b ON b.id = a.salesmanId
+      WHERE a.isDeleted = 0
+      ORDER BY a.companyName ASC, a.id ASC
+    `;
+      return this.nativeQuery(sql);
+    }
+
     if (scope.isOfficeClerk) {
       const sql = `
       SELECT DISTINCT

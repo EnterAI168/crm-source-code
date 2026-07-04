@@ -229,6 +229,7 @@ export class BaseAuthorityMiddleware
                   'crm/quoteOrder/applyAllowance',
                   'crm/quoteOrder/departmentCost',
                   'crm/customerList/quotationView',
+                  'crm/quoteInvoice/page',
                   'crm/quoteInvoice/quoteInfo',
                 ],
                 'crmQuoteOrder/productOptions': [
@@ -248,6 +249,7 @@ export class BaseAuthorityMiddleware
                   'crm/quoteOrder/update',
                   'crm/quoteOrder/applyAllowance',
                   'crm/customerList/quotationView',
+                  'crm/quoteInvoice/page',
                 ],
                 'crmQuoteOrder/duty': [
                   'crm/quoteOrder/page',
