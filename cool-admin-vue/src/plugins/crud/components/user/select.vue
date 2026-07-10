@@ -182,7 +182,7 @@ function onKeyWordChange() {
 	refs[`tree-${tab.active}`].filter(keyWord.value);
 }
 
-// 獲取使用者
+// 取得使用者
 async function getUser() {
 	return service.base.sys.user.page({ size: 10000 }).then(res => {
 		users.value = res.list.map(e => {
@@ -192,7 +192,7 @@ async function getUser() {
 	});
 }
 
-// 獲取部門
+// 取得部門
 async function getDept() {
 	return service.base.sys.department.list().then(res => {
 		res = deepTree(res);
@@ -219,7 +219,7 @@ async function getDept() {
 	});
 }
 
-// 獲取角色
+// 取得角色
 async function getRole() {
 	return service.base.sys.role.list().then(res => {
 		res.forEach(e => {

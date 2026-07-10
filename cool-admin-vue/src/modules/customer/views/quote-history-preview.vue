@@ -501,7 +501,7 @@ function normalizePreviewImageUrl(value: any) {
 }
 
 function normalizePaymentConditionLines(value: any) {
-	const fallback = `付款方式：專案金額(含營業稅)共計新臺幣 ${money(finalAmount.value)} 元整，甲方於收到發票後，30 天內以匯款方式支付款項至乙方指定帳戶，匯款後提供後五碼及匯款日期以便甲方核對。\n*本欄請注意：本單須雙方簽立完成後，送交乙方才會始得進行委刊作業。`;
+	const fallback = `付款方式：專案金額(含營業稅)共計新台幣 ${money(finalAmount.value)} 元整，甲方於收到發票後，30 天內以匯款方式支付款項至乙方指定帳號，匯款後提供後五碼及匯款日期以便甲方核對。\n*本欄請注意：本單須雙方簽立完成後，送交乙方才會始得進行委刊作業。`;
 	const text = Array.isArray(value)
 		? value.join('\n')
 		: typeof value === 'object' && value !== null

@@ -12,14 +12,14 @@ export function useRefs() {
 	function setRefs(name: string) {
 		return (el: any) => {
 			refs[name] = el;
-			return () => refs[name]; // 返回一個函式用於獲取當前 ref
+			return () => refs[name]; // 返回一個函式用於取得當前 ref
 		};
 	}
 
 	return { refs, setRefs };
 }
 
-// 獲取指定名稱的父元件例項，並將其暴露的屬性賦值給傳入的 Ref
+// 取得指定名稱的父元件例項，並將其暴露的屬性賦值給傳入的 Ref
 export function useParent(name: string, r: Ref) {
 	const instance = getCurrentInstance();
 

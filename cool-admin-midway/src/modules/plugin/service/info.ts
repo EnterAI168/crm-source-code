@@ -87,7 +87,7 @@ export class PluginService extends BaseService {
    * 重新初始化外掛
    */
   async reInit(keyName: string) {
-    // 多程式發送全域性事件，pm2下生效，本地開發則通過普通事件
+    // 多程式傳送全域事件，pm2下生效，本地開發則通過普通事件
     this.coolEventManager.globalEmit(GLOBAL_EVENT_PLUGIN_INIT, false, keyName);
   }
 
@@ -97,7 +97,7 @@ export class PluginService extends BaseService {
    * @param isHook
    */
   async remove(keyName: string, isHook = false) {
-    // 多程式發送全域性事件，pm2下生效
+    // 多程式傳送全域事件，pm2下生效
     this.coolEventManager.globalEmit(
       GLOBAL_EVENT_PLUGIN_REMOVE,
       false,
@@ -266,7 +266,7 @@ export class PluginService extends BaseService {
       tsContent: string;
 
     try {
-      // 通用方法獲取檔案內容
+      // 通用方法取得檔案內容
       const getFileContent = (
         entryName: string,
         encoding: 'utf-8' | 'base64' = 'utf-8'
@@ -424,7 +424,7 @@ export class PluginService extends BaseService {
   }> {
     const filePath = this.pluginPath(keyName);
     if (!fs.existsSync(filePath)) {
-      // 嘗試從資料庫中獲取
+      // 嘗試從資料庫中取得
       const info = await this.pluginInfoEntity.findOne({
         where: { keyName: Equal(keyName) },
         select: ['content', 'tsContent'],

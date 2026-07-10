@@ -74,7 +74,7 @@ const Table = useTable({
 			}
 		},
 		{
-			label: '手機號',
+			label: '手機號碼',
 			prop: 'phone',
 			minWidth: 140,
 
@@ -87,7 +87,7 @@ const Table = useTable({
 				component: {
 					name: 'el-input',
 					props: {
-						placeholder: '搜尋手機號',
+						placeholder: '搜尋手機號碼',
 
 						// 自定義 change 事件
 						onChange(val) {

@@ -12,7 +12,7 @@ function findSvg(dir: string) {
 		withFileTypes: true,
 	});
 
-	// 獲取當前目錄的模組名
+	// 取得當前目錄的模組名
 	const moduleName = dir.match(/[/\\](?:src[/\\](?:plugins|modules)[/\\])([^/\\]+)/)?.[1] || "";
 
 	for (const d of dirs) {

@@ -20,11 +20,11 @@
 						<el-option label="內勤" value="internal" />
 					</el-select>
 				</el-form-item>
-				<el-form-item label="手機號">
-					<el-input v-model="query.phone" clearable placeholder="請輸入手機號" />
+				<el-form-item label="手機號碼">
+					<el-input v-model="query.phone" clearable placeholder="請輸入手機號碼" />
 				</el-form-item>
-				<el-form-item label="郵箱">
-					<el-input v-model="query.email" clearable placeholder="請輸入郵箱" />
+				<el-form-item label="信箱">
+					<el-input v-model="query.email" clearable placeholder="請輸入信箱" />
 				</el-form-item>
 				<el-form-item>
 					<el-button type="primary" @click="search">查詢</el-button>

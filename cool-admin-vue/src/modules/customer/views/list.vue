@@ -54,11 +54,11 @@
 								<span class="crm-pool-v">{{ scope.row.contactName || '--' }}</span>
 							</div>
 							<div class="crm-pool-line">
-								<span class="crm-pool-k">手機號：</span>
+								<span class="crm-pool-k">手機號碼：</span>
 								<span class="crm-pool-v">{{ scope.row.mobile || '--' }}</span>
 							</div>
 							<div class="crm-pool-line">
-								<span class="crm-pool-k">郵箱：</span>
+								<span class="crm-pool-k">信箱：</span>
 								<span class="crm-pool-v">{{ scope.row.email || '--' }}</span>
 							</div>
 						</div>
@@ -411,9 +411,9 @@
 		</template>
 	</el-dialog>
 
-	<el-dialog v-model="quoteViewSendVisible" title="發送報價" width="560px" append-to-body>
+	<el-dialog v-model="quoteViewSendVisible" title="傳送報價" width="560px" append-to-body>
 		<el-form label-width="90px">
-			<el-form-item label="發送方式">
+			<el-form-item label="傳送方式">
 				<el-radio-group v-model="quoteViewSendForm.sendType">
 					<el-radio
 						v-for="item in quoteSendTypeOptions"
@@ -424,19 +424,19 @@
 					</el-radio>
 				</el-radio-group>
 			</el-form-item>
-			<el-form-item v-if="quoteViewSendForm.sendType === 1" label="客戶郵箱">
+			<el-form-item v-if="quoteViewSendForm.sendType === 1" label="客戶信箱">
 				<el-input
 					v-model="quoteViewSendForm.email"
 					clearable
-					placeholder="請輸入客戶郵箱"
+					placeholder="請輸入客戶信箱"
 				/>
 			</el-form-item>
-			<el-form-item label="發送備註">
+			<el-form-item label="傳送備註">
 				<el-input
 					v-model="quoteViewSendForm.remark"
 					type="textarea"
 					:rows="4"
-					placeholder="請輸入發送備註"
+					placeholder="請輸入傳送備註"
 				/>
 			</el-form-item>
 		</el-form>
@@ -768,20 +768,20 @@ const listSearchItems = computed(() => {
 			}
 		},
 		{
-			label: '手機號',
+			label: '手機號碼',
 			prop: 'mobile',
 			required: true,
 			component: {
 				name: 'el-input',
-				props: { clearable: true, placeholder: '請輸入手機號' }
+				props: { clearable: true, placeholder: '請輸入手機號碼' }
 			}
 		},
 		{
-			label: '郵箱',
+			label: '信箱',
 			prop: 'email',
 			component: {
 				name: 'el-input',
-				props: { clearable: true, placeholder: '請輸入郵箱' }
+				props: { clearable: true, placeholder: '請輸入信箱' }
 			}
 		},
 		{
@@ -863,8 +863,8 @@ const LIST_IMPORT_BASE_HEADERS = [
 	'統一編號',
 	'匯款本公司',
 	'客戶名稱',
-	'手機號',
-	'郵箱',
+	'手機號碼',
+	'信箱',
 	'備註',
 	'是否廣告投放客戶'
 ] as const;
@@ -949,8 +949,8 @@ async function exportCustomerListData() {
 			匯款本公司: row.remittanceLast5 || '',
 			廣告投放: getAdCustomerLabel(row),
 			聯絡人: row.contactName || '',
-			手機號: row.mobile || '',
-			郵箱: row.email || '',
+			手機號碼: row.mobile || '',
+			信箱: row.email || '',
 			VIP: Number(row.isVip || 0) === 1 ? '是' : '否',
 			累計成交次數: toNumber(row.dealCount),
 			累計成交金額: toMoney(row.dealAmount),
@@ -1009,8 +1009,8 @@ function normalizeListImportRow(raw: Record<string, any>) {
 		taxNumber: pick(['統一編號', '統一編碼', 'taxNumber']),
 		remittanceLast5: pick(['匯款本公司', '匯款本卡號', '匯款末五碼', 'remittanceLast5']),
 		contactName: pick(['客戶名稱', 'contactName', '聯絡人']),
-		mobile: pick(['手機號', 'mobile', '電話']),
-		email: pick(['郵箱', 'email']),
+		mobile: pick(['手機號碼', 'mobile', '電話']),
+		email: pick(['信箱', 'email']),
 		remark: pick(['備註', 'remark']),
 		isAdCustomer: adCustomerText === '1' || adCustomerText === '是' ? 1 : 0
 	};
@@ -1227,7 +1227,7 @@ async function openQuoteViewSend(row: any) {
 async function submitQuoteViewSend() {
 	if (!quoteViewSendForm.id) return;
 	if (quoteViewSendForm.sendType === 1 && !String(quoteViewSendForm.email || '').trim()) {
-		ElMessage.warning('郵件發送時必須填寫客戶郵箱');
+		ElMessage.warning('郵件傳送時必須填寫客戶信箱');
 		return;
 	}
 
@@ -1239,12 +1239,12 @@ async function submitQuoteViewSend() {
 			email: quoteViewSendForm.email || undefined,
 			remark: quoteViewSendForm.remark || undefined
 		});
-		ElMessage.success('報價發送成功');
+		ElMessage.success('報價傳送成功');
 		quoteViewSendVisible.value = false;
 		await loadQuoteViewList();
 		Crud.value?.refresh();
 	} catch (error: any) {
-		ElMessage.error(error?.message || '報價發送失敗');
+		ElMessage.error(error?.message || '報價傳送失敗');
 	} finally {
 		quoteViewSendLoading.value = false;
 	}
@@ -2042,18 +2042,18 @@ const Upsert = useUpsert({
 			}
 		},
 		{
-			label: '手機號',
+			label: '手機號碼',
 			prop: 'mobile',
 			component: {
 				name: 'el-input',
-				props: { clearable: true, placeholder: '請輸入手機號' }
+				props: { clearable: true, placeholder: '請輸入手機號碼' }
 			}
 		},
 		{
-			label: '郵箱',
+			label: '信箱',
 			prop: 'email',
 			rules: customerEmailRules,
-			component: { name: 'el-input', props: { clearable: true, placeholder: '請輸入郵箱' } }
+			component: { name: 'el-input', props: { clearable: true, placeholder: '請輸入信箱' } }
 		},
 		{
 			label: '備註',

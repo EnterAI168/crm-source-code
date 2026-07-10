@@ -281,7 +281,7 @@ function transformPlugin(): Plugin {
 
 				let modifiedCode = code;
 
-				// 獲取所有節點
+				// 取得所有節點
 				const nodes = getNodes(code);
 
 				// 遍歷處理每個節點
@@ -320,7 +320,7 @@ function transformPlugin(): Plugin {
 						}
 					}
 
-					// 獲取所有類名
+					// 取得所有類名
 					const classNames = getClassNames(_node);
 
 					// 轉換 Tailwind 類名為安全類名
@@ -344,7 +344,7 @@ function transformPlugin(): Plugin {
 							_node.slice(0, insertIndex) + ` :class="{}"` + _node.slice(insertIndex);
 					}
 
-					// 獲取暗黑模式類名
+					// 取得暗黑模式類名
 					let darkClassNames = classNames.filter(
 						(name) => name.startsWith("dark-colon-") || name.startsWith("dark:"),
 					);
@@ -362,7 +362,7 @@ function transformPlugin(): Plugin {
 						})
 						.join(",");
 
-					// 獲取所有 class 內容
+					// 取得所有 class 內容
 					const classContents = getClassContent(_node);
 
 					// 處理物件形式的動態類名

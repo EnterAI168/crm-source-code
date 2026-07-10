@@ -20,7 +20,7 @@ export const hmr = {
 		data[key] = value;
 	},
 
-	// 獲取資料的方法
+	// 取得資料的方法
 	getData(key: string, defaultValue?: any) {
 		// 如果指定鍵不存在且提供了預設值，則設定預設值
 		if (defaultValue !== undefined && !data[key]) {

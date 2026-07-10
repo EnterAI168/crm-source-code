@@ -252,7 +252,7 @@ async function loadStatistics() {
 			send: Array.isArray(res?.pies?.send) ? res.pies.send : []
 		};
 	} catch (error: any) {
-		ElMessage.error(error?.message || '載入平台統計失敗');
+		ElMessage.error(error?.message || '載入平臺統計失敗');
 	} finally {
 		loading.value = false;
 	}

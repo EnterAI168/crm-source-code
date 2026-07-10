@@ -14,7 +14,7 @@ export class UserAddressEntity extends BaseEntity {
   contact: string;
 
   @Index()
-  @Column({ comment: '手機號', length: 11 })
+  @Column({ comment: '手機號碼', length: 11 })
   phone: string;
 
   @Column({ comment: '省' })

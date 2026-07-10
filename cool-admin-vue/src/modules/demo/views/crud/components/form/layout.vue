@@ -40,7 +40,7 @@ function open() {
 			},
 			{
 				span: 12,
-				label: '手機號',
+				label: '手機號碼',
 				prop: 'phone',
 				component: {
 					name: 'el-input',

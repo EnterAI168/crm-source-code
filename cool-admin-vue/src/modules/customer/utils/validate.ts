@@ -1,13 +1,13 @@
 import type { FormItemRule } from 'element-plus';
 
-/** 常用郵箱（與匯入校驗一致） */
+/** 常用信箱（與匯入校驗一致） */
 export const EMAIL_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 export const customerEmailRules: FormItemRule[] = [
-	{ required: true, message: '請輸入郵箱', trigger: 'blur' },
+	{ required: true, message: '請輸入信箱', trigger: 'blur' },
 	{
 		pattern: EMAIL_PATTERN,
-		message: '請輸入正確的郵箱格式',
+		message: '請輸入正確的信箱格式',
 		trigger: 'blur'
 	}
 ];
@@ -22,7 +22,7 @@ export function validateCustomerImportContact(
 ): string | null {
 	const e = (email || '').trim();
 	if (!EMAIL_PATTERN.test(e)) {
-		return `第 ${excelRow} 行：郵箱格式不正確`;
+		return `第 ${excelRow} 行：信箱格式不正確`;
 	}
 	return null;
 }
@@ -37,8 +37,8 @@ export function validateCustomerImportRequired(
 		{ prop: 'taxNumber', label: '統一編號' },
 		{ prop: 'remittanceLast5', label: '匯款本公司' },
 		{ prop: 'contactName', label: '聯絡人' },
-		{ prop: 'mobile', label: '手機號' },
-		{ prop: 'email', label: '郵箱' }
+		{ prop: 'mobile', label: '手機號碼' },
+		{ prop: 'email', label: '信箱' }
 	];
 	const missing = requiredFields
 		.filter(item => String(row?.[item.prop] ?? '').trim() === '')

@@ -1,5 +1,5 @@
 /**
- * 在「客戶列表」下補充報價單 / 移入公池 / VIP 等按鈕許可權（menu.json 中 orderNum 4～8）。
+ * 在「客戶列表」下補充報價單 / 移入公池 / VIP 等按鈕權限（menu.json 中 orderNum 4～8）。
  * 已存在相同 perms 則跳過。
  *
  * 用法：在 cool-admin-midway 目錄執行
@@ -61,7 +61,7 @@ async function main() {
       console.log('已寫入: %s (%s)', name, perms);
     }
     if (n === 0) {
-      console.log('上述許可權均已存在，無需插入。');
+      console.log('上述權限均已存在，無需插入。');
     }
   } finally {
     await conn.end();

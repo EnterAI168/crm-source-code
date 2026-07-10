@@ -72,7 +72,7 @@ export class TenantSubscriber implements EntitySubscriberInterface<any> {
   utils: Utils;
 
   /**
-   * 獲取所有忽略的url
+   * 取得所有忽略的url
    */
   getAllIgnoreUrls() {
     const adminIgnoreUrls = this.coolUrlTagData.byKey(
@@ -111,7 +111,7 @@ export class TenantSubscriber implements EntitySubscriberInterface<any> {
   }
 
   /**
-   * 獲取ctx
+   * 取得ctx
    */
   getCtx(): any {
     try {
@@ -125,7 +125,7 @@ export class TenantSubscriber implements EntitySubscriberInterface<any> {
   }
 
   /**
-   * 從登入的使用者中獲取租戶ID
+   * 從登入的使用者中取得租戶ID
    * @returns string | undefined
    */
   getTenantId(): number | undefined {

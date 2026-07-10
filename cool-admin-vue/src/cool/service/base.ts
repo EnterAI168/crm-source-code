@@ -10,7 +10,7 @@ export class BaseService {
 		}
 	}
 
-	// 發送請求
+	// 傳送請求
 	async request(options: AxiosRequestConfig = {}) {
 		const { request } = await import('./request');
 		let url = options.url;
@@ -31,7 +31,7 @@ export class BaseService {
 		});
 	}
 
-	// 獲取列表
+	// 取得列表
 	async list(data: any) {
 		return this.request({
 			url: '/list',
@@ -49,7 +49,7 @@ export class BaseService {
 		});
 	}
 
-	// 獲取資訊
+	// 取得資訊
 	async info(params: any) {
 		return this.request({
 			url: '/info',

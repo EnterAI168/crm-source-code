@@ -145,7 +145,7 @@ function clear() {
 }
 
 onMounted(() => {
-	// 獲取天數
+	// 取得天數
 	service.base.sys.log.getKeep().then(res => {
 		day.value = Number(res);
 	});

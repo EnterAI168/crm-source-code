@@ -12,7 +12,7 @@ export class OpenDemoPluginController extends BaseController {
 
   @Get('/invoke', { summary: '呼叫外掛' })
   async invoke() {
-    // 獲取外掛例項
+    // 取得外掛例項
     const instance: any = await this.pluginService.getInstance('ollama');
     // 呼叫chat
     const messages = [

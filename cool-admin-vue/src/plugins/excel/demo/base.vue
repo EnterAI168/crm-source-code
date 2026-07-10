@@ -52,11 +52,11 @@ const Table = useTable({
 			prop: 'name'
 		},
 		{
-			label: '手機號',
+			label: '手機號碼',
 			prop: 'phone'
 		},
 		{
-			label: '賬號',
+			label: '帳號',
 			prop: 'account'
 		},
 		{

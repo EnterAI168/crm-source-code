@@ -80,7 +80,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '手機號',
+			label: '手機號碼',
 			prop: 'phone',
 			minWidth: 140
 		},

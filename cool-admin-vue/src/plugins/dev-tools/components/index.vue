@@ -101,7 +101,7 @@ const tab = reactive({
 			}
 		},
 		{
-			label: t('賬號'),
+			label: t('帳號'),
 			value: 'account',
 			icon: 'icon-geren'
 		},

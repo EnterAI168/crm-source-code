@@ -17,7 +17,7 @@ export class AppUserInfoController extends BaseController {
   @Inject()
   userInfoService: UserInfoService;
 
-  @Get('/person', { summary: '獲取使用者資訊' })
+  @Get('/person', { summary: '取得使用者資訊' })
   async person() {
     return this.ok(await this.userInfoService.person(this.ctx.user.id));
   }
@@ -44,13 +44,13 @@ export class AppUserInfoController extends BaseController {
     return this.ok();
   }
 
-  @Post('/bindPhone', { summary: '繫結手機號' })
+  @Post('/bindPhone', { summary: '繫結手機號碼' })
   async bindPhone(@Body('phone') phone: string, @Body('code') code: string) {
     await this.userInfoService.bindPhone(this.ctx.user.id, phone, code);
     return this.ok();
   }
 
-  @Post('/miniPhone', { summary: '繫結小程式手機號' })
+  @Post('/miniPhone', { summary: '繫結小程式手機號碼' })
   async miniPhone(@Body() body) {
     const { code, encryptedData, iv } = body;
     return this.ok(

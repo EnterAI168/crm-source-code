@@ -101,7 +101,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '手機號',
+			label: '手機號碼',
 			prop: 'phone',
 			minWidth: 140
 		},
@@ -136,7 +136,7 @@ const Upsert = useUpsert({
 			}
 		},
 		{
-			label: '手機號',
+			label: '手機號碼',
 			prop: 'phone',
 			component: {
 				name: 'el-input'
@@ -170,7 +170,7 @@ function onEvent(row: any) {
 	// 開啟刪除提示框
 	// Crud.value?.rowDelete(row);
 
-	// 獲取已請求的參數
+	// 取得已請求的參數
 	// Crud.value?.getParams();
 }
 

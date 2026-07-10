@@ -46,11 +46,11 @@
 							<span class="crm-pool-v">{{ scope.row.contactName || '—' }}</span>
 						</div>
 						<div class="crm-pool-line">
-							<span class="crm-pool-k">手機號：</span>
+							<span class="crm-pool-k">手機號碼：</span>
 							<span class="crm-pool-v">{{ scope.row.mobile || '—' }}</span>
 						</div>
 						<div class="crm-pool-line">
-							<span class="crm-pool-k">郵箱：</span>
+							<span class="crm-pool-k">信箱：</span>
 							<span class="crm-pool-v">{{ scope.row.email || '—' }}</span>
 						</div>
 					<!-- </div> -->
@@ -178,19 +178,19 @@ const poolSearchItems = computed(() => [
 		}
 	},
 	{
-		label: '手機號',
+		label: '手機號碼',
 		prop: 'mobile',
 		component: {
 			name: 'el-input',
-			props: { clearable: true, placeholder: '請輸入手機號' }
+			props: { clearable: true, placeholder: '請輸入手機號碼' }
 		}
 	},
 	{
-		label: '郵箱',
+		label: '信箱',
 		prop: 'email',
 		component: {
 			name: 'el-input',
-			props: { clearable: true, placeholder: '請輸入郵箱' }
+			props: { clearable: true, placeholder: '請輸入信箱' }
 		}
 	},
 	{
@@ -301,7 +301,7 @@ useTable({
 				'edit',
 				'delete',
 				{
-					label: '發送郵件',
+					label: '傳送郵件',
 					type: 'success',
 					hidden: !canSendMail.value,
 					onClick() {
@@ -359,16 +359,16 @@ useUpsert({
 			component: { name: 'el-input', props: { clearable: true, placeholder: '請輸入聯絡人' } }
 		},
 		{
-			label: '手機號',
+			label: '手機號碼',
 			prop: 'mobile',
 			required: true,
-			component: { name: 'el-input', props: { clearable: true, placeholder: '請輸入手機號' } }
+			component: { name: 'el-input', props: { clearable: true, placeholder: '請輸入手機號碼' } }
 		},
 		{
-			label: '郵箱',
+			label: '信箱',
 			prop: 'email',
 			rules: customerEmailRules,
-			component: { name: 'el-input', props: { clearable: true, placeholder: '請輸入郵箱' } }
+			component: { name: 'el-input', props: { clearable: true, placeholder: '請輸入信箱' } }
 		},
 		{
 			label: '備註',
@@ -444,8 +444,8 @@ function validateCustomerRequiredForQuote(row: any) {
 		{ key: 'taxNumber', label: '統一編號' },
 		{ key: 'remittanceLast5', label: '匯款本公司' },
 		{ key: 'contactName', label: '聯絡人' },
-		{ key: 'mobile', label: '手機號' },
-		{ key: 'email', label: '郵箱' }
+		{ key: 'mobile', label: '手機號碼' },
+		{ key: 'email', label: '信箱' }
 	];
 	const missingFields = requiredFields
 		.filter(item => String(row?.[item.key] ?? '').trim() === '')
@@ -458,7 +458,7 @@ function validateCustomerRequiredForQuote(row: any) {
 
 	const email = String(row?.email || '').trim();
 	if (!EMAIL_PATTERN.test(email)) {
-		ElMessage.warning('請先補全正確的客戶郵箱後再新增報價單');
+		ElMessage.warning('請先補全正確的客戶信箱後再新增報價單');
 		return false;
 	}
 
@@ -491,7 +491,7 @@ function selectImportFile() {
 }
 
 function downloadTpl() {
-	const header = ['公司名稱', '地址', '統一編號', '匯款本公司', '是否廣告投放客戶', '聯絡人', '手機號', '郵箱', '備註'];
+	const header = ['公司名稱', '地址', '統一編號', '匯款本公司', '是否廣告投放客戶', '聯絡人', '手機號碼', '信箱', '備註'];
 	const ws = XLSX.utils.aoa_to_sheet([header]);
 	const wb = XLSX.utils.book_new();
 	XLSX.utils.book_append_sheet(wb, ws, '客戶匯入');
@@ -529,8 +529,8 @@ async function exportPoolData() {
 			匯款本公司: row.remittanceLast5 || '',
 			廣告投放: getAdCustomerLabel(row),
 			聯絡人: row.contactName || '',
-			手機號: row.mobile || '',
-			郵箱: row.email || '',
+			手機號碼: row.mobile || '',
+			信箱: row.email || '',
 			等級: getLevelLabel(row),
 			累計成交次數: toNumber(row.dealCount),
 			累計成交金額: toMoney(row.dealAmount),
@@ -568,8 +568,8 @@ function normalizeRow(raw: Record<string, any>) {
 		remittanceLast5: pick(['匯款本公司', '匯款本卡號', '匯款末五碼', 'remittanceLast5']),
 		isAdCustomer: adCustomerText === '1' || adCustomerText === '是' ? 1 : 0,
 		contactName: pick(['聯絡人', '客戶名稱', 'contactName']),
-		mobile: pick(['手機號', 'mobile', '電話']),
-		email: pick(['郵箱', 'email']),
+		mobile: pick(['手機號碼', 'mobile', '電話']),
+		email: pick(['信箱', 'email']),
 		remark: pick(['備註', 'remark']),
 		isVip: pick(['是否VIP', 'isVip']) === '1' || pick(['是否VIP', 'isVip']) === '是' ? 1 : 0
 	};
@@ -628,11 +628,11 @@ async function onFile(event: Event) {
 async function sendMail(row: any) {
 	const email = String(row?.email || '').trim();
 	if (!email) {
-		ElMessage.warning('該客戶暫無郵箱');
+		ElMessage.warning('該客戶暫無信箱');
 		return;
 	}
 	if (!EMAIL_PATTERN.test(email)) {
-		ElMessage.warning('客戶郵箱格式不正確，請先修改後再發送');
+		ElMessage.warning('客戶信箱格式不正確，請先修改後再傳送');
 		return;
 	}
 	const id = Number(row?.id || 0);
@@ -644,9 +644,9 @@ async function sendMail(row: any) {
 		await customerPool.sendMail({
 			id
 		});
-		ElMessage.success('郵件發送成功');
+		ElMessage.success('郵件傳送成功');
 	} catch (error: any) {
-		ElMessage.error(error?.message || '郵件發送失敗');
+		ElMessage.error(error?.message || '郵件傳送失敗');
 	} finally {
 		sendingMail.value = false;
 	}

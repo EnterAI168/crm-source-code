@@ -25,7 +25,7 @@ async function main() {
       [keyName]
     );
     if (existing) {
-      console.log(`報價單乙方存摺封面引數已存在，id=${existing.id}，未覆蓋現有配置`);
+      console.log(`報價單乙方存摺封面參數已存在，id=${existing.id}，未覆蓋現有配置`);
       return;
     }
 
@@ -33,10 +33,10 @@ async function main() {
     const [result] = await conn.query(
       `INSERT INTO base_sys_param
         (createTime, updateTime, tenantId, keyName, name, data, dataType, remark)
-       VALUES (?, ?, NULL, ?, '報價單乙方存摺封面', ?, 2, '報價單預覽使用；引數型別選擇檔案，可上傳一張封面圖片')`,
+       VALUES (?, ?, NULL, ?, '報價單乙方存摺封面', ?, 2, '報價單預覽使用；參數型別選擇檔案，可上傳一張封面圖片')`,
       [now, now, keyName, defaultValue]
     );
-    console.log(`報價單乙方存摺封面引數已寫入，id=${result.insertId}`);
+    console.log(`報價單乙方存摺封面參數已寫入，id=${result.insertId}`);
   } finally {
     await conn.end();
   }

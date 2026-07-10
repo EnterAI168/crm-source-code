@@ -221,7 +221,7 @@ class TestService {
 			},
 			{
 				propertyName: "phone",
-				comment: "手機號",
+				comment: "手機號碼",
 				source: "a.phone"
 			}
 		]

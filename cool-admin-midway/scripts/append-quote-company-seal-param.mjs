@@ -24,7 +24,7 @@ async function main() {
       [keyName]
     );
     if (existing) {
-      console.log(`報價單乙方公章引數已存在，id=${existing.id}，未覆蓋現有配置`);
+      console.log(`報價單乙方公章參數已存在，id=${existing.id}，未覆蓋現有配置`);
       return;
     }
 
@@ -32,10 +32,10 @@ async function main() {
     const [result] = await conn.query(
       `INSERT INTO base_sys_param
         (createTime, updateTime, tenantId, keyName, name, data, dataType, remark)
-       VALUES (?, ?, NULL, ?, '報價單乙方公章', '', 2, '報價單預覽乙方簽章框使用；引數型別選擇檔案，上傳乙方公章圖片')`,
+       VALUES (?, ?, NULL, ?, '報價單乙方公章', '', 2, '報價單預覽乙方簽章框使用；參數型別選擇檔案，上傳乙方公章圖片')`,
       [now, now, keyName]
     );
-    console.log(`報價單乙方公章引數已寫入，id=${result.insertId}`);
+    console.log(`報價單乙方公章參數已寫入，id=${result.insertId}`);
   } finally {
     await conn.end();
   }

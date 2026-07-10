@@ -438,8 +438,8 @@ export class CrmCustomerInfoService extends BaseService {
       { prop: 'taxNumber', label: '統一編號' },
       { prop: 'remittanceLast5', label: '匯款本公司' },
       { prop: 'contactName', label: '聯絡人' },
-      { prop: 'mobile', label: '手機號' },
-      { prop: 'email', label: '郵箱' },
+      { prop: 'mobile', label: '手機號碼' },
+      { prop: 'email', label: '信箱' },
     ];
     const missing = requiredFields
       .filter(item => String(row?.[item.prop] ?? '').trim() === '')
@@ -488,7 +488,7 @@ export class CrmCustomerInfoService extends BaseService {
     }
     const email = String(row.email || '').trim();
     if (!email) {
-      throw new CoolCommException('該客戶暫無郵箱');
+      throw new CoolCommException('該客戶暫無信箱');
     }
 
     const mail = await this.crmMailService.buildTemplateMail({
@@ -749,8 +749,8 @@ export class CrmCustomerInfoService extends BaseService {
         <table cellpadding="8" cellspacing="0" style="border-collapse: collapse; min-width: 520px;">
           <tr><td style="border:1px solid #ddd;">公司名稱</td><td style="border:1px solid #ddd;">${escape(row.companyName)}</td></tr>
           <tr><td style="border:1px solid #ddd;">聯絡人</td><td style="border:1px solid #ddd;">${escape(row.contactName)}</td></tr>
-          <tr><td style="border:1px solid #ddd;">手機號</td><td style="border:1px solid #ddd;">${escape(row.mobile)}</td></tr>
-          <tr><td style="border:1px solid #ddd;">郵箱</td><td style="border:1px solid #ddd;">${escape(row.email)}</td></tr>
+          <tr><td style="border:1px solid #ddd;">手機號碼</td><td style="border:1px solid #ddd;">${escape(row.mobile)}</td></tr>
+          <tr><td style="border:1px solid #ddd;">信箱</td><td style="border:1px solid #ddd;">${escape(row.email)}</td></tr>
           <tr><td style="border:1px solid #ddd;">地址</td><td style="border:1px solid #ddd;">${escape(row.address)}</td></tr>
         </table>
       </div>

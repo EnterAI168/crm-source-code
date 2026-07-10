@@ -52,7 +52,7 @@
 			<el-descriptions-item label="供應商名稱">{{ detailData.supplierCompanyName || '-' }}</el-descriptions-item>
 			<el-descriptions-item label="供應商地址">{{ detailData.supplierAddress || '-' }}</el-descriptions-item>
 			<el-descriptions-item label="統一編號">{{ detailData.supplierUnifiedNo || '-' }}</el-descriptions-item>
-			<el-descriptions-item label="郵箱">{{ detailData.supplierEmail || '-' }}</el-descriptions-item>
+			<el-descriptions-item label="信箱">{{ detailData.supplierEmail || '-' }}</el-descriptions-item>
 			<el-descriptions-item label="賬戶資訊">{{ detailData.accountInfo || '-' }}</el-descriptions-item>
 			<el-descriptions-item label="匯款型別">{{ getRemittanceTypeLabel(detailData.remittanceType) }}</el-descriptions-item>
 			<el-descriptions-item label="業務員">{{ detailData.salesmanName || '-' }}</el-descriptions-item>
@@ -310,13 +310,13 @@ const searchItems = computed(() => [
 		}
 	},
 	{
-		label: '郵箱',
+		label: '信箱',
 		prop: 'supplierEmail',
 		component: {
 			name: 'el-input',
 			props: {
 				clearable: true,
-				placeholder: '請輸入郵箱'
+				placeholder: '請輸入信箱'
 			}
 		}
 	}

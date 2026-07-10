@@ -1,5 +1,5 @@
 /**
- * 獲取動態類名
+ * 取得動態類名
  */
 export const getDynamicClassNames = (value: string): string[] => {
 	const names = new Set<string>();
@@ -96,7 +96,7 @@ export const getDynamicClassNames = (value: string): string[] => {
 };
 
 /**
- * 獲取類名
+ * 取得類名
  */
 export function getClassNames(code: string): string[] {
 	// 修改正規表示式以支援多行匹配，避免內層引號衝突
@@ -233,7 +233,7 @@ function extractComplexValue(text: string, startPos: number): string | null {
 }
 
 /**
- * 獲取 class 內容
+ * 取得 class 內容
  */
 export function getClassContent(code: string) {
 	// 修改正規表示式以支援多行匹配，避免內層引號衝突
@@ -267,7 +267,7 @@ export function getClassContent(code: string) {
 }
 
 /**
- * 獲取節點
+ * 取得節點
  */
 export function getNodes(code: string) {
 	const nodes: string[] = [];
@@ -345,7 +345,7 @@ export function getNodes(code: string) {
 		});
 	}
 
-	// 獲取所有頂級template內容
+	// 取得所有頂級template內容
 	const templateContents = findTemplateContents(code);
 
 	// 處理每個template內容

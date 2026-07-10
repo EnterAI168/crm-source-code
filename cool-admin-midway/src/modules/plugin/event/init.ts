@@ -2,9 +2,9 @@ import { CoolEvent, Event } from '@cool-midway/core';
 import { Inject } from '@midwayjs/core';
 import { PluginCenterService } from '../service/center';
 
-// 外掛初始化全域性事件
+// 外掛初始化全域事件
 export const GLOBAL_EVENT_PLUGIN_INIT = 'globalPluginInit';
-// 外掛移除全域性事件
+// 外掛移除全域事件
 export const GLOBAL_EVENT_PLUGIN_REMOVE = 'globalPluginRemove';
 
 /**

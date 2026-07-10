@@ -28,7 +28,7 @@ let isRefreshing = false;
 // 請求攔截器
 request.interceptors.request.use(
 	(req: any) => {
-		const { user } = useBase(); // 獲取使用者資訊
+		const { user } = useBase(); // 取得使用者資訊
 
 		if (req.url) {
 			// 控制請求進度條的顯示

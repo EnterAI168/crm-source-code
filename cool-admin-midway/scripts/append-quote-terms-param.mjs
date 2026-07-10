@@ -77,7 +77,7 @@ async function main() {
       ['quote_terms']
     );
     if (existing) {
-      console.log(`報價單條款引數已存在，id=${existing.id}，未覆蓋現有配置`);
+      console.log(`報價單條款參數已存在，id=${existing.id}，未覆蓋現有配置`);
       return;
     }
     const terms = loadTermsFromTemplate();
@@ -91,7 +91,7 @@ async function main() {
        VALUES (?, ?, NULL, 'quote_terms', '報價單條款', ?, 0, '報價單預覽和PDF匯出使用，JSON格式：[{title,items:[{no,text}]}]')`,
       [t, t, JSON.stringify(terms, null, 2)]
     );
-    console.log(`報價單條款引數已寫入，id=${result.insertId}`);
+    console.log(`報價單條款參數已寫入，id=${result.insertId}`);
   } finally {
     await conn.end();
   }

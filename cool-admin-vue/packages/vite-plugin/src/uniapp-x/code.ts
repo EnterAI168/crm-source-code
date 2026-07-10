@@ -3,7 +3,7 @@ import { SAFE_CHAR_MAP_LOCALE } from "./config";
 import { createCtx } from "../ctx";
 import { readFile, rootDir } from "../utils";
 
-// 獲取 tailwind.config.ts 中的顏色
+// 取得 tailwind.config.ts 中的顏色
 function getTailwindColor() {
 	const config = readFile(rootDir("tailwind.config.ts"));
 
@@ -83,7 +83,7 @@ function getTailwindColor() {
 	}
 }
 
-// 獲取版本號
+// 取得版本號
 function getVersion() {
 	const pkg = readFile(rootDir("package.json"), true);
 	return pkg?.version || "0.0.0";

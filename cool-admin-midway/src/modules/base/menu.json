@@ -408,7 +408,7 @@
                 ]
             },
             {
-                "name": "平台統計",
+                "name": "平臺統計",
                 "router": "/crm/platform/statistics",
                 "perms": "crm:platformStatistics:page",
                 "type": 1,

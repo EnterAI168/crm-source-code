@@ -79,13 +79,13 @@ export class DictInfoService extends BaseService {
    * @returns
    */
   async getValues(value: string | string[], key: string) {
-    // 獲取字典型別
+    // 取得字典型別
     const type = await this.dictTypeEntity.findOneBy({ key });
     if (!type) {
       return null; // 或者適當的錯誤處理
     }
 
-    // 根據typeId獲取所有相關的字典資訊
+    // 根據typeId取得所有相關的字典資訊
     const dictValues = await this.dictInfoEntity.find({
       where: { typeId: type.id },
     });

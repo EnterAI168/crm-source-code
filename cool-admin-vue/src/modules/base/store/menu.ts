@@ -70,7 +70,7 @@ export const useMenuStore = defineStore('menu', function () {
 
 	// 設定檢視
 	function setRoutes(list: Menu.List) {
-		// 獲取第一個選單路徑
+		// 取得第一個選單路徑
 		const fp = getPath(group.value);
 
 		// 查詢符合路由
@@ -111,7 +111,7 @@ export const useMenuStore = defineStore('menu', function () {
 		storage.set('base.menuGroup', group.value);
 	}
 
-	// 獲取選單，權限資訊
+	// 取得選單，權限資訊
 	async function get() {
 		function next(res: { menus: Menu.List; perms?: any[] }) {
 			// 所有選單
@@ -165,7 +165,7 @@ export const useMenuStore = defineStore('menu', function () {
 		}
 	}
 
-	// 獲取選單路徑
+	// 取得選單路徑
 	function getPath(data: Menu.Item | Menu.List) {
 		const list = isArray(data) ? data : [data];
 

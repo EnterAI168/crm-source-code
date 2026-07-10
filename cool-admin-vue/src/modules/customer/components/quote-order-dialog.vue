@@ -144,7 +144,7 @@
 						</el-form-item>
 					</el-col>
 					<el-col :span="12">
-						<el-form-item label="郵箱">
+						<el-form-item label="信箱">
 							<el-input
 								:model-value="currentCustomerInfo.email || '--'"
 								readonly
@@ -615,7 +615,7 @@
 								/>
 							</template>
 						</el-table-column>
-						<el-table-column label="自動發送付款通知" width="150">
+						<el-table-column label="自動傳送付款通知" width="150">
 							<template #default="{ row }">
 								<el-switch
 									v-model="row.autoSendEmail"
@@ -989,7 +989,7 @@ const isApplyAuditDisabled = computed(() => {
 });
 const quoteStatusLabel = computed(() => {
 	if (quoteBossAuditStep.value?.state === 'current') {
-		return '待老板審批';
+		return '待老闆審批';
 	}
 	if (
 		quoteBossAuditStep.value?.state === 'error' ||
@@ -1016,27 +1016,27 @@ const quoteBossAuditStep = computed(() => {
 	}
 
 	let state = 'pending';
-	let desc = isEditMode.value ? '尚未送審' : '儲存後送交老板審批';
+	let desc = isEditMode.value ? '尚未送審' : '儲存後送交老闆審批';
 
 	if (status === 1) {
 		state = 'current';
-		desc = '等待老板審批';
+		desc = '等待老闆審批';
 	} else if (status === 2) {
 		state = 'done';
-		desc = '老板審批通過';
+		desc = '老闆審批通過';
 	} else if (status === 3) {
 		state = 'done';
-		desc = '老板同意並扣除獎金';
+		desc = '老闆同意並扣除獎金';
 	} else if (status === 4) {
 		state = 'error';
-		desc = '老板審批未通過';
+		desc = '老闆審批未通過';
 	} else if (predictedReason) {
-		desc = '目前優惠比例需老板審批';
+		desc = '目前優惠比例需老闆審批';
 	}
 
 	return {
 		key: 'boss-audit',
-		label: '老板審批',
+		label: '老闆審批',
 		desc,
 		state,
 		lineState: state === 'done' ? 'done' : state === 'error' ? 'error' : 'pending'
@@ -1096,20 +1096,20 @@ const quoteDepartmentWorkflowRows = computed(() => {
 });
 const quoteWorkflowSummary = computed(() => {
 	if (quoteBossAuditStep.value?.state === 'error') {
-		return '老板審批未通過，請重新調整優惠比例後再送審。';
+		return '老闆審批未通過，請重新調整優惠比例後再送審。';
 	}
 	if (quoteBossAuditStep.value?.state === 'current') {
-		return '此報價單優惠比例已送交老板審批，通過後才會進入部門審核。';
+		return '此報價單優惠比例已送交老闆審批，通過後才會進入部門審核。';
 	}
 	if (!isEditMode.value) {
 		if (quoteBossAuditStep.value) {
-			return '尚未儲存，儲存後會先送交老板審批，通過後再進入部門審核。';
+			return '尚未儲存，儲存後會先送交老闆審批，通過後再進入部門審核。';
 		}
 		return '尚未儲存，儲存後依產品所屬部門送交口碑或整合部門審核。';
 	}
 	if (!quoteDepartmentWorkflowRows.value.length) {
 		if (quoteBossAuditStep.value?.state === 'done') {
-			return '老板審批已完成，待建立部門審核流程。';
+			return '老闆審批已完成，待建立部門審核流程。';
 		}
 		return '此報價單尚未產生部門審核流程，請確認產品已設定內勤部門。';
 	}
@@ -2246,13 +2246,13 @@ function getDiscountAuditTip() {
 	const discountRate = getDiscountRate();
 	if (Number(currentCustomerInfo.value?.isVip || 0) === 1) {
 		return discountRate > 15
-			? '優惠比例超過VIP最大額度15%，需要老板審批，審批是否扣除獎金'
+			? '優惠比例超過VIP最大額度15%，需要老闆審批，審批是否扣除獎金'
 			: '';
 	}
 
 	const threshold = normalizePercentValue(quoteDiscountRateThreshold.value);
 	return threshold > 0 && discountRate > threshold
-		? '優惠比例超過預設閾值，需要老板審批，審批是否扣除獎金'
+		? '優惠比例超過預設閾值，需要老闆審批，審批是否扣除獎金'
 		: '';
 }
 
@@ -2672,7 +2672,7 @@ async function submitDialog(options: { submitAudit?: boolean } = {}) {
 				? await quoteService.update(payload)
 				: await quoteService.add(payload);
 		if (result?.discountAuditRequired) {
-			ElMessage.warning(result?.discountAuditReason || '優惠比例需要老板審批');
+			ElMessage.warning(result?.discountAuditReason || '優惠比例需要老闆審批');
 		} else if (options.submitAudit) {
 			const savedId = Number(result?.id || currentQuoteId.value || 0);
 			if (!savedId) {

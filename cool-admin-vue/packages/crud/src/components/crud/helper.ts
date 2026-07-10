@@ -14,7 +14,7 @@ export function useHelper({ config, crud, mitt }: Options) {
 	// 重新整理隨機值，避免髒資料
 	const refreshRd = ref(0);
 
-	// 獲取權限
+	// 取得權限
 	function getPermission(key: "page" | "list" | "info" | "update" | "add" | "delete"): boolean {
 		return Boolean(crud.permission[key]);
 	}
@@ -215,7 +215,7 @@ export function useHelper({ config, crud, mitt }: Options) {
 		});
 	}
 
-	// 獲取請求參數
+	// 取得請求參數
 	function getParams() {
 		return crud.params;
 	}

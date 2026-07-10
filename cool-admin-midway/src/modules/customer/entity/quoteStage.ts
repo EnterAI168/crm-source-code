@@ -43,7 +43,7 @@ export class CrmQuoteOrderStageEntity extends BaseEntity {
   @Column({ comment: '是否手動開票 0-否 1-是', default: 0, type: 'tinyint' })
   needManualInvoice: number;
 
-  @Column({ comment: '是否自動發送郵箱 0-否 1-是', default: 1, type: 'tinyint' })
+  @Column({ comment: '是否自動傳送信箱 0-否 1-是', default: 1, type: 'tinyint' })
   autoSendEmail: number;
 
   @Column({

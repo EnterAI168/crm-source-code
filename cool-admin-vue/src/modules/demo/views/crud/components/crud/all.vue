@@ -53,7 +53,7 @@
 						/>
 
 						<!-- 關鍵字搜尋 -->
-						<cl-search-key placeholder="搜尋姓名、手機號" :width="250" />
+						<cl-search-key placeholder="搜尋姓名、手機號碼" :width="250" />
 
 						<!-- 高階搜尋按鈕 -->
 						<cl-adv-btn />
@@ -212,7 +212,7 @@ const Upsert = useUpsert<Eps.UserInfoEntity>({
 			}
 		},
 		{
-			label: '賬號',
+			label: '帳號',
 			group: 'base',
 			prop: 'account',
 			component: {
@@ -275,7 +275,7 @@ const Upsert = useUpsert<Eps.UserInfoEntity>({
 			},
 			children: [
 				{
-					label: '手機號',
+					label: '手機號碼',
 					prop: 'phone',
 					component: {
 						name: 'el-input'
@@ -419,7 +419,7 @@ const Table = useTable({
 			minWidth: 120
 		},
 		{
-			label: '手機號',
+			label: '手機號碼',
 			prop: 'phone',
 			minWidth: 140,
 
@@ -428,13 +428,13 @@ const Table = useTable({
 				component: {
 					name: 'el-input',
 					props: {
-						placeholder: '搜尋手機號'
+						placeholder: '搜尋手機號碼'
 					}
 				}
 			}
 		},
 		{
-			label: '賬號',
+			label: '帳號',
 			prop: 'account',
 			minWidth: 150
 		},
@@ -531,7 +531,7 @@ const AdvSearch = useAdvSearch({
 			}
 		},
 		{
-			label: '手機號',
+			label: '手機號碼',
 			prop: 'phone',
 			component: {
 				name: 'el-input',

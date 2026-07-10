@@ -5,7 +5,7 @@ export default {
 	suffix: '_deadtime',
 
 	/**
-	 * 獲取
+	 * 取得
 	 * @param {string} key 關鍵字
 	 */
 	get(key: string) {
@@ -13,7 +13,7 @@ export default {
 	},
 
 	/**
-	 * 獲取全部
+	 * 取得全部
 	 */
 	info() {
 		const data: Record<string, any> = {};
@@ -50,7 +50,7 @@ export default {
 	},
 
 	/**
-	 * 獲取到期時間
+	 * 取得到期時間
 	 * @param {string} key 關鍵字
 	 */
 	getExpiration(key: string) {

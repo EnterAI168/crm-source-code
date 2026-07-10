@@ -2,7 +2,7 @@ import { assign } from "lodash-es";
 import { TestService } from "../test/service";
 import { watch, ref, nextTick, getCurrentInstance, type Ref, inject, provide } from "vue";
 
-// 獲取上級
+// 取得上級
 function useParent(name: string, r: Ref) {
 	const d = getCurrentInstance();
 

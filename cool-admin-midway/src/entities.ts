@@ -1,4 +1,4 @@
-// 自动生成的文件，请勿手动修改
+// 自動生成的檔案，請勿手動修改
 import * as entity0 from './modules/user/entity/wx';
 import * as entity1 from './modules/user/entity/info';
 import * as entity2 from './modules/user/entity/address';

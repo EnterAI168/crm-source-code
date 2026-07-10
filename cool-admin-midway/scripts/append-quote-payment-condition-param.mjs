@@ -9,7 +9,7 @@ const cfg = {
 };
 
 const keyName = 'quote_payment_condition';
-const defaultValue = `付款方式：專案金額(含營業稅)共計新臺幣 {finalAmount} 元整，甲方於收到發票後，30 天內以匯款方式支付款項至乙方指定帳戶，匯款後提供後五碼及匯款日期以便甲方核對。
+const defaultValue = `付款方式：專案金額(含營業稅)共計新台幣 {finalAmount} 元整，甲方於收到發票後，30 天內以匯款方式支付款項至乙方指定帳號，匯款後提供後五碼及匯款日期以便甲方核對。
 *本欄請注意：本單須雙方簽立完成後，送交乙方才會始得進行委刊作業。`;
 
 function nowStr() {
@@ -26,7 +26,7 @@ async function main() {
       [keyName]
     );
     if (existing) {
-      console.log(`付款條件引數已存在，id=${existing.id}，未覆蓋現有配置`);
+      console.log(`付款條件參數已存在，id=${existing.id}，未覆蓋現有配置`);
       return;
     }
 
@@ -37,7 +37,7 @@ async function main() {
        VALUES (?, ?, NULL, ?, '報價單付款條件', ?, 0, '報價單預覽和PDF匯出使用；支援佔位符 {finalAmount} 或 {amount}')`,
       [now, now, keyName, defaultValue]
     );
-    console.log(`付款條件引數已寫入，id=${result.insertId}`);
+    console.log(`付款條件參數已寫入，id=${result.insertId}`);
   } finally {
     await conn.end();
   }

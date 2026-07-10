@@ -227,7 +227,7 @@
             "childMenus": []
           },
           {
-            "name": "發送郵件",
+            "name": "傳送郵件",
             "router": null,
             "perms": "crm:customerPool:sendMail",
             "type": 2,
@@ -579,7 +579,7 @@
             "childMenus": []
           },
           {
-            "name": "發送發票",
+            "name": "傳送發票",
             "router": null,
             "perms": "crm:quoteInvoice:send",
             "type": 2,

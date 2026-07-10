@@ -18,14 +18,14 @@
 				</div>
 
 				<div class="panel">
-					<div class="panel__title">流程分布</div>
+					<div class="panel__title">流程分佈</div>
 					<v-chart class="status-chart" :option="statusChartOption" autoresize />
 				</div>
 			</section>
 
 			<section class="content-grid">
 				<div class="panel">
-					<div class="panel__title">部門案件分布</div>
+					<div class="panel__title">部門案件分佈</div>
 					<v-chart class="department-chart" :option="departmentChartOption" autoresize />
 				</div>
 

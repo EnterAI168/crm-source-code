@@ -74,7 +74,7 @@ declare type RemoveIndex<T> = {
 // 任用列表
 declare type List<T> = Array<DeepPartial<T> | (() => DeepPartial<T>)>;
 
-// 獲取keys
+// 取得keys
 declare type PropKey<T> = keyof RemoveIndex<T> | (string & {});
 
 // 任意字串

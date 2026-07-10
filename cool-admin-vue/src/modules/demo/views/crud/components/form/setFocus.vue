@@ -54,7 +54,7 @@ function open() {
 			]
 		},
 		[
-			// 【很重要】全域性已新增該外掛
+			// 【很重要】全域已新增該外掛
 			// Plugins.Form.setFocus('age'), // 指定自動聚焦的欄位
 			Plugins.Form.setFocus('') // 停用自動聚焦
 		]

@@ -257,7 +257,7 @@ export class UserWxService extends BaseService {
   async miniPhone(code, encryptedData, iv) {
     const session = await this.miniSession(code);
     if (session.errcode) {
-      throw new CoolCommException('獲取手機號失敗，請重新整理重試');
+      throw new CoolCommException('取得手機號碼失敗，請重新整理重試');
     }
     const result = await this.miniDecryptData(
       encryptedData,

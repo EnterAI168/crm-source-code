@@ -84,7 +84,7 @@ export class CoolPlugin extends BasePluginHook implements BaseUpload {
     const basePath = pUploadPath();
     const dateDir = moment().format('YYYYMMDD');
 
-    // 從url獲取副檔名
+    // 從url取得副檔名
     const extend = path.extname(fileName ? fileName : url);
 
     // 驗證檔名安全性

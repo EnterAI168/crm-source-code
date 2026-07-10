@@ -306,7 +306,7 @@
 							</tr>
 							<tr>
 								<td colspan="2" class="invoice-total-words-label">
-									<div>總計新臺幣</div>
+									<div>總計新台幣</div>
 									<div>(中文大寫)</div>
 								</td>
 								<td colspan="2" class="invoice-total-words-value">

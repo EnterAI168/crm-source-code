@@ -98,7 +98,7 @@ export function removeClass(el: Element, name: string) {
 	}
 }
 
-// 獲取值
+// 取得值
 export function getValue<T = any>(value: T | Vue.Ref<T> | ((d: any) => T), data?: any): T {
 	if (isRef(value)) {
 		return toValue(value) as T;

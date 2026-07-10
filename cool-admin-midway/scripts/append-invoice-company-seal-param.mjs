@@ -24,7 +24,7 @@ async function main() {
       [keyName]
     );
     if (existing) {
-      console.log(`發票公章引數已存在，id=${existing.id}，未覆蓋現有配置`);
+      console.log(`發票公章參數已存在，id=${existing.id}，未覆蓋現有配置`);
       return;
     }
 
@@ -32,10 +32,10 @@ async function main() {
     const [result] = await conn.query(
       `INSERT INTO base_sys_param
         (createTime, updateTime, tenantId, keyName, name, data, dataType, remark)
-       VALUES (?, ?, NULL, ?, '發票公章', '', 2, '發票審核與發票相關檔案使用；引數型別選擇檔案，請上傳發票公章圖片')`,
+       VALUES (?, ?, NULL, ?, '發票公章', '', 2, '發票審核與發票相關檔案使用；參數型別選擇檔案，請上傳發票公章圖片')`,
       [now, now, keyName]
     );
-    console.log(`發票公章引數已寫入，id=${result.insertId}`);
+    console.log(`發票公章參數已寫入，id=${result.insertId}`);
   } finally {
     await conn.end();
   }

@@ -10,7 +10,7 @@ const useDictStore = defineStore('dict', () => {
 	// 物件資料
 	const data = reactive<Dict.Data>({});
 
-	// 獲取
+	// 取得
 	function get(name: Dict.Key, sort?: 'desc' | 'asc') {
 		return computed(() => orderBy(data[name] || [], 'orderNum', sort));
 	}

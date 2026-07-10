@@ -48,7 +48,7 @@ function select(index: number) {
 	// 選中的組
 	const item = list.value[index];
 
-	// 獲取第一個選單地址
+	// 取得第一個選單地址
 	const url = menu.getPath(item);
 
 	if (url) {

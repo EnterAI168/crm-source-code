@@ -217,7 +217,7 @@ export class TaskLocalService extends BaseService {
   }
 
   /**
-   * 獲取下次執行時間
+   * 取得下次執行時間
    */
   async getNextRunTime(jobId) {
     const job = this.cronJobs.get(jobId);
@@ -292,7 +292,7 @@ export class TaskLocalService extends BaseService {
   }
 
   /**
-   * 獲取任務詳情
+   * 取得任務詳情
    */
   async info(id: any): Promise<any> {
     const info = await this.taskInfoEntity.findOneBy({ id });

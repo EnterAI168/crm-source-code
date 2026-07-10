@@ -12,7 +12,7 @@
 			<!-- 自定義表格元件 -->
 			<cl-dialog v-model="visible" title="行編輯" width="80%">
 				<cl-crud ref="Crud">
-					<el-text class="mb-4" tag="p">點選姓名、手機號可以進行編輯</el-text>
+					<el-text class="mb-4" tag="p">點選姓名、手機號碼可以進行編輯</el-text>
 
 					<cl-row>
 						<cl-table ref="Table" />
@@ -64,7 +64,7 @@ const Table = useTable({
 			edit: true
 		},
 		{
-			label: '手機號',
+			label: '手機號碼',
 			prop: 'phone',
 			minWidth: 140,
 			// 【很重要】行編輯，開啟、關閉

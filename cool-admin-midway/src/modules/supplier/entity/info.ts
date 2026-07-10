@@ -34,7 +34,7 @@ export class CrmSupplierInfoEntity extends BaseEntity {
   @Column({ comment: '地址', nullable: true, length: 500 })
   address: string;
 
-  @Column({ comment: '郵箱', nullable: true, length: 120 })
+  @Column({ comment: '信箱', nullable: true, length: 120 })
   email: string;
 
   @Column({ comment: '匯款資訊', nullable: true, length: 500 })

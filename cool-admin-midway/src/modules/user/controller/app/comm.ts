@@ -18,7 +18,7 @@ export class UserCommController extends BaseController {
   userWxService: UserWxService;
 
   @CoolTag(TagTypes.IGNORE_TOKEN)
-  @Post('/wxMpConfig', { summary: '獲取微信公眾號配置' })
+  @Post('/wxMpConfig', { summary: '取得微信公眾號配置' })
   public async getWxMpConfig(@Body('url') url: string) {
     return this.ok(await this.userWxService.getWxMpConfig(url));
   }

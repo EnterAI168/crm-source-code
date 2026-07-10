@@ -349,9 +349,9 @@ export class CrmPerformanceService extends BaseService {
         `
         SELECT
           CASE q.sendType
-            WHEN 1 THEN '郵件發送'
+            WHEN 1 THEN '郵件傳送'
             WHEN 2 THEN '手動標記'
-            ELSE '未發送'
+            ELSE '未傳送'
           END AS name,
           COUNT(1) AS value
         FROM crm_quote_order q

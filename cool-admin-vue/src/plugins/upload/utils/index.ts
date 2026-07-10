@@ -32,12 +32,12 @@ export function fileRule(path?: string) {
 	return (d || rules.find(e => e.type == 'file')!)!;
 }
 
-// 獲取規則
+// 取得規則
 export function getRule(type?: string) {
 	return (rules.find(e => e.type == type?.replace('application/', '')) || last(rules))!;
 }
 
-// 獲取型別
+// 取得型別
 export function getType(path: string) {
 	return fileRule(path).type;
 }
@@ -68,7 +68,7 @@ export function pathJoin(...parts: string[]): string {
 		// 如果是絕對路徑，使用斜槓連線部分
 		return normalizedParts.join('/');
 	} else {
-		// 如果是相對路徑，使用平台特定的分隔符連線部分
+		// 如果是相對路徑，使用平臺特定的分隔符連線部分
 		return normalizedParts.join('/');
 	}
 }

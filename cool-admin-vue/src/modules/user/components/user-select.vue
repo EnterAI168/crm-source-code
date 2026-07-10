@@ -38,7 +38,7 @@ const columns = ref([
 	},
 	{
 		prop: 'phone',
-		label: t('手機號'),
+		label: t('手機號碼'),
 		minWidth: 120
 	},
 	{

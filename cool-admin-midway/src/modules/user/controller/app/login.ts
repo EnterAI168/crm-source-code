@@ -41,13 +41,13 @@ export class AppUserLoginController extends BaseController {
   }
 
   @CoolTag(TagTypes.IGNORE_TOKEN)
-  @Post('/phone', { summary: '手機號登入' })
+  @Post('/phone', { summary: '手機號碼登入' })
   async phone(@Body('phone') phone: string, @Body('smsCode') smsCode: string) {
     return this.ok(await this.userLoginService.phoneVerifyCode(phone, smsCode));
   }
 
   @CoolTag(TagTypes.IGNORE_TOKEN)
-  @Post('/uniPhone', { summary: '一鍵手機號登入' })
+  @Post('/uniPhone', { summary: '一鍵手機號碼登入' })
   async uniPhone(
     @Body('access_token') access_token: string,
     @Body('openid') openid: string,
@@ -59,7 +59,7 @@ export class AppUserLoginController extends BaseController {
   }
 
   @CoolTag(TagTypes.IGNORE_TOKEN)
-  @Post('/miniPhone', { summary: '繫結小程式手機號' })
+  @Post('/miniPhone', { summary: '繫結小程式手機號碼' })
   async miniPhone(@Body() body) {
     const { code, encryptedData, iv } = body;
     return this.ok(

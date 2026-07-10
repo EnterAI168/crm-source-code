@@ -20,10 +20,10 @@
 
 					<cl-row>
 						<!-- 使用方法 showColumn 顯示 -->
-						<el-button @click="showColumn('account')">顯示賬號</el-button>
+						<el-button @click="showColumn('account')">顯示帳號</el-button>
 
 						<!-- 使用方法 hideColumn 隱藏 -->
-						<el-button @click="hideColumn('account')">隱藏賬號</el-button>
+						<el-button @click="hideColumn('account')">隱藏帳號</el-button>
 					</cl-row>
 
 					<cl-row>
@@ -81,7 +81,7 @@ const Table = useTable({
 			})
 		},
 		{
-			label: '賬號',
+			label: '帳號',
 			prop: 'account',
 			minWidth: 140,
 			hidden: true // 預設 false
@@ -92,7 +92,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '手機號',
+			label: '手機號碼',
 			prop: 'phone',
 			minWidth: 140
 		},

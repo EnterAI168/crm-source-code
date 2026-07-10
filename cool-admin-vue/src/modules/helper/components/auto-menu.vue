@@ -149,7 +149,7 @@ function open() {
 			async submit(data, { done, close }) {
 				const entity = list.find(e => e.value == data.entity.join('/'));
 
-				// 發送訊息
+				// 傳送訊息
 				refs.aiCode.send(
 					'createVue',
 					{

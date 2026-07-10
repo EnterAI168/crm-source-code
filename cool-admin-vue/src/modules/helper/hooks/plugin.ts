@@ -55,7 +55,7 @@ export const usePlugin = () => {
 				})
 				.then(res => {
 					if (!res) {
-						// 發送事件
+						// 傳送事件
 						mitt.emit('plugin.refresh');
 
 						// 標題

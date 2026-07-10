@@ -21,9 +21,9 @@ const props = defineProps({
 	prop: String // 表單項配置的 prop
 });
 
-// 使用 useForm，能直接獲取到上級的表單例項，
+// 使用 useForm，能直接取得到上級的表單例項，
 // 比如操作表單的 Form.value?.submit、Form.value?.close等
-// 獲取表單值，Form.value?.form
+// 取得表單值，Form.value?.form
 const Form = useForm();
 
 // 表單值，包一層不會太難受

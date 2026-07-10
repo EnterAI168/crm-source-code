@@ -47,7 +47,7 @@ function open() {
 				}
 			},
 			{
-				label: '賬號',
+				label: '帳號',
 				prop: 'account',
 				component: {
 					name: 'el-input'

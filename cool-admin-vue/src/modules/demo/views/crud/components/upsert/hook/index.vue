@@ -67,7 +67,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '手機號',
+			label: '手機號碼',
 			prop: 'phone',
 			minWidth: 140
 		},
@@ -109,7 +109,7 @@ const Upsert = useUpsert({
 			}
 		},
 		{
-			label: '手機號',
+			label: '手機號碼',
 			prop: 'phone',
 			component: {
 				name: 'el-input'
@@ -136,7 +136,7 @@ const Upsert = useUpsert({
 					form[prop] = undefined;
 				}
 			},
-			// 註冊到全域性後可直接使用，註冊程式碼看 ./reg-pca2.ts
+			// 註冊到全域後可直接使用，註冊程式碼看 ./reg-pca2.ts
 			// hook: "pca2",
 
 			component: {

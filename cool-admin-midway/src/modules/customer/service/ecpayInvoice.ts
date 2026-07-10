@@ -98,7 +98,7 @@ export class CrmEcpayInvoiceService extends BaseService {
 
     return {
       ok: true,
-      message: '綠界發票配置診斷通過：AES 可正常解密，賬號/Key/IV/環境匹配',
+      message: '綠界發票配置診斷通過：AES 可正常解密，帳號/Key/IV/環境匹配',
       diagnostic: result.diagnostic,
       response: result.data,
     };
@@ -186,14 +186,14 @@ export class CrmEcpayInvoiceService extends BaseService {
     this.validateCryptoConfig(config);
 
     const result = await this.postAesJson(config, {
-      actionName: '發送通知',
+      actionName: '傳送通知',
       endpoint: this.buildEndpoint(config.endpoint, '/B2BInvoice/Notify'),
       data: this.buildNotifyData(config, options),
     });
     const decrypted = result.data;
     if (Number(decrypted.RtnCode) !== 1) {
       throw new CoolCommException(
-        `綠界發票發送通知失敗：${decrypted.RtnMsg || decrypted.RtnCode || '業務錯誤'}`
+        `綠界發票傳送通知失敗：${decrypted.RtnMsg || decrypted.RtnCode || '業務錯誤'}`
       );
     }
     return decrypted;
@@ -426,7 +426,7 @@ export class CrmEcpayInvoiceService extends BaseService {
     const customerEmail = String(options.customerEmail || '').trim();
     const customerPhone = String(options.customerPhone || '').trim();
     if (customerEmail && !this.isValidEmail(customerEmail)) {
-      throw new CoolCommException('客戶郵箱格式不正確，無法開立綠界發票');
+      throw new CoolCommException('客戶信箱格式不正確，無法開立綠界發票');
     }
 
     const customerIdentifier = String(options.customerIdentifier || '')
@@ -527,7 +527,7 @@ export class CrmEcpayInvoiceService extends BaseService {
     }
     const email = String(options.customerEmail || '').trim();
     if (!email || !this.isValidEmail(email)) {
-      throw new CoolCommException('B2B發票交易對象需填寫有效買方郵箱，無法開立綠界發票');
+      throw new CoolCommException('B2B發票交易對象需填寫有效買方信箱，無法開立綠界發票');
     }
     const companyName =
       String(options.customerName || '').trim().slice(0, 60) ||
@@ -571,15 +571,15 @@ export class CrmEcpayInvoiceService extends BaseService {
   ) {
     const invoiceNumber = String(options.invoiceNumber || '').trim();
     if (!invoiceNumber) {
-      throw new CoolCommException('綠界發票號碼為空，無法發送通知');
+      throw new CoolCommException('綠界發票號碼為空，無法傳送通知');
     }
     const invoiceDate = this.normalizeInvoiceDate(options.invoiceDate);
     if (!invoiceDate) {
-      throw new CoolCommException('綠界發票日期為空，無法發送通知');
+      throw new CoolCommException('綠界發票日期為空，無法傳送通知');
     }
     const notifyMail = String(options.notifyMail || '').trim();
     if (!notifyMail || !this.isValidEmail(notifyMail)) {
-      throw new CoolCommException('買方郵箱為空或格式不正確，無法發送綠界通知');
+      throw new CoolCommException('買方信箱為空或格式不正確，無法傳送綠界通知');
     }
     return {
       MerchantID: config.merchantId,
@@ -1007,7 +1007,7 @@ export class CrmEcpayInvoiceService extends BaseService {
 
   private isB2bCustomerExistsMessage(message: any) {
     const text = String(message || '');
-    return ['已存在', '已建立', '重複', '重复'].some(item => text.includes(item));
+    return ['已存在', '已建立', '重複', '重複'].some(item => text.includes(item));
   }
 
   private isValidTaiwanBusinessNumber(value: string) {

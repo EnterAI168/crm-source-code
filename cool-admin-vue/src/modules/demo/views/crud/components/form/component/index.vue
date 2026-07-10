@@ -50,15 +50,15 @@ function open() {
 			{
 				label: '暱稱',
 				prop: 'name',
-				// 元件配置方式1：標籤名（方便，但是不建議元件全域性註冊）
+				// 元件配置方式1：標籤名（方便，但是不建議元件全域註冊）
 				value: '神仙',
 				component: {
-					// 必須是“全域性註冊”的元件名，如 element-plus 的 el-input、el-date-picker 等
+					// 必須是“全域註冊”的元件名，如 element-plus 的 el-input、el-date-picker 等
 					name: 'el-input'
 				}
 			},
 			{
-				label: '手機號',
+				label: '手機號碼',
 				prop: 'phone',
 				value: '13255022000',
 				component: {
@@ -81,7 +81,7 @@ function open() {
 					name: 'slot-age'
 				}
 			},
-			// -- start 元件配置方式3：元件例項（不想全域性註冊，但又想元件化）
+			// -- start 元件配置方式3：元件例項（不想全域註冊，但又想元件化）
 			{
 				label: '工作',
 				prop: 'work',

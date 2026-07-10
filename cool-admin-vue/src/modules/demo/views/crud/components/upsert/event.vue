@@ -69,7 +69,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '手機號',
+			label: '手機號碼',
 			prop: 'phone',
 			minWidth: 140
 		},
@@ -104,7 +104,7 @@ const Upsert = useUpsert({
 			}
 		},
 		{
-			label: '手機號',
+			label: '手機號碼',
 			prop: 'phone',
 			component: {
 				name: 'el-input'
@@ -131,9 +131,9 @@ const Upsert = useUpsert({
 		console.log('onOpen');
 	},
 
-	// 獲取詳情，編輯的時候會觸發
+	// 取得詳情，編輯的時候會觸發
 	async onInfo(data, { next, done }) {
-		// 不配置 onInfo 的時候預設執行 next(data)，呼叫 service 的 info 介面獲取詳情
+		// 不配置 onInfo 的時候預設執行 next(data)，呼叫 service 的 info 介面取得詳情
 		// next(data);
 
 		// 自定義，需要對請求資料進行處理或者返回處理後的資料
@@ -174,7 +174,7 @@ const Upsert = useUpsert({
 		// });
 
 		// 場景2：提交前、後的操作
-		// 之前，模擬獲取 userId
+		// 之前，模擬取得 userId
 		const userId = await service.base.sys.user.info({ id: 1 });
 
 		// 返回值

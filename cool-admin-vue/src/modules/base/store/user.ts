@@ -17,7 +17,7 @@ export const useUserStore = defineStore('user', function () {
 		refreshToken: string;
 		refreshExpire: number;
 	}) {
-		// 切換賬號時強制清理選單快取，避免沿用上一個賬號權限
+		// 切換帳號時強制清理選單快取，避免沿用上一個帳號權限
 		storage.remove('base.menuGroup');
 		storage.remove('base.menuPerms');
 
@@ -73,7 +73,7 @@ export const useUserStore = defineStore('user', function () {
 		router.push('/login');
 	}
 
-	// 獲取使用者資訊
+	// 取得使用者資訊
 	async function get() {
 		return service.base.comm.person().then(res => {
 			set(res);

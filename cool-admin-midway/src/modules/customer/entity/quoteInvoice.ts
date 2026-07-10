@@ -57,7 +57,7 @@ export class CrmQuoteInvoiceEntity extends BaseEntity {
   @Column({ comment: '統一編號', nullable: true, length: 50 })
   taxNumber: string;
 
-  @Column({ comment: '郵箱', nullable: true, length: 100 })
+  @Column({ comment: '信箱', nullable: true, length: 100 })
   email: string;
 
   @Column({ comment: '業務員ID', nullable: true })
@@ -117,19 +117,19 @@ export class CrmQuoteInvoiceEntity extends BaseEntity {
   @Column({ comment: '綠界作廢返回內容', nullable: true, type: 'text' })
   ecpayInvalidResponse: string;
 
-  @Column({ comment: '是否自動發送郵箱 0-否 1-是', default: 1, type: 'tinyint' })
+  @Column({ comment: '是否自動傳送信箱 0-否 1-是', default: 1, type: 'tinyint' })
   autoSendEmail: number;
 
-  @Column({ comment: '預計發送時間', nullable: true, length: 30 })
+  @Column({ comment: '預計傳送時間', nullable: true, length: 30 })
   scheduledSendTime: string;
 
-  @Column({ comment: '郵件發送狀態 0-待發送 1-發送中 2-已發送 3-發送失敗', default: 0, type: 'tinyint' })
+  @Column({ comment: '郵件傳送狀態 0-待傳送 1-傳送中 2-已傳送 3-傳送失敗', default: 0, type: 'tinyint' })
   sendStatus: number;
 
-  @Column({ comment: '郵件發送時間', nullable: true, length: 30 })
+  @Column({ comment: '郵件傳送時間', nullable: true, length: 30 })
   sentTime: string;
 
-  @Column({ comment: '郵件發送失敗原因', nullable: true, type: 'text' })
+  @Column({ comment: '郵件傳送失敗原因', nullable: true, type: 'text' })
   sendError: string;
 
   @Column({ comment: '作廢時間', nullable: true, length: 30 })

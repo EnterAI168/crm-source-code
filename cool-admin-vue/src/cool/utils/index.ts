@@ -9,12 +9,12 @@ export function firstUpperCase(value: string): string {
 	});
 }
 
-// 獲取方法名
+// 取得方法名
 export function getNames(value: any) {
 	return Object.getOwnPropertyNames(value.constructor.prototype);
 }
 
-// 獲取位址列參數
+// 取得位址列參數
 export function getUrlParam(name: string): string | null {
 	const reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)');
 	const r = window.location.search.substr(1).match(reg);
@@ -77,7 +77,7 @@ export function getBrowser() {
 		type = 'msie';
 	}
 
-	// 平台標籤
+	// 平臺標籤
 	let tag = '';
 
 	const isTocuh =
@@ -119,7 +119,7 @@ export function getBrowser() {
 			break;
 	}
 
-	// 操作平台
+	// 操作平臺
 	const plat = ua.indexOf('android') > 0 ? 'android' : navigator.platform.toLowerCase();
 
 	// 螢幕資訊

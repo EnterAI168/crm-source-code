@@ -32,11 +32,11 @@ function open() {
 		items: [
 			{
 				label: '暱稱',
-				// 繫結值的標識，表單提交及回顯會自動根據 prop 獲取對應的值
+				// 繫結值的標識，表單提交及回顯會自動根據 prop 取得對應的值
 				prop: 'nickname',
 				// 元件繫結
 				component: {
-					// 必須是“全域性註冊”的元件名，如 element-plus 的 el-input、el-date-picker 等
+					// 必須是“全域註冊”的元件名，如 element-plus 的 el-input、el-date-picker 等
 					name: 'el-input',
 
 					// 繫結的元件參數配置，如 clearable、placeholder 等

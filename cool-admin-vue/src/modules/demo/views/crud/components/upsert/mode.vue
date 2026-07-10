@@ -68,7 +68,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '手機號',
+			label: '手機號碼',
 			prop: 'phone',
 			minWidth: 140
 		},
@@ -105,7 +105,7 @@ const Upsert = useUpsert({
 		//【很重要】只有返回方法的時候才能使用 Upsert
 		() => {
 			return {
-				label: '手機號',
+				label: '手機號碼',
 				prop: 'phone',
 
 				// 新增的時候隱藏

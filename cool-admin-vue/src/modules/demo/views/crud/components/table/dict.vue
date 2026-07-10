@@ -63,7 +63,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '手機號',
+			label: '手機號碼',
 			prop: 'phone',
 			minWidth: 140
 		},
@@ -123,7 +123,7 @@ const visible = ref(false);
 function open() {
 	visible.value = true;
 
-	// 模擬介面獲取資料
+	// 模擬介面取得資料
 	setTimeout(() => {
 		options.occupation = [
 			{

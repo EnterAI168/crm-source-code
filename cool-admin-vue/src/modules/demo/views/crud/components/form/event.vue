@@ -30,7 +30,7 @@ function open() {
 		title: '元件事件',
 		items: [
 			{
-				label: '賬號',
+				label: '帳號',
 				prop: 'account',
 				component: {
 					name: 'el-input',
@@ -38,7 +38,7 @@ function open() {
 						// 元件內 emit 的用 on[name] 接收，如 onChange、onInput、onBlur 等
 						// 前提是元件內有觸發事件
 						onBlur() {
-							ElMessage.info('賬號檢查中');
+							ElMessage.info('帳號檢查中');
 						}
 					}
 				}

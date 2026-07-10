@@ -43,7 +43,7 @@ export class BaseSysUserEntity extends BaseEntity {
   @Column({ comment: '手機', nullable: true, length: 20 })
   phone: string;
 
-  @Column({ comment: '郵箱', nullable: true })
+  @Column({ comment: '信箱', nullable: true })
   email: string;
 
   @Column({ comment: '備註', nullable: true })

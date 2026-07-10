@@ -37,7 +37,7 @@ export class UserSmsService extends BaseService {
   }
 
   /**
-   * 發送驗證碼
+   * 傳送驗證碼
    * @param phone
    */
   async sendSms(phone) {
@@ -59,7 +59,7 @@ export class UserSmsService extends BaseService {
       }
       this.midwayCache.set(`sms:${phone}`, code, this.config.timeout * 1000);
     } catch (error) {
-      throw new CoolCommException('發送過於頻繁，請稍後再試');
+      throw new CoolCommException('傳送過於頻繁，請稍後再試');
     }
   }
 

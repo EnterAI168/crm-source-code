@@ -146,7 +146,7 @@ router.clear = function () {
 router.find = function (path: string) {
 	const { menu } = useBase();
 
-	// 獲取已註冊的路由
+	// 取得已註冊的路由
 	const registeredRoutes = router.getRoutes();
 
 	// 構建路由列表，包括已註冊的路由、選單配置和模組自定義路由
@@ -200,7 +200,7 @@ router.beforeEach(async (to, from, next) => {
 	// 等待應用配置載入完
 	await Loading.wait();
 
-	// 獲取使用者和程式資料
+	// 取得使用者和程式資料
 	const { user, process } = useBase();
 
 	// 查詢路由資訊

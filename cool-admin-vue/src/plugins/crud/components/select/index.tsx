@@ -129,12 +129,12 @@ export default defineComponent({
 			return data;
 		});
 
-		// 獲取值
+		// 取得值
 		function getValue(val: any): any | any[] {
 			if (props.allLevelsId) {
 				const ids: any[] = [];
 
-				// 獲取所有的值
+				// 取得所有的值
 				const deep = (arr: Dict.Item[], f: boolean) => {
 					arr.forEach(e => {
 						const f2 = e[props.valueKey] == val;
@@ -176,7 +176,7 @@ export default defineComponent({
 			refs.select?.focus();
 		}
 
-		// 獲取選項資料
+		// 取得選項資料
 		function refresh() {
 			let req: Promise<any> | null = null;
 

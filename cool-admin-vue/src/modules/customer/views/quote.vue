@@ -236,7 +236,7 @@
 
 	<el-dialog v-model="invoiceVisible" title="發票" width="1360px">
 		<div class="quote-invoice-tip">
-			發票財務審核通過後，系統會在開票日期當天中午12點通過郵箱發給客戶；上一張發票審核通過後才能申請下一張。
+			發票財務審核通過後，系統會在開票日期當天中午12點通過信箱發給客戶；上一張發票審核通過後才能申請下一張。
 		</div>
 
 		<div class="quote-invoice-table-wrap">
@@ -886,7 +886,7 @@ function toPlainPercent(value: any) {
 
 function getDiscountAuditStatusLabel(value: any) {
 	const status = Number(value || 0);
-	if (status === 1) return '待老板審批';
+	if (status === 1) return '待老闆審批';
 	if (status === 2) return '已同意';
 	if (status === 3) return '已同意扣獎金';
 	if (status === 4) return '已拒絕';

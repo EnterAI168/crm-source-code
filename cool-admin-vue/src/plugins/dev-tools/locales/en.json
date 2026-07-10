@@ -1,7 +1,7 @@
 {
   "代理請求": "Proxy Request",
   "字典": "Dictionary",
-  "賬號": "Account",
+  "帳號": "Account",
   "檔案": "Document",
   "重新整理": "Refresh",
   "搜尋關鍵字": "Search Keyword",
@@ -9,6 +9,6 @@
   "沒有可用的字典": "No available dictionary",
   "請新增新的字典條目": "Please add new dictionary entry",
   "去新增": "Go to add",
-  "是否刪除該賬號？": "Delete this account?",
+  "是否刪除該帳號？": "Delete this account?",
   "提示": "Tip"
 }

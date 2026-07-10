@@ -36,7 +36,7 @@ async function main() {
       [keyName]
     );
     if (existing) {
-      console.log(`報價單乙方資料引數已存在，id=${existing.id}，未覆蓋現有配置`);
+      console.log(`報價單乙方資料參數已存在，id=${existing.id}，未覆蓋現有配置`);
       return;
     }
 
@@ -47,7 +47,7 @@ async function main() {
        VALUES (?, ?, NULL, ?, '報價單乙方資料', ?, 0, '報價單預覽和PDF匯出使用，JSON格式；存摺封面圖片請單獨配置 quote_bank_cover')`,
       [now, now, keyName, JSON.stringify(defaultValue, null, 2)]
     );
-    console.log(`報價單乙方資料引數已寫入，id=${result.insertId}`);
+    console.log(`報價單乙方資料參數已寫入，id=${result.insertId}`);
   } finally {
     await conn.end();
   }

@@ -654,7 +654,7 @@ export class CrmQuoteInvoiceService extends BaseService {
 
   private async getQuoteCustomerEmail(quoteOrderId: number) {
     if (!quoteOrderId) {
-      throw new CoolCommException('報價單資訊缺失，無法發送發票郵件');
+      throw new CoolCommException('報價單資訊缺失，無法傳送發票郵件');
     }
     const rows = await this.nativeQuery(
       `
@@ -668,7 +668,7 @@ export class CrmQuoteInvoiceService extends BaseService {
     );
     const email = String(rows?.[0]?.email || '').trim();
     if (!email) {
-      throw new CoolCommException('報價單對應客戶郵箱為空，無法發送發票郵件');
+      throw new CoolCommException('報價單對應客戶信箱為空，無法傳送發票郵件');
     }
     return email;
   }
@@ -844,7 +844,7 @@ export class CrmQuoteInvoiceService extends BaseService {
       align: 'center',
       font: 'latin',
     });
-    addText('總計新臺幣', tableX + 8, footerY - 118);
+    addText('總計新台幣', tableX + 8, footerY - 118);
     addText('(中文大寫)', tableX + 8, footerY - 136);
     addText(
       this.toChineseCurrency(preview.totalAmount),

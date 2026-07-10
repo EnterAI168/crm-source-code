@@ -1,5 +1,5 @@
 /**
- * 在「報價單管理」下補充操作按鈕許可權。
+ * 在「報價單管理」下補充操作按鈕權限。
  * 已存在相同 perms 則更新名稱和排序。
  *
  * 用法：在 cool-admin-midway 目錄執行
@@ -70,7 +70,7 @@ async function main() {
       changed++;
     }
 
-    console.log(`報價單管理按鈕許可權同步完成，共處理 ${changed} 條。`);
+    console.log(`報價單管理按鈕權限同步完成，共處理 ${changed} 條。`);
   } finally {
     await conn.end();
   }

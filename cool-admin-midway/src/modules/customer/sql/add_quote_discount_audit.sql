@@ -41,7 +41,7 @@ SET @discount_audit_remark_exists := (
 SET @discount_audit_sql := IF(
   @discount_audit_status_exists = 0,
   'ALTER TABLE `crm_quote_order`
-     ADD COLUMN `discountAuditStatus` tinyint NOT NULL DEFAULT 0 COMMENT ''優惠審批狀態 0-無需審批 1-待老板審批 2-直接同意 3-同意扣除超出獎金 4-不同意'' AFTER `commission`,
+     ADD COLUMN `discountAuditStatus` tinyint NOT NULL DEFAULT 0 COMMENT ''優惠審批狀態 0-無需審批 1-待老闆審批 2-直接同意 3-同意扣除超出獎金 4-不同意'' AFTER `commission`,
      ADD COLUMN `discountAuditReason` varchar(255) NULL COMMENT ''優惠審批原因'' AFTER `discountAuditStatus`,
      ADD COLUMN `discountAuditUserId` int NULL COMMENT ''優惠審批人ID'' AFTER `discountAuditReason`,
      ADD COLUMN `discountAuditTime` varchar(20) NULL COMMENT ''優惠審批時間'' AFTER `discountAuditUserId`,

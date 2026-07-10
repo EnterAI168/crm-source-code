@@ -17,7 +17,7 @@ export class UserInfoEntity extends BaseEntity {
   nickName: string;
 
   @Index({ unique: true })
-  @Column({ comment: '手機號', nullable: true })
+  @Column({ comment: '手機號碼', nullable: true })
   phone: string;
 
   @Column({ comment: '性別', dict: ['未知', '男', '女'], default: 0 })

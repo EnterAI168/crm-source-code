@@ -145,7 +145,7 @@ async function refresh() {
 	loading.value = false;
 }
 
-// 獲取 ids
+// 取得 ids
 function rowClick(item?: Eps.BaseSysDepartmentEntity) {
 	if (!item) {
 		item = list.value[0];

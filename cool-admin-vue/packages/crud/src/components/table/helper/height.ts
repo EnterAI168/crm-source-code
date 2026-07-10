@@ -35,7 +35,7 @@ export function useHeight({ config, Table }: { Table: Vue.Ref<any>; config: ClTa
 				// 上高度
 				h += vm.$el.offsetTop;
 
-				// 獲取下高度
+				// 取得下高度
 				let n = vm.$el.nextSibling;
 
 				// 集合

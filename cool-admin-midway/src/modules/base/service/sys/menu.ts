@@ -392,7 +392,7 @@ export default () => {
     description: 'xxx',
     // 中介軟體，只對本模組有效
     middlewares: [],
-    // 中介軟體，全域性有效
+    // 中介軟體，全域有效
     globalMiddlewares: [],
     // 模組載入順序，預設為0，值越大越優先載入
     order: 0,
@@ -460,7 +460,7 @@ export default () => {
       return e.parentId == null;
     });
 
-    // 對於每個父級選單，獲取它的子選單
+    // 對於每個父級選單，取得它的子選單
     parentMenus.forEach(parent => {
       parent.childMenus = getChildMenus(parent.id);
       // 刪除不需要的欄位
@@ -487,7 +487,7 @@ export default () => {
         const childData = { ...child, parentId: parentId }; // 保持與資料庫的parentId欄位的一致性
         delete childData.childMenus; // 刪除childMenus屬性，因為我們不想將它儲存到資料庫中
 
-        // 儲存子選單並獲取其ID，以便為其子選單設定parentId
+        // 儲存子選單並取得其ID，以便為其子選單設定parentId
         const savedChild = await this.baseSysMenuEntity.save(childData);
 
         if (!_.isEmpty(child.childMenus)) {
@@ -500,7 +500,7 @@ export default () => {
       const menuData = { ...menu };
       delete menuData.childMenus; // 刪除childMenus屬性，因為我們不想將它儲存到資料庫中
 
-      // 儲存主選單並獲取其ID
+      // 儲存主選單並取得其ID
       const savedMenu = await this.baseSysMenuEntity.save(menuData);
 
       if (menu.childMenus && menu.childMenus.length > 0) {

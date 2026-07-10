@@ -31,7 +31,7 @@ export default defineComponent({
 		// 事件
 		const mitt = new Mitt(inst?.uid);
 
-		// 全域性配置
+		// 全域配置
 		const { dict, permission } = useConfig();
 
 		// 參數

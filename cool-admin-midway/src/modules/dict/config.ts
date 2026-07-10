@@ -11,7 +11,7 @@ export default () => {
     description: '資料字典等',
     // 中介軟體，只對本模組有效
     middlewares: [],
-    // 中介軟體，全域性有效
+    // 中介軟體，全域有效
     globalMiddlewares: [],
     // 模組載入順序，預設為0，值越大越優先載入
     order: 0,

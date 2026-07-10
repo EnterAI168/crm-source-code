@@ -68,13 +68,13 @@ const Table = useTable({
 			}
 		},
 		{
-			label: '手機號',
+			label: '手機號碼',
 			prop: 'phone',
 			minWidth: 140,
 
 			//【很重要】元件名方式渲染
 			component: {
-				// 元件名，元件必須全域性註冊了
+				// 元件名，元件必須全域註冊了
 				name: 'el-input',
 
 				// 傳入參數

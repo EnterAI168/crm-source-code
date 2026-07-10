@@ -81,9 +81,9 @@ export default (): ModuleConfig => {
 			}
 
 			await hasToken(async () => {
-				// 獲取使用者資訊
+				// 取得使用者資訊
 				user.get();
-				// 獲取選單權限
+				// 取得選單權限
 				await menu.get();
 			});
 

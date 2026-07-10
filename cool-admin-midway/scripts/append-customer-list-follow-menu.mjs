@@ -1,6 +1,6 @@
 /**
- * 在「客戶列表」選單下補充「跟進記錄」按鈕許可權（crm:customerList:follow）。
- * 適用於選單已存在但庫中缺少該子許可權的情況（initMenu 不會自動補全子節點）。
+ * 在「客戶列表」選單下補充「跟進記錄」按鈕權限（crm:customerList:follow）。
+ * 適用於選單已存在但庫中缺少該子權限的情況（initMenu 不會自動補全子節點）。
  *
  * 用法（在 cool-admin-midway 目錄）：
  *   node scripts/append-customer-list-follow-menu.mjs
@@ -45,7 +45,7 @@ async function main() {
       [listId, PERMS]
     );
     if (exists) {
-      console.log('「跟進記錄」許可權已存在 (id=%s)，跳過。', exists.id);
+      console.log('「跟進記錄」權限已存在 (id=%s)，跳過。', exists.id);
       return;
     }
 
@@ -57,7 +57,7 @@ async function main() {
       [t, t, listId, '跟進記錄', PERMS]
     );
     console.log(
-      '已寫入「跟進記錄」許可權 (parentId=%s, perms=%s)。請在角色許可權中勾選後重新整理頁面。',
+      '已寫入「跟進記錄」權限 (parentId=%s, perms=%s)。請在角色權限中勾選後重新整理頁面。',
       listId,
       PERMS
     );

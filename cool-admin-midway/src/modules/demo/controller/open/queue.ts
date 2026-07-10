@@ -17,9 +17,9 @@ export class OpenDemoQueueController extends BaseController {
   demoGetterQueue: DemoGetterQueue;
 
   /**
-   * 發送資料到佇列
+   * 傳送資料到佇列
    */
-  @Post('/add', { summary: '發送佇列資料' })
+  @Post('/add', { summary: '傳送佇列資料' })
   async queue() {
     this.demoCommQueue.add({ a: 2 });
     return this.ok();

@@ -13,7 +13,7 @@ export function flatten(template: string): string {
 	// 保留 Service 型別定義前的內容
 	let header = template.substring(0, startIndex);
 
-	// 獲取 Service 型別定義及其內容，去除換行和製表符
+	// 取得 Service 型別定義及其內容，去除換行和製表符
 	const serviceTemplateContent = template.substring(startIndex).replace(/\n|\t/g, "");
 
 	// 找到 Service 的內容部分

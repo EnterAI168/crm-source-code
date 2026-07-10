@@ -138,7 +138,7 @@ export class CrmQuoteOrderEntity extends BaseEntity {
   commission: number;
 
   @Column({
-    comment: '優惠審批狀態 0-無需審批 1-待老板審批 2-直接同意 3-同意扣除超出獎金 4-不同意',
+    comment: '優惠審批狀態 0-無需審批 1-待老闆審批 2-直接同意 3-同意扣除超出獎金 4-不同意',
     default: 0,
     type: 'tinyint',
   })
@@ -156,19 +156,19 @@ export class CrmQuoteOrderEntity extends BaseEntity {
   @Column({ comment: '優惠審批備註', nullable: true, type: 'text' })
   discountAuditRemark: string;
 
-  @Column({ comment: '發送方式 0-未發送 1-郵件發送 2-手工標記', default: 0, type: 'tinyint' })
+  @Column({ comment: '傳送方式 0-未傳送 1-郵件傳送 2-手工標記', default: 0, type: 'tinyint' })
   sendType: number;
 
-  @Column({ comment: '發送郵箱', nullable: true, length: 120 })
+  @Column({ comment: '傳送信箱', nullable: true, length: 120 })
   sendEmail: string;
 
-  @Column({ comment: '發送人ID', nullable: true })
+  @Column({ comment: '傳送人ID', nullable: true })
   sendUserId: number;
 
-  @Column({ comment: '發送時間', nullable: true, length: 20 })
+  @Column({ comment: '傳送時間', nullable: true, length: 20 })
   sendTime: string;
 
-  @Column({ comment: '發送備註', nullable: true, type: 'text' })
+  @Column({ comment: '傳送備註', nullable: true, type: 'text' })
   sendRemark: string;
 
   @Column({ comment: '合約檔案地址', nullable: true, length: 500 })

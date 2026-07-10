@@ -38,7 +38,7 @@ function open() {
 				required: true
 			},
 			{
-				label: '手機號',
+				label: '手機號碼',
 				prop: 'phone',
 				component: {
 					name: 'el-input',
@@ -54,9 +54,9 @@ function open() {
 						required: true,
 						validator: (rule, value, callback) => {
 							if (value === '') {
-								callback(new Error('手機號不能為空'));
+								callback(new Error('手機號碼不能為空'));
 							} else if (!/^1[3456789]\d{9}$/.test(value)) {
-								callback(new Error('手機號格式錯誤'));
+								callback(new Error('手機號碼格式錯誤'));
 							} else {
 								callback();
 							}

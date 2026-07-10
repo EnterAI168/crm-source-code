@@ -19,11 +19,11 @@
 						<el-option v-for="item in statusOptions" :key="item.value" :label="item.label" :value="item.value" />
 					</el-select>
 				</el-form-item>
-				<el-form-item label="手機號">
-					<el-input v-model="query.phone" clearable placeholder="請輸入手機號" />
+				<el-form-item label="手機號碼">
+					<el-input v-model="query.phone" clearable placeholder="請輸入手機號碼" />
 				</el-form-item>
-				<el-form-item label="郵箱">
-					<el-input v-model="query.email" clearable placeholder="請輸入郵箱" />
+				<el-form-item label="信箱">
+					<el-input v-model="query.email" clearable placeholder="請輸入信箱" />
 				</el-form-item>
 				<el-form-item>
 					<el-button type="primary" @click="loadList">搜尋</el-button>

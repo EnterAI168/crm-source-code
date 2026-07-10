@@ -10,7 +10,7 @@ export class AdminCodingController extends BaseController {
   @Inject()
   baseCodingService: BaseCodingService;
 
-  @Get('/getModuleTree', { summary: '獲取模組目錄結構' })
+  @Get('/getModuleTree', { summary: '取得模組目錄結構' })
   async getModuleTree() {
     return this.ok(await this.baseCodingService.getModuleTree());
   }

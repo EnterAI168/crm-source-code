@@ -1,6 +1,6 @@
 FROM node:lts-alpine
 WORKDIR /build
-# 设置npm镜像
+# 設置npm鏡像
 RUN npm config set registry https://registry.npmmirror.com
 COPY package.json /build/package.json
 RUN npm install

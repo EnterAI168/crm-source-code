@@ -39,13 +39,13 @@ export class UserLoginService extends BaseService {
   userSmsService: UserSmsService;
 
   /**
-   * 發送手機驗證碼
+   * 傳送手機驗證碼
    * @param phone
    * @param captchaId
    * @param code
    */
   async smsCode(phone, captchaId, code) {
-    // 1、檢查圖片驗證碼  2、發送簡訊驗證碼
+    // 1、檢查圖片驗證碼  2、傳送簡訊驗證碼
     const check = await this.baseSysLoginService.captchaCheck(captchaId, code);
     if (!check) {
       throw new CoolCommException('圖片驗證碼錯誤');
@@ -69,7 +69,7 @@ export class UserLoginService extends BaseService {
   }
 
   /**
-   * 小程式手機號登入
+   * 小程式手機號碼登入
    * @param code
    * @param encryptedData
    * @param iv
@@ -79,12 +79,12 @@ export class UserLoginService extends BaseService {
     if (phone) {
       return await this.phone(phone);
     } else {
-      throw new CoolCommException('獲得手機號失敗，請檢查配置');
+      throw new CoolCommException('獲得手機號碼失敗，請檢查配置');
     }
   }
 
   /**
-   * 手機號一鍵登入
+   * 手機號碼一鍵登入
    * @param access_token
    * @param openid
    */
@@ -94,7 +94,7 @@ export class UserLoginService extends BaseService {
     if (phone) {
       return await this.phone(phone);
     } else {
-      throw new CoolCommException('獲得手機號失敗，請檢查配置');
+      throw new CoolCommException('獲得手機號碼失敗，請檢查配置');
     }
   }
 
@@ -270,7 +270,7 @@ export class UserLoginService extends BaseService {
         id: user.id,
       });
     } else {
-      throw new CoolCommException('賬號或密碼錯誤');
+      throw new CoolCommException('帳號或密碼錯誤');
     }
   }
 

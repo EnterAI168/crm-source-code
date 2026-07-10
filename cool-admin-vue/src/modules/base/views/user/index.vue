@@ -40,22 +40,22 @@
 					/>
 				</el-form-item>
 
-				<el-form-item label="手機號">
+				<el-form-item label="手機號碼">
 					<el-input
 						v-model="searchForm.phone"
 						class="user-search-form__field"
 						clearable
-						placeholder="請輸入手機號"
+						placeholder="請輸入手機號碼"
 						@keyup.enter="onSearch"
 					/>
 				</el-form-item>
 
-				<el-form-item label="郵箱">
+				<el-form-item label="信箱">
 					<el-input
 						v-model="searchForm.email"
 						class="user-search-form__field"
 						clearable
-						placeholder="請輸入郵箱"
+						placeholder="請輸入信箱"
 						@keyup.enter="onSearch"
 					/>
 				</el-form-item>
@@ -126,10 +126,10 @@
 						:model-value="loginPhoneDisplayValue"
 						clearable
 						:disabled="isUpsertReadonly"
-						placeholder="請輸入手機號"
+						placeholder="請輸入手機號碼"
 						@input="onLoginPhoneInput"
 					/>
-					<div class="user-login-phone-tip">預設手機號為員工登入賬號</div>
+					<div class="user-login-phone-tip">預設手機號碼為員工登入帳號</div>
 				</div>
 			</template>
 
@@ -344,11 +344,11 @@ const Table = useTable({
 				h('div', { class: 'user-info-cell' }, [
 					h('div', { class: 'user-info-cell__name' }, row?.name || '-'),
 					h('div', { class: 'user-info-cell__meta' }, `英文名稱：${row?.englishName || '-'}`),
-					h('div', { class: 'user-info-cell__meta' }, `郵箱：${row?.email || '-'}`),
+					h('div', { class: 'user-info-cell__meta' }, `信箱：${row?.email || '-'}`),
 					h(
 						'div',
 						{ class: 'user-info-cell__meta' },
-						`手機號：${row?.phone || row?.username || '-'}`
+						`手機號碼：${row?.phone || row?.username || '-'}`
 					)
 				])
 		},
@@ -419,9 +419,9 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'username',
-			label: '手機號',
+			label: '手機號碼',
 			span: 12,
-			rules: [{ required: true, message: '請輸入手機號', trigger: 'blur' }],
+			rules: [{ required: true, message: '請輸入手機號碼', trigger: 'blur' }],
 			component: { name: 'slot-login-phone' }
 		},
 		() => ({
@@ -489,7 +489,7 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'email',
-			label: '郵箱',
+			label: '信箱',
 			span: 12,
 			component: { name: 'el-input' }
 		},
@@ -520,7 +520,7 @@ const Upsert = useUpsert({
 		const roleId = currentRoleId.value;
 		const selectedRole = getRoleById(roleId);
 
-		if (!phone) return ElMessage.warning('請輸入手機號');
+		if (!phone) return ElMessage.warning('請輸入手機號碼');
 		if (!departmentId) return ElMessage.warning('請選擇部門');
 		if (!roleId || !selectedRole) return ElMessage.warning('請選擇角色');
 		if (isOfficeRole(selectedRole) && ![LEVEL_SENIOR, LEVEL_NORMAL].includes(String(data.level || '').trim())) {

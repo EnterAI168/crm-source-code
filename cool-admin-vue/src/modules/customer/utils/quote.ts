@@ -33,8 +33,8 @@ export const quoteProductTypeOptions = [
 ];
 
 export const quoteSendTypeOptions = [
-	{ label: '郵件發送', value: 1 },
-	{ label: '僅標記已發送', value: 2 }
+	{ label: '郵件傳送', value: 1 },
+	{ label: '僅標記已傳送', value: 2 }
 ];
 
 export const quoteAuditActionOptions = [

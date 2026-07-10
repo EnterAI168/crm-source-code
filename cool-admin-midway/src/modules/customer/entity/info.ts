@@ -23,10 +23,10 @@ export class CrmCustomerInfoEntity extends BaseEntity {
   contactName: string;
 
   @Index()
-  @Column({ comment: '手機號', nullable: true, length: 30 })
+  @Column({ comment: '手機號碼', nullable: true, length: 30 })
   mobile: string;
 
-  @Column({ comment: '郵箱', nullable: true, length: 120 })
+  @Column({ comment: '信箱', nullable: true, length: 120 })
   email: string;
 
   @Column({ comment: '備註', nullable: true, type: 'text' })

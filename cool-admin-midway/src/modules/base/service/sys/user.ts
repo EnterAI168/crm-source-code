@@ -186,7 +186,7 @@ export class BaseSysUserService extends BaseService {
       username: param.username,
     });
     if (!_.isEmpty(exists)) {
-      throw new CoolCommException('該手機號賬號已存在');
+      throw new CoolCommException('該手機號碼帳號已存在');
     }
     await this.validateRoleAndLevel(param);
     await this.applyWithholdingSalary(param);

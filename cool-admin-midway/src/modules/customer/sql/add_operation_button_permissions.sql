@@ -21,7 +21,7 @@ SET @customer_pool_menu_id := (
 
 INSERT INTO base_sys_menu
   (parentId, name, router, perms, type, icon, orderNum, viewPath, keepAlive, isShow, createTime, updateTime)
-SELECT @customer_pool_menu_id, '發送郵件', NULL, 'crm:customerPool:sendMail', 2, NULL, 7, NULL, 0, 0, NOW(), NOW()
+SELECT @customer_pool_menu_id, '傳送郵件', NULL, 'crm:customerPool:sendMail', 2, NULL, 7, NULL, 0, 0, NOW(), NOW()
 WHERE @customer_pool_menu_id IS NOT NULL
   AND NOT EXISTS (
     SELECT 1 FROM base_sys_menu
@@ -45,7 +45,7 @@ WHERE @invoice_audit_menu_id IS NOT NULL
 
 INSERT INTO base_sys_menu
   (parentId, name, router, perms, type, icon, orderNum, viewPath, keepAlive, isShow, createTime, updateTime)
-SELECT @invoice_audit_menu_id, '發送發票', NULL, 'crm:quoteInvoice:send', 2, NULL, 6, NULL, 0, 0, NOW(), NOW()
+SELECT @invoice_audit_menu_id, '傳送發票', NULL, 'crm:quoteInvoice:send', 2, NULL, 6, NULL, 0, 0, NOW(), NOW()
 WHERE @invoice_audit_menu_id IS NOT NULL
   AND NOT EXISTS (
     SELECT 1 FROM base_sys_menu

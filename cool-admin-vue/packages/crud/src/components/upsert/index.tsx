@@ -29,7 +29,7 @@ export default defineComponent({
 		onClose: Function,
 		// 關閉表單後鉤子
 		onClosed: Function,
-		// 獲取表單資料鉤子
+		// 取得表單資料鉤子
 		onInfo: Function,
 		// 表單提交鉤子
 		onSubmit: Function
@@ -88,7 +88,7 @@ export default defineComponent({
 
 			function next(data: obj) {
 				return new Promise((resolve, reject) => {
-					// 發送請求
+					// 傳送請求
 					service[dict.api[mode.value]](data)
 						.then((res) => {
 							ElMessage.success(dict.label.saveSuccess);
@@ -239,10 +239,10 @@ export default defineComponent({
 				onOpened();
 			}
 
-			// 獲取詳情
+			// 取得詳情
 			function next(data: any): Promise<any> {
 				return new Promise(async (resolve, reject) => {
-					// 發送請求
+					// 傳送請求
 					await crud.service[crud.dict.api.info]({
 						[crud.dict.primaryId]: data[crud.dict.primaryId]
 					})

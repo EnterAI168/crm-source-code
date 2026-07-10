@@ -50,7 +50,7 @@ function open() {
 			// 基礎資訊
 			{
 				group: 'base', // 標識
-				label: '賬號',
+				label: '帳號',
 				prop: 'account',
 				required: true,
 				component: {

@@ -9,7 +9,7 @@ export function useTabs({ config, Form }: { config: ClForm.Config; Form: Vue.Ref
 		return get()?.props?.labels || [];
 	});
 
-	// 獲取選項
+	// 取得選項
 	function getItem(value: any) {
 		return list.value.find((e) => e.value == value);
 	}
@@ -57,7 +57,7 @@ export function useTabs({ config, Form }: { config: ClForm.Config; Form: Vue.Ref
 		}
 	}
 
-	// 獲取參數
+	// 取得參數
 	function get() {
 		return config.items.find((e) => e.type === "tabs");
 	}

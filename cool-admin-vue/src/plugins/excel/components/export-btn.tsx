@@ -40,12 +40,12 @@ export default defineComponent({
 		// 載入狀態
 		const loading = ref(false);
 
-		// 獲取表頭資料
+		// 取得表頭資料
 		async function getHeader(columns: any[], fields: any[]) {
 			return columns.filter(e => !e.hidden && fields.includes(e.prop)).map(e => e.label);
 		}
 
-		// 獲取表格資料
+		// 取得表格資料
 		async function getData(): Promise<any[]> {
 			const params = {
 				...Crud.value?.paramsReplace(Crud.value.params),
@@ -96,7 +96,7 @@ export default defineComponent({
 			}
 		}
 
-		// 獲取檔名
+		// 取得檔名
 		async function getFileName() {
 			if (typeof props.filename === 'function') {
 				return await props?.filename();

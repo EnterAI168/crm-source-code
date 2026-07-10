@@ -22,7 +22,7 @@
 							<cl-multi-delete-btn />
 							<cl-flex1 />
 							<!-- 關鍵字搜尋 -->
-							<cl-search-key placeholder="搜尋姓名、手機號" />
+							<cl-search-key placeholder="搜尋姓名、手機號碼" />
 						</cl-row>
 
 						<cl-row>
@@ -85,7 +85,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '手機號',
+			label: '手機號碼',
 			prop: 'phone',
 			minWidth: 140
 		},

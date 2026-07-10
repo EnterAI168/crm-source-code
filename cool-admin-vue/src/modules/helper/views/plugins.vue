@@ -549,7 +549,7 @@ const config = reactive({
 	insert(content: string) {
 		const input = refs.configInput.ref;
 
-		// 獲取當前遊標
+		// 取得當前遊標
 		const cursor = input.selectionStart;
 
 		// 插入文案

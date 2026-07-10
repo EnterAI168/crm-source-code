@@ -59,7 +59,7 @@ async function refresh() {
 					captchaId
 				});
 			} else {
-				ElMessageBox.alert(t('驗證碼獲取失敗'), {
+				ElMessageBox.alert(t('驗證碼取得失敗'), {
 					title: t('提示'),
 					type: 'error'
 				});

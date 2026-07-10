@@ -15,14 +15,14 @@ WHERE id = @home_menu_id;
 INSERT INTO base_sys_menu
   (parentId, name, router, perms, type, icon, orderNum, viewPath, keepAlive, isShow, createTime, updateTime)
 SELECT
-  @home_menu_id, '平台統計', '/crm/platform/statistics', 'crm:platformStatistics:page', 1, 'icon-data', 0,
+  @home_menu_id, '平臺統計', '/crm/platform/statistics', 'crm:platformStatistics:page', 1, 'icon-data', 0,
   'modules/customer/views/platform-statistics.vue', 1, 1, NOW(), NOW()
 WHERE @home_menu_id IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM base_sys_menu WHERE router = '/crm/platform/statistics');
 
 UPDATE base_sys_menu
 SET parentId = @home_menu_id,
-    name = '平台統計',
+    name = '平臺統計',
     perms = 'crm:platformStatistics:page',
     type = 1,
     icon = 'icon-data',

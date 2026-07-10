@@ -52,7 +52,7 @@ const { service } = useCool();
 const { t } = useI18n();
 const Form = useForm();
 
-// 獲取實體資料
+// 取得實體資料
 async function getEntity() {
 	return service.base.open.eps().then((eps: EpsData) => {
 		const modules: EpsModule[] = [];

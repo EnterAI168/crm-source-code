@@ -20,7 +20,7 @@
 							value: 'name'
 						},
 						{
-							label: '手機號',
+							label: '手機號碼',
 							value: 'phone'
 						}
 					]"
@@ -150,7 +150,7 @@ const Table = useTable<Data>(
 				}
 			},
 			{
-				label: "手機號",
+				label: "手機號碼",
 				prop: "phone",
 				search: {
 					component: {

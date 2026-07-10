@@ -75,7 +75,7 @@ export class CrmQuoteOrderService extends BaseService {
   ];
 
   private readonly DEFAULT_QUOTE_PAYMENT_CONDITION =
-    '付款方式：專案金額(含營業稅)共計新臺幣 {finalAmount} 元整，甲方於收到發票後，30 天內以匯款方式支付款項至乙方指定帳戶，匯款後提供後五碼及匯款日期以便甲方核對。\n*本欄請注意：本單須雙方簽立完成後，送交乙方才會始得進行委刊作業。';
+    '付款方式：專案金額(含營業稅)共計新台幣 {finalAmount} 元整，甲方於收到發票後，30 天內以匯款方式支付款項至乙方指定帳號，匯款後提供後五碼及匯款日期以便甲方核對。\n*本欄請注意：本單須雙方簽立完成後，送交乙方才會始得進行委刊作業。';
 
   private readonly DEFAULT_QUOTE_PARTY_B = {
     companyName: '確認鍵智創科技股份有限公司',
@@ -95,10 +95,10 @@ export class CrmQuoteOrderService extends BaseService {
   private readonly VIP_MAX_DISCOUNT_RATE = 15;
 
   private readonly VIP_DISCOUNT_AUDIT_REASON =
-    '優惠比例超過VIP最大額度15%，需要老板審批，審批是否扣除獎金';
+    '優惠比例超過VIP最大額度15%，需要老闆審批，審批是否扣除獎金';
 
   private readonly DEFAULT_DISCOUNT_AUDIT_REASON =
-    '優惠比例超過預設閾值，需要老板審批，審批是否扣除獎金';
+    '優惠比例超過預設閾值，需要老闆審批，審批是否扣除獎金';
 
   @InjectEntityModel(CrmQuoteOrderEntity)
   crmQuoteOrderEntity: Repository<CrmQuoteOrderEntity>;
@@ -1311,7 +1311,7 @@ export class CrmQuoteOrderService extends BaseService {
       });
       email = String(customer?.email || '').trim();
       if (!email) {
-        throw new CoolCommException('發送郵件時必須填寫客戶郵箱');
+        throw new CoolCommException('傳送郵件時必須填寫客戶信箱');
       }
     }
 
@@ -1346,7 +1346,7 @@ export class CrmQuoteOrderService extends BaseService {
 
     const fileId = String(param?.fileId || '').trim();
     if (!fileId) {
-      throw new CoolCommException('請先上傳合約文件');
+      throw new CoolCommException('請先上傳合約檔案');
     }
 
     const fileName =
@@ -3560,7 +3560,7 @@ export class CrmQuoteOrderService extends BaseService {
 
   private isEcpayInvoiceNoOrDateError(error: any) {
     const message = String(error?.message || error?.data?.message || error || '');
-    return message.includes('發票號碼或日期錯誤') || message.includes('发票号码或日期错误');
+    return message.includes('發票號碼或日期錯誤') || message.includes('發票號碼或日期錯誤');
   }
 
   private toIdArray(ids: number[] | number) {
@@ -4304,7 +4304,7 @@ export class CrmQuoteOrderService extends BaseService {
     const status = Number(order?.discountAuditStatus || 0);
     if (status === 1) {
       throw new CoolCommException(
-        order?.discountAuditReason || '優惠比例需要老板審批'
+        order?.discountAuditReason || '優惠比例需要老闆審批'
       );
     }
     if (status === 4) {
@@ -4326,7 +4326,7 @@ export class CrmQuoteOrderService extends BaseService {
 
   private ensureCanSendQuote(order: any, scope: QuoteScope) {
     if (!this.canSendQuote(order, scope)) {
-      throw new CoolCommException('當前狀態不允許發送報價單');
+      throw new CoolCommException('當前狀態不允許傳送報價單');
     }
   }
 
@@ -4450,13 +4450,13 @@ export class CrmQuoteOrderService extends BaseService {
     addLine(`甲方統一編號：${customer?.taxNumber || '-'}`);
     addLine(`甲方匯款後五碼：${customer?.remittanceLast5 || '-'}`);
     addLine(`甲方聯絡人：${customer?.contactName || '-'}`);
-    addLine(`甲方郵箱：${customer?.email || '-'}`);
+    addLine(`甲方信箱：${customer?.email || '-'}`);
     addLine(`甲方電話：${customer?.mobile || '-'}`);
     addLine(`乙方名稱：${quotePartyB.companyName || '-'}`);
     addLine(`乙方地址：${quotePartyB.address || '-'}`);
     addLine(`乙方統一編號：${quotePartyB.taxNumber || '-'}`);
     addLine(`乙方聯絡人：${quotePartyB.contactName || '-'}`);
-    addLine(`乙方郵箱：${quotePartyB.email || '-'}`);
+    addLine(`乙方信箱：${quotePartyB.email || '-'}`);
     addLine(`乙方電話：${quotePartyB.mobile || '-'}`);
 
     addSection('專案資訊');

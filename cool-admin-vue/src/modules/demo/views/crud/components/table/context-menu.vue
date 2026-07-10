@@ -109,7 +109,7 @@ const Table = useTable({
 			return {
 				label: '自定義2',
 				callback(done) {
-					ElMessage.info('獲取中');
+					ElMessage.info('取得中');
 
 					setTimeout(() => {
 						ElMessage.success('Ta 是' + row.name);
@@ -132,7 +132,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '手機號',
+			label: '手機號碼',
 			prop: 'phone',
 			minWidth: 140
 		},
@@ -162,7 +162,7 @@ const Upsert = useUpsert({
 			}
 		},
 		{
-			label: '手機號',
+			label: '手機號碼',
 			prop: 'phone',
 			component: {
 				name: 'el-input'

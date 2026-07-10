@@ -155,7 +155,7 @@ async function onMessage({
 		location.reload();
 	}
 
-	// 獲取目錄
+	// 取得目錄
 	if (name === 'aiCode.loaded') {
 		service.base.coding.getModuleTree().then(res => {
 			refs.aiCode.send('aiCode.setDir', res);

@@ -49,7 +49,7 @@ function onChange(val: string) {
 	emit('change', val);
 }
 
-//【很重要】使用監聽的方式，避免表單開啟資料是非同步獲取的情況
+//【很重要】使用監聽的方式，避免表單開啟資料是非同步取得的情況
 watch(
 	() => props.modelValue,
 	val => {

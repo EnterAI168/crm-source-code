@@ -24,12 +24,12 @@ export class OpenDemoSSEController extends BaseController {
 
     const stream = new PassThrough();
 
-    // 發送資料
+    // 傳送資料
     const send = (data: any) => {
       stream.write(`data: ${JSON.stringify(data)}\n\n`);
     };
 
-    // 獲取外掛例項
+    // 取得外掛例項
     const instance: any = await this.pluginService.getInstance('ollama');
     // 呼叫chat
     const messages = [

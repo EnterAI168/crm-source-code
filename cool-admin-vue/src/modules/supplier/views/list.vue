@@ -112,9 +112,9 @@ const searchItems = computed(() => [
 		component: { name: 'el-input', props: { clearable: true, placeholder: '請輸入地址' } }
 	},
 	{
-		label: '郵箱',
+		label: '信箱',
 		prop: 'email',
-		component: { name: 'el-input', props: { clearable: true, placeholder: '請輸入郵箱' } }
+		component: { name: 'el-input', props: { clearable: true, placeholder: '請輸入信箱' } }
 	},
 	{
 		label: '匯款資訊',
@@ -132,7 +132,7 @@ useTable({
 		{ label: '匯款資訊', prop: 'remittanceInfo', minWidth: 180, showOverflowTooltip: true },
 		{ label: '統一編號', prop: 'unifiedNo', minWidth: 150, showOverflowTooltip: true },
 		{ label: '地址', prop: 'address', minWidth: 220, showOverflowTooltip: true },
-		{ label: '郵箱', prop: 'email', minWidth: 180, showOverflowTooltip: true },
+		{ label: '信箱', prop: 'email', minWidth: 180, showOverflowTooltip: true },
 		{ label: '建立時間', prop: 'createTime', minWidth: 160 },
 		{ type: 'op', width: 180, buttons: ['edit', 'delete'] }
 	]
@@ -194,11 +194,11 @@ const Upsert = useUpsert({
 			}
 		},
 		{
-			label: '郵箱',
+			label: '信箱',
 			prop: 'email',
 			component: {
 				name: 'el-input',
-				props: { clearable: true, placeholder: '請輸入郵箱' }
+				props: { clearable: true, placeholder: '請輸入信箱' }
 			},
 			rules: [
 				{
@@ -209,7 +209,7 @@ const Upsert = useUpsert({
 							return;
 						}
 						const ok = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(text);
-						callback(ok ? undefined : new Error('請輸入正確的郵箱格式'));
+						callback(ok ? undefined : new Error('請輸入正確的信箱格式'));
 					},
 					trigger: 'blur'
 				}

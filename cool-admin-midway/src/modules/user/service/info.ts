@@ -27,7 +27,7 @@ export class UserInfoService extends BaseService {
   userWxService: UserWxService;
 
   /**
-   * 繫結小程式手機號
+   * 繫結小程式手機號碼
    * @param userId
    * @param code
    * @param encryptedData
@@ -40,7 +40,7 @@ export class UserInfoService extends BaseService {
   }
 
   /**
-   * 獲取使用者資訊
+   * 取得使用者資訊
    * @param id
    * @returns
    */
@@ -89,7 +89,7 @@ export class UserInfoService extends BaseService {
     try {
       return await this.userInfoEntity.update({ id }, param);
     } catch (err) {
-      throw new CoolCommException('更新失敗，參數錯誤或者手機號已存在');
+      throw new CoolCommException('更新失敗，參數錯誤或者手機號碼已存在');
     }
   }
 
@@ -109,7 +109,7 @@ export class UserInfoService extends BaseService {
   }
 
   /**
-   * 繫結手機號
+   * 繫結手機號碼
    * @param userId
    * @param phone
    * @param code

@@ -29,7 +29,7 @@ function open() {
 		title: '元件停用',
 		items: [
 			{
-				label: '賬號',
+				label: '帳號',
 				prop: 'account',
 				component: {
 					name: 'el-input',

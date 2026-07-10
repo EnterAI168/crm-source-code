@@ -70,7 +70,7 @@ export function useAction({
 		}
 	}
 
-	// 獲取表單值
+	// 取得表單值
 	function getForm(prop: string) {
 		return prop ? form[prop] : form;
 	}

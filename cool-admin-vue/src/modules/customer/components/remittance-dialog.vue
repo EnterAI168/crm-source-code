@@ -107,7 +107,7 @@
 					</div>
 
 					<div class="form-grid form-grid--three">
-						<el-form-item label="郵箱">
+						<el-form-item label="信箱">
 							<el-input v-model="form.supplierEmail" disabled />
 						</el-form-item>
 						<el-form-item label="賬戶資訊">

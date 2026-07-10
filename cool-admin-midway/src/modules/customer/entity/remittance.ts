@@ -30,7 +30,7 @@ export class CrmRemittanceEntity extends BaseEntity {
   @Column({ comment: '供應商統一編號', length: 100, nullable: true })
   supplierUnifiedNo: string;
 
-  @Column({ comment: '供應商郵箱', length: 120, nullable: true })
+  @Column({ comment: '供應商信箱', length: 120, nullable: true })
   supplierEmail: string;
 
   @Column({ comment: '賬戶資訊', length: 500, nullable: true })

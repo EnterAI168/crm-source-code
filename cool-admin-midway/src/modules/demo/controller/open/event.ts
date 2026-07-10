@@ -19,7 +19,7 @@ export class OpenDemoEventController extends BaseController {
     return this.ok();
   }
 
-  @Post('/global', { summary: '全域性事件，多程式都有效' })
+  @Post('/global', { summary: '全域事件，多程式都有效' })
   async global() {
     await this.coolEventManager.globalEmit('demo', false, { a: 2 }, 1);
     return this.ok();

@@ -46,7 +46,7 @@ export function parseNode(vnode: any, options: Options): VNode {
 		}
 	}
 
-	// 例項模式下，先註冊到全域性，再分解元件渲染
+	// 例項模式下，先註冊到全域，再分解元件渲染
 	if (vnode.vm && !regs.get(vnode.name)) {
 		global.vue.component(vnode.name, { ...vnode.vm });
 		regs.set(vnode.name, { ...vnode.vm });

@@ -9,13 +9,13 @@ import type { Eps } from "../../types";
 import { flatten } from "../uniapp-x/flatten";
 import { interfaceToType } from "../uniapp-x/utils";
 
-// 全域性 service 物件，用於儲存服務結構
+// 全域 service 物件，用於儲存服務結構
 const service = {};
 // eps 實體列表
 let list: Eps.Entity[] = [];
 
 /**
- * 獲取 eps 請求地址
+ * 取得 eps 請求地址
  * @returns {string} eps url
  */
 function getEpsUrl(): string {
@@ -39,7 +39,7 @@ function getEpsUrl(): string {
 }
 
 /**
- * 獲取 eps 路徑
+ * 取得 eps 路徑
  * @param filename 檔名
  * @returns {string} 完整路徑
  */
@@ -51,7 +51,7 @@ function getEpsPath(filename?: string): string {
 }
 
 /**
- * 獲取物件方法名（排除 namespace、permission 欄位）
+ * 取得物件方法名（排除 namespace、permission 欄位）
  * @param v 物件
  * @returns {string[]} 方法名陣列
  */
@@ -60,7 +60,7 @@ function getNames(v: any): string[] {
 }
 
 /**
- * 獲取欄位型別
+ * 取得欄位型別
  */
 function getType({ propertyName, type }: any) {
 	for (const map of config.eps.mapping) {
@@ -90,7 +90,7 @@ function checkName(name: string) {
 }
 
 /**
- * 不支援 uniapp-x 平台顯示
+ * 不支援 uniapp-x 平臺顯示
  */
 function noUniappX(text: string, defaultText: string = "") {
 	if (config.type == "uniapp-x") {
@@ -138,7 +138,7 @@ async function formatCode(text: string): Promise<string | null> {
 }
 
 /**
- * 獲取 eps 資料（本地優先，遠端兜底）
+ * 取得 eps 資料（本地優先，遠端兜底）
  */
 async function getData() {
 	// 讀取本地 eps.json
@@ -713,7 +713,7 @@ function createServiceCode(): { content: string; types: string[] } {
 }
 
 /**
- * 獲取字典型別定義
+ * 取得字典型別定義
  * @returns {Promise<string>} 字典型別 type 定義
  */
 async function createDict(): Promise<string> {
@@ -756,7 +756,7 @@ async function createDict(): Promise<string> {
  */
 export async function createEps() {
 	if (config.eps.enable) {
-		// 獲取 eps 資料
+		// 取得 eps 資料
 		await getData();
 
 		// 構建 service 物件

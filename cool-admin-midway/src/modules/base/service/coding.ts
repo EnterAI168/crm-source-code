@@ -46,7 +46,7 @@ export class BaseCodingService extends BaseService {
       // 格式化程式碼內容
       const formattedContent = await this.formatContent(code.content);
 
-      // 獲取完整的檔案路徑
+      // 取得完整的檔案路徑
       const filePath = path.join(moduleDir, code.path);
 
       // 確保目錄存在

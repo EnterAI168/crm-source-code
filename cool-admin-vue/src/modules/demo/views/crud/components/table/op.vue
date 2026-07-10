@@ -75,7 +75,7 @@ const Table = useTable({
 			minWidth: 140
 		},
 		{
-			label: '手機號',
+			label: '手機號碼',
 			prop: 'phone',
 			minWidth: 140
 		},
@@ -98,7 +98,7 @@ const Table = useTable({
 			width: 410, // 寬度
 
 			//【很重要】操作按鈕配置，edit 和 info 必須搭配 cl-upsert 實現
-			// edit 編輯，預先獲取 service 的 info 介面資料，並帶入 cl-upsert 的表單值中
+			// edit 編輯，預先取得 service 的 info 介面資料，並帶入 cl-upsert 的表單值中
 			// info 詳情，cl-upsert 內的元件全部傳入 disabled 參數
 			// delete 刪除，呼叫 service 的 delete 介面刪除行資料
 			buttons: [
@@ -153,7 +153,7 @@ const Upsert = useUpsert({
 			}
 		},
 		{
-			label: '手機號',
+			label: '手機號碼',
 			prop: 'phone',
 			component: {
 				name: 'el-input'

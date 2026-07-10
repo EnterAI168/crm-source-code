@@ -36,10 +36,10 @@ export class CrmMailService extends BaseService {
     const config = await this.getMailConfig();
     const to = String(options?.to || '').trim();
     if (!to) {
-      throw new CoolCommException('客戶郵箱為空，無法發送發票郵件');
+      throw new CoolCommException('客戶信箱為空，無法傳送發票郵件');
     }
     if (!this.isValidEmail(to)) {
-      throw new CoolCommException('客戶郵箱格式不正確，無法發送郵件');
+      throw new CoolCommException('客戶信箱格式不正確，無法傳送郵件');
     }
 
     const nodemailer = this.getNodemailer();
@@ -129,10 +129,10 @@ export class CrmMailService extends BaseService {
     const enabled = config.enabled ?? config.enable ?? true;
 
     if (enabled === false || enabled === 0 || enabled === '0') {
-      throw new CoolCommException('郵件發送配置已關閉');
+      throw new CoolCommException('郵件傳送配置已關閉');
     }
     if (!host || !from) {
-      throw new CoolCommException('郵件發送參數未配置，請在參數列表配置 crmMail');
+      throw new CoolCommException('郵件傳送參數未配置，請在參數列表配置 crmMail');
     }
 
     return {
