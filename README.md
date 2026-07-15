@@ -112,7 +112,7 @@
 ## 專案目錄
 
 ```text
-taiwan_crm/
+internal_crm/
 ├─ cool-admin-vue/          # 前端專案
 ├─ cool-admin-midway/       # 後端專案
 └─ README.md                # 專案總覽
@@ -253,4 +253,5 @@ npm run build
 
 - 頁面權限已開
 - 但查詢下拉 API 權限未映射到財務角色
+
 
