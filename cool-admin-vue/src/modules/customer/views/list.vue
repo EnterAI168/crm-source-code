@@ -35,7 +35,7 @@
 								<span class="crm-pool-v">{{ scope.row.taxNumber || '--' }}</span>
 							</div>
 							<div class="crm-pool-line">
-								<span class="crm-pool-k">匯款本公司：</span>
+								<span class="crm-pool-k">匯款末五碼：</span>
 								<span class="crm-pool-v">{{
 									scope.row.remittanceLast5 || '--'
 								}}</span>
@@ -861,7 +861,7 @@ const LIST_IMPORT_BASE_HEADERS = [
 	'公司名稱',
 	'地址',
 	'統一編號',
-	'匯款本公司',
+	'匯款末五碼',
 	'客戶名稱',
 	'手機號碼',
 	'信箱',
@@ -946,7 +946,7 @@ async function exportCustomerListData() {
 			公司名稱: row.companyName || '',
 			地址: row.address || '',
 			統一編號: row.taxNumber || '',
-			匯款本公司: row.remittanceLast5 || '',
+			匯款末五碼: row.remittanceLast5 || '',
 			廣告投放: getAdCustomerLabel(row),
 			聯絡人: row.contactName || '',
 			手機號碼: row.mobile || '',
@@ -2001,7 +2001,6 @@ const Upsert = useUpsert({
 		{
 			label: '地址',
 			prop: 'address',
-			required: true,
 			component: { name: 'el-input', props: { clearable: true, placeholder: '請輸入地址' } }
 		},
 		{
@@ -2014,12 +2013,11 @@ const Upsert = useUpsert({
 			}
 		},
 		{
-			label: '匯款本公司',
+			label: '匯款末五碼',
 			prop: 'remittanceLast5',
-			required: true,
 			component: {
 				name: 'el-input',
-				props: { clearable: true, placeholder: '請輸入匯款本公司' }
+				props: { clearable: true, placeholder: '請輸入匯款末五碼' }
 			}
 		},
 		{

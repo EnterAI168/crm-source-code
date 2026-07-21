@@ -33,11 +33,8 @@ export function validateCustomerImportRequired(
 ): string | null {
 	const requiredFields = [
 		{ prop: 'companyName', label: '公司名稱' },
-		{ prop: 'address', label: '地址' },
 		{ prop: 'taxNumber', label: '統一編號' },
-		{ prop: 'remittanceLast5', label: '匯款本公司' },
 		{ prop: 'contactName', label: '聯絡人' },
-		{ prop: 'mobile', label: '手機號碼' },
 		{ prop: 'email', label: '信箱' }
 	];
 	const missing = requiredFields

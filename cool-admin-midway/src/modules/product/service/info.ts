@@ -53,7 +53,11 @@ export class ProductInfoService extends BaseService {
       ${this.setSql(createTimeStartTime, 'and a.createTime >= ?', [createTimeStartTime])}
       ${this.setSql(createTimeEndTime, 'and a.createTime <= ?', [createTimeEndTime])}
     `;
-    return this.sqlRenderPage(sql, query);
+    return this.sqlRenderPage(sql, {
+      ...query,
+      order: 'orderNum',
+      sort: String(query?.sort).toLowerCase() === 'desc' ? 'desc' : 'asc',
+    });
   }
 
   async add(param) {
@@ -128,6 +132,7 @@ export class ProductInfoService extends BaseService {
       grossProfitRate,
       images: this.normalizeImages(param.images),
       isOneTimePayment: Number(param.isOneTimePayment) === 1 ? 1 : 0,
+      orderNum: Math.max(0, Math.trunc(this.toNumber(param.orderNum))),
     };
   }
 

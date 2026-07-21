@@ -29,7 +29,7 @@
 							<span class="crm-pool-v">{{ scope.row.taxNumber || '—' }}</span>
 						</div>
 						<div class="crm-pool-line">
-							<span class="crm-pool-k">匯款本公司：</span>
+							<span class="crm-pool-k">匯款末五碼：</span>
 							<span class="crm-pool-v">{{ scope.row.remittanceLast5 || '—' }}</span>
 						</div>
 						<div class="crm-pool-line">
@@ -327,7 +327,6 @@ useUpsert({
 		{
 			label: '地址',
 			prop: 'address',
-			required: true,
 			component: { name: 'el-input', props: { clearable: true, placeholder: '請輸入地址' } }
 		},
 		{
@@ -337,10 +336,9 @@ useUpsert({
 			component: { name: 'el-input', props: { clearable: true, placeholder: '請輸入統一編號' } }
 		},
 		{
-			label: '匯款本公司',
+			label: '匯款末五碼',
 			prop: 'remittanceLast5',
-			required: true,
-			component: { name: 'el-input', props: { clearable: true, placeholder: '請輸入匯款本公司' } }
+			component: { name: 'el-input', props: { clearable: true, placeholder: '請輸入匯款末五碼' } }
 		},
 		{
 			label: '是否廣告投放客戶',
@@ -361,7 +359,6 @@ useUpsert({
 		{
 			label: '手機號碼',
 			prop: 'mobile',
-			required: true,
 			component: { name: 'el-input', props: { clearable: true, placeholder: '請輸入手機號碼' } }
 		},
 		{
@@ -440,11 +437,8 @@ function toMoney(value: any) {
 function validateCustomerRequiredForQuote(row: any) {
 	const requiredFields = [
 		{ key: 'companyName', label: '公司名稱' },
-		{ key: 'address', label: '地址' },
 		{ key: 'taxNumber', label: '統一編號' },
-		{ key: 'remittanceLast5', label: '匯款本公司' },
 		{ key: 'contactName', label: '聯絡人' },
-		{ key: 'mobile', label: '手機號碼' },
 		{ key: 'email', label: '信箱' }
 	];
 	const missingFields = requiredFields
@@ -491,7 +485,7 @@ function selectImportFile() {
 }
 
 function downloadTpl() {
-	const header = ['公司名稱', '地址', '統一編號', '匯款本公司', '是否廣告投放客戶', '聯絡人', '手機號碼', '信箱', '備註'];
+	const header = ['公司名稱', '地址', '統一編號', '匯款末五碼', '是否廣告投放客戶', '聯絡人', '手機號碼', '信箱', '備註'];
 	const ws = XLSX.utils.aoa_to_sheet([header]);
 	const wb = XLSX.utils.book_new();
 	XLSX.utils.book_append_sheet(wb, ws, '客戶匯入');
@@ -526,7 +520,7 @@ async function exportPoolData() {
 			公司名稱: row.companyName || '',
 			地址: row.address || '',
 			統一編號: row.taxNumber || '',
-			匯款本公司: row.remittanceLast5 || '',
+			匯款末五碼: row.remittanceLast5 || '',
 			廣告投放: getAdCustomerLabel(row),
 			聯絡人: row.contactName || '',
 			手機號碼: row.mobile || '',

@@ -1897,6 +1897,7 @@ CREATE TABLE `product_info`  (
   `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '產品名稱',
   `categoryId` int NULL DEFAULT NULL COMMENT '產品分類ID',
   `departmentId` int NULL DEFAULT NULL COMMENT '內勤部門ID',
+  `orderNum` int NOT NULL DEFAULT 0 COMMENT '排序值',
   `price` decimal(10, 2) NULL DEFAULT NULL COMMENT '預設報價(未稅)',
   `costPrice` decimal(10, 2) NULL DEFAULT NULL COMMENT '成本',
   `status` int NOT NULL DEFAULT 1 COMMENT '狀態',

@@ -16,6 +16,9 @@ export class ProductInfoEntity extends BaseEntity {
   @Column({ comment: '內勤部門ID', nullable: true })
   departmentId: number;
 
+  @Column({ comment: '排序值', type: 'int', default: 0 })
+  orderNum: number;
+
   @Column({
     comment: '預設報價(未稅)',
     type: 'decimal',

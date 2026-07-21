@@ -629,6 +629,7 @@ useTable({
 				});
 			}
 		},
+		{ label: '排序', prop: 'orderNum', sortable: 'desc', minWidth: 100 },
 		{ label: '產品名稱', prop: 'name', minWidth: 180, showOverflowTooltip: true },
 		{
 			label: '產品說明',
@@ -704,6 +705,16 @@ const Upsert = useUpsert({
 			span: 12,
 			required: true,
 			component: { name: 'el-input', props: { clearable: true, placeholder: '請輸入' } }
+		},
+		{
+			label: '排序',
+			prop: 'orderNum',
+			span: 12,
+			value: 0,
+			component: {
+				name: 'el-input-number',
+				props: { min: 0, precision: 0, step: 1, controlsPosition: 'right' }
+			}
 		},
 		{
 			label: '一次性付款產品',
