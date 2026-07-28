@@ -193,12 +193,14 @@ import { useTable, useUpsert, useCrud } from '@cool-vue/crud';
 import { useCool } from '/@/cool';
 import { BaseService } from '/@/cool/service/base';
 import { Plugins } from '/#/crud';
+import { useStore } from '../../store';
 import { checkPerm } from '../../utils/permission';
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus';
 import { computed, h, onMounted, ref } from 'vue';
 import { deepTree } from '/@/cool/utils';
 
 const { service } = useCool();
+const { user } = useStore();
 
 const roles = ref<Eps.BaseSysRoleEntity[]>([]);
 const departments = ref<Eps.BaseSysDepartmentEntity[]>([]);
@@ -275,6 +277,7 @@ function createSearchForm() {
 }
 
 const isUpsertReadonly = computed(() => Upsert.value?.mode === 'info');
+const canViewSalary = computed(() => !!(user.info as any)?.canViewSalary);
 const currentDepartmentId = computed(() => Upsert.value?.getForm('departmentId'));
 const currentRoleId = computed(() => normalizeSingleRoleId(Upsert.value?.getForm('roleIdList')));
 const currentLevelValue = computed(() => Upsert.value?.getForm('level'));
@@ -361,8 +364,12 @@ const Table = useTable({
 			showOverflowTooltip: true,
 			formatter: (row: any) => row?.level || '--'
 		},
-		{ prop: 'salary', label: '月工資', width: 140 },
-		{ prop: 'withholdingSalary', label: '扣繳工資', width: 140 },
+		...(canViewSalary.value
+			? [
+				{ prop: 'salary', label: '月工資', width: 140 },
+				{ prop: 'withholdingSalary', label: '扣繳工資', width: 140 }
+			]
+			: []),
 		{
 			type: 'op',
 			width: 320,
@@ -464,6 +471,7 @@ const Upsert = useUpsert({
 			prop: 'salary',
 			label: '工資',
 			span: 12,
+			hidden: () => !canViewSalary.value,
 			component: {
 				name: 'el-input',
 				props: {
@@ -478,6 +486,7 @@ const Upsert = useUpsert({
 			prop: 'withholdingSalary',
 			label: '扣繳工資',
 			span: 12,
+			hidden: () => !canViewSalary.value,
 			component: { name: 'slot-withholding-salary' }
 		},
 		{
@@ -542,17 +551,27 @@ const Upsert = useUpsert({
 		});
 	},
 	async onOpen() {
-		await Promise.all([ensureRolesLoaded(), ensureDepartmentsLoaded(), ensureWithholdingRateLoaded()]);
+		await Promise.all([
+			ensureRolesLoaded(),
+			ensureDepartmentsLoaded(),
+			...(canViewSalary.value ? [ensureWithholdingRateLoaded()] : [])
+		]);
 		loginPhoneValue.value = '';
 		Upsert.value?.setForm('username', '');
 		Upsert.value?.setForm('phone', '');
 		Upsert.value?.setForm('departmentId', undefined);
-		Upsert.value?.setForm('salary', undefined);
-		Upsert.value?.setForm('withholdingSalary', 0);
+		if (canViewSalary.value) {
+			Upsert.value?.setForm('salary', undefined);
+			Upsert.value?.setForm('withholdingSalary', 0);
+		}
 		resetRoleState();
 	},
 	async onOpened(data) {
-		await Promise.all([ensureRolesLoaded(), ensureDepartmentsLoaded(), ensureWithholdingRateLoaded()]);
+		await Promise.all([
+			ensureRolesLoaded(),
+			ensureDepartmentsLoaded(),
+			...(canViewSalary.value ? [ensureWithholdingRateLoaded()] : [])
+		]);
 		let detail = data;
 		if (data?.id) {
 			detail = await service.base.sys.user.info({ id: data.id });
@@ -566,8 +585,13 @@ const Upsert = useUpsert({
 		Upsert.value?.setForm('username', loginPhone);
 		Upsert.value?.setForm('phone', loginPhone);
 		Upsert.value?.setForm('departmentId', departmentId);
-		Upsert.value?.setForm('salary', detail?.salary ?? undefined);
-		Upsert.value?.setForm('withholdingSalary', detail?.withholdingSalary ?? calcWithholdingSalary(detail?.salary));
+		if (canViewSalary.value) {
+			Upsert.value?.setForm('salary', detail?.salary ?? undefined);
+			Upsert.value?.setForm(
+				'withholdingSalary',
+				detail?.withholdingSalary ?? calcWithholdingSalary(detail?.salary)
+			);
+		}
 		applyDepartmentRoleRule(departmentId, roleId, detail?.level);
 	},
 	plugins: [Plugins.Form.setFocus('name')]

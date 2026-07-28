@@ -70,6 +70,7 @@ export class BaseSysUserService extends BaseService {
     const canViewAll = roleLabels.some(label =>
       [this.BOSS_LABEL, this.ADMIN_LABEL].includes(label)
     );
+    const canViewSalary = roleLabels.includes(this.BOSS_LABEL);
     const currentUser = await this.baseSysUserEntity.findOneBy({ id: userId });
     const currentDepartmentId = Number(currentUser?.departmentId);
     const permsDepartmentArr = await this.baseSysPermsService.departmentIds(userId);
@@ -80,7 +81,9 @@ export class BaseSysUserService extends BaseService {
         : [];
     const sql = `
         SELECT
-            a.id,a.name,a.englishName,a.nickName,a.headImg,a.email,a.remark,a.salary,a.withholdingSalary,a.level,a.status,a.createTime,a.updateTime,a.username,a.phone,a.departmentId,
+            a.id,a.name,a.englishName,a.nickName,a.headImg,a.email,a.remark${
+              canViewSalary ? ',a.salary,a.withholdingSalary' : ''
+            },a.level,a.status,a.createTime,a.updateTime,a.username,a.phone,a.departmentId,
             b.name as "departmentName"
         FROM
             base_sys_user a
@@ -143,8 +146,26 @@ export class BaseSysUserService extends BaseService {
     const info = await this.baseSysUserEntity.findOneBy({
       id: Equal(userId),
     });
-    delete info?.password;
+    const canViewSalary = await this.canManageSalary();
+    if (info) {
+      delete info.password;
+      if (!canViewSalary) {
+        this.removeSalaryFields(info);
+      }
+      (info as any).canViewSalary = canViewSalary;
+    }
     return info;
+  }
+
+  async list(query: any, option: any, connectionName?: any) {
+    const result = await super.list(query, option, connectionName);
+    if (await this.canManageSalary()) {
+      return result;
+    }
+
+    const users = Array.isArray(result) ? result : result?.list || [];
+    users.forEach(item => this.removeSalaryFields(item));
+    return result;
   }
 
   /**
@@ -173,6 +194,10 @@ export class BaseSysUserService extends BaseService {
    * @param param
    */
   async add(param) {
+    const canManageSalary = await this.canManageSalary();
+    if (!canManageSalary) {
+      this.removeSalaryFields(param);
+    }
     param.name = String(param.name || param.nickName || '').trim();
     param.englishName = String(param.englishName || '').trim() || null;
     if (!param.englishName) {
@@ -189,7 +214,9 @@ export class BaseSysUserService extends BaseService {
       throw new CoolCommException('該手機號碼帳號已存在');
     }
     await this.validateRoleAndLevel(param);
-    await this.applyWithholdingSalary(param);
+    if (canManageSalary) {
+      await this.applyWithholdingSalary(param);
+    }
     param.password = md5(param.password);
     await super.add(param);
     await this.updateUserRole(param);
@@ -221,6 +248,9 @@ export class BaseSysUserService extends BaseService {
     if (department) {
       info.departmentName = department.name;
     }
+    if (!(await this.canManageSalary())) {
+      this.removeSalaryFields(info);
+    }
     return info;
   }
 
@@ -229,6 +259,10 @@ export class BaseSysUserService extends BaseService {
    * @param param
    */
   public async personUpdate(param) {
+    const canManageSalary = await this.canManageSalary();
+    if (!canManageSalary) {
+      this.removeSalaryFields(param);
+    }
     param.id = this.ctx.admin.userId;
     if (param.name !== undefined || param.nickName !== undefined) {
       param.name = String(param.name || param.nickName || '').trim();
@@ -258,7 +292,7 @@ export class BaseSysUserService extends BaseService {
     } else {
       delete param.password;
     }
-    if (param.salary !== undefined) {
+    if (canManageSalary && param.salary !== undefined) {
       await this.applyWithholdingSalary(param);
     }
     await this.baseSysUserEntity.save(param);
@@ -269,6 +303,10 @@ export class BaseSysUserService extends BaseService {
    * @param param 資料
    */
   async update(param) {
+    const canManageSalary = await this.canManageSalary();
+    if (!canManageSalary) {
+      this.removeSalaryFields(param);
+    }
     if (param.id && param.username === 'admin') {
       throw new CoolCommException('非法操作~');
     }
@@ -299,7 +337,9 @@ export class BaseSysUserService extends BaseService {
     if (param.status === 0) {
       await this.forbidden(param.id);
     }
-    await this.applyWithholdingSalary(param);
+    if (canManageSalary) {
+      await this.applyWithholdingSalary(param);
+    }
     await this.baseSysUserEntity.save(param);
     await this.updateUserRole(param);
   }
@@ -555,5 +595,18 @@ export class BaseSysUserService extends BaseService {
     }
     const roles = await this.baseSysRoleEntity.findBy({ id: In(roleIds) });
     return roles.map(role => role.label);
+  }
+
+  private async canManageSalary(): Promise<boolean> {
+    const roleLabels = await this.getCurrentRoleLabels();
+    return roleLabels.includes(this.BOSS_LABEL);
+  }
+
+  private removeSalaryFields(target: any) {
+    if (!target) {
+      return;
+    }
+    delete target.salary;
+    delete target.withholdingSalary;
   }
 }

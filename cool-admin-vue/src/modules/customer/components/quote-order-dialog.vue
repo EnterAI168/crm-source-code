@@ -615,16 +615,6 @@
 								/>
 							</template>
 						</el-table-column>
-						<el-table-column label="自動傳送付款通知" width="150">
-							<template #default="{ row }">
-								<el-switch
-									v-model="row.autoSendEmail"
-									:active-value="1"
-									:inactive-value="0"
-									:disabled="isStageLocked"
-								/>
-							</template>
-						</el-table-column>
 						<el-table-column label="備註" min-width="180">
 							<template #default="{ row }">
 								<el-input
@@ -1784,7 +1774,11 @@ function getStageAmountTotal() {
 }
 
 function getStageRatioTotalError() {
-	return Math.abs(getStageRatioTotal() - 100) > 0.01 ? '付款階段比例合計必須等於 100%' : '';
+	// 每個階段僅顯示至小數點後兩位，平均分期時會產生累積捨入差異。
+	const roundingTolerance = quoteStageRows.value.length * 0.005 + 0.000001;
+	return Math.abs(getStageRatioTotal() - 100) > roundingTolerance
+		? '付款階段比例合計必須等於 100%'
+		: '';
 }
 
 function getStageRatioPositiveError() {

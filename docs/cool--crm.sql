@@ -1409,6 +1409,7 @@ CREATE TABLE `crm_remittance_stage`  (
   `paymentTime` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '匯款時間',
   `remark` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '備註',
   `quoteOrderId` int NULL DEFAULT NULL COMMENT '關聯報價單ID',
+  `quoteOrderIds` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '關聯報價單ID清單',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `IDX_c8fe6c2d777c5de46a9a790ec7`(`createTime` ASC) USING BTREE,
   INDEX `IDX_3f4532519a7ffd8986df655170`(`updateTime` ASC) USING BTREE,

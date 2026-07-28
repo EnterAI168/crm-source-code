@@ -134,23 +134,6 @@
 							</template>
 						</el-table-column>
 
-						<el-table-column label="匯款比例" width="130" align="center">
-							<template #default="{ row }">
-								<div class="percent-field">
-									<el-input-number
-										v-model="row.ratio"
-										:min="0"
-										:max="100"
-										:controls="false"
-										size="small"
-										style="width: 100%"
-										disabled
-									/>
-									<span>%</span>
-								</div>
-							</template>
-						</el-table-column>
-
 						<el-table-column label="金額" width="130" align="center">
 							<template #default="{ row }">
 								<el-input-number
@@ -180,15 +163,19 @@
 							</template>
 						</el-table-column>
 
-						<el-table-column label="關聯報價單" min-width="220" align="center">
+						<el-table-column label="關聯報價單（可複選）" min-width="260" align="center">
 							<template #default="{ row }">
 								<el-select
-									v-model="row.quoteOrderId"
+									v-model="row.quoteOrderIds"
 									placeholder="請選擇關聯報價單"
+									multiple
+									collapse-tags
+									collapse-tags-tooltip
 									filterable
 									size="small"
 									style="width: 100%"
 									:disabled="isStagePaid(row)"
+									@change="onQuoteOrderChange(row)"
 								>
 									<el-option
 										v-for="item in quoteOrderOptions"
@@ -200,9 +187,9 @@
 							</template>
 						</el-table-column>
 
-						<el-table-column label="勞保單" width="160" align="center">
+						<el-table-column label="勞報單" width="160" align="center">
 							<template #default="{ row }">
-								<el-input v-model="row.laborInsuranceNo" placeholder="請輸入勞保單" size="small" />
+								<el-input v-model="row.laborInsuranceNo" placeholder="請輸入勞報單" size="small" />
 							</template>
 						</el-table-column>
 
@@ -290,6 +277,7 @@ const createInitialStage = (quoteOrderId?: number) => ({
 	ratio: 100,
 	amount: 0,
 	quoteOrderId,
+	quoteOrderIds: [] as number[],
 	expectedRemittanceTime: null,
 	actualRemittanceTime: null,
 	nextStageRemittanceTime: null,
@@ -388,11 +376,11 @@ watch(
 );
 
 async function loadOptions() {
-	const [quotes, suppliers] = await Promise.all([
+	const [quoteOrders, suppliers] = await Promise.all([
 		remittanceService.quoteOrderOptions(),
 		remittanceService.supplierOptions()
 	]);
-	quoteOrderOptions.value = Array.isArray(quotes) ? quotes : [];
+	quoteOrderOptions.value = Array.isArray(quoteOrders) ? quoteOrders : [];
 	supplierOptions.value = Array.isArray(suppliers) ? suppliers : [];
 }
 
@@ -439,6 +427,9 @@ async function loadRemittanceData() {
 						ratio: formatRatioForDisplay(Number(item.ratio || 0) * 100),
 						amount: Number(item.amount || 0),
 						quoteOrderId: item.quoteOrderId || source.quoteOrderId || undefined,
+						quoteOrderIds: normalizeQuoteOrderIds(
+							item.quoteOrderIds || item.quoteOrderId || source.quoteOrderId
+						),
 						expectedRemittanceTime: item.expectedRemittanceTime || null,
 						actualRemittanceTime: item.actualRemittanceTime || null,
 						nextStageRemittanceTime: item.nextStageRemittanceTime || null,
@@ -481,15 +472,6 @@ function onSupplierChange(value?: number) {
 }
 
 function ensureSelectedOptions(source: Record<string, any>) {
-	const quoteOrderId = Number(source.quoteOrderId || 0);
-	if (quoteOrderId && !quoteOrderOptions.value.some(item => Number(item.id) === quoteOrderId)) {
-		quoteOrderOptions.value.unshift({
-			id: quoteOrderId,
-			quoteName: source.quoteOrderName || source.quoteName || '當前報價單',
-			quoteNo: source.quoteOrderNo || source.quoteNo || quoteOrderId
-		});
-	}
-
 	const supplierId = Number(source.supplierId || 0);
 	if (supplierId && !supplierOptions.value.some(item => Number(item.id) === supplierId)) {
 		supplierOptions.value.unshift({
@@ -563,7 +545,29 @@ function normalizeFileList(value: any): string[] {
 }
 
 function getPrimaryQuoteOrderId() {
-	return Number(form.value.stages.find(item => Number(item.quoteOrderId || 0) > 0)?.quoteOrderId || 0);
+	return Number(
+		form.value.stages
+			.map(item => normalizeQuoteOrderIds(item.quoteOrderIds)[0] || 0)
+			.find(id => id > 0) || 0
+	);
+}
+
+function normalizeQuoteOrderIds(value: any): number[] {
+	let source = value;
+	if (typeof source === 'string') {
+		try {
+			source = JSON.parse(source);
+		} catch {
+			source = source.split(',');
+		}
+	}
+	const values = Array.isArray(source) ? source : [source];
+	return [...new Set(values.map(item => Number(item || 0)).filter(item => item > 0))];
+}
+
+function onQuoteOrderChange(row: any) {
+	row.quoteOrderIds = normalizeQuoteOrderIds(row.quoteOrderIds);
+	row.quoteOrderId = row.quoteOrderIds[0] || undefined;
 }
 
 function addStage() {
@@ -572,6 +576,7 @@ function addStage() {
 		ratio: 0,
 		amount: 0,
 		quoteOrderId: undefined,
+		quoteOrderIds: [],
 		expectedRemittanceTime: null,
 		actualRemittanceTime: null,
 		nextStageRemittanceTime: null,
@@ -598,7 +603,9 @@ function isStageDisabled(row: any) {
 function buildStagePayload() {
 	const stages = form.value.stages.map(item => ({
 		...item,
-		amount: toMoney(item.amount)
+		amount: toMoney(item.amount),
+		quoteOrderIds: normalizeQuoteOrderIds(item.quoteOrderIds),
+		quoteOrderId: normalizeQuoteOrderIds(item.quoteOrderIds)[0] || undefined
 	}));
 	const totalAmount = toMoney(stages.reduce((sum, item) => sum + Number(item.amount || 0), 0));
 
@@ -635,7 +642,7 @@ async function handleSubmit() {
 		return;
 	}
 
-	if (form.value.stages.some(item => Number(item.quoteOrderId || 0) <= 0)) {
+	if (form.value.stages.some(item => normalizeQuoteOrderIds(item.quoteOrderIds).length === 0)) {
 		ElMessage.warning('請選擇付款階段關聯報價單');
 		return;
 	}
@@ -784,12 +791,6 @@ function handleClose() {
 
 .stage-ratio-tip.is-error {
 	color: #f56c6c;
-}
-
-.percent-field {
-	display: flex;
-	align-items: center;
-	gap: 6px;
 }
 
 .dialog-footer {

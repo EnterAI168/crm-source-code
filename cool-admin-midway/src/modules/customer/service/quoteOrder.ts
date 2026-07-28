@@ -768,6 +768,10 @@ export class CrmQuoteOrderService extends BaseService {
       { quoteOrderId: In(allowedIds) },
       { isDeleted: 1 }
     );
+    await this.crmQuoteOrderDepartmentAuditEntity.update(
+      { quoteOrderId: In(allowedIds) },
+      { isDeleted: 1 }
+    );
   }
 
   async customerOptions() {
@@ -4169,7 +4173,8 @@ export class CrmQuoteOrderService extends BaseService {
   private canDeleteOrder(order: any, scope: QuoteScope) {
     return (
       this.canSalesOperate(order, scope) &&
-      [1, 3].includes(Number(order.status || 0))
+      // 草稿、待審與退回狀態尚未形成簽約或回款資料，允許刪除。
+      [1, 2, 3].includes(this.getBusinessStatus(order))
     );
   }
 

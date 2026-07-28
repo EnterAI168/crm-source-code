@@ -16,11 +16,9 @@ import { CrmSupplierInfoEntity } from '../../supplier/entity/info';
 interface QuoteOptionScope {
   userId: number;
   departmentIds: number[];
-  departmentUserIds: number[];
   isBoss: boolean;
   isFinance: boolean;
   isOfficeClerkManager: boolean;
-  isOfficeClerk: boolean;
 }
 
 @Provide()
@@ -30,8 +28,6 @@ export class CrmRemittanceService extends BaseService {
   private readonly FINANCE_ROLE_LABELS = ['finance', 'financial', 'accountant'];
 
   private readonly FINANCE_ROLE_NAMES = ['財務', '財務', 'finance', 'financial', 'accountant'];
-
-  private readonly INTERNAL_ROLE_LABEL = 'office_clerk';
 
   private readonly INTERNAL_MANAGER_ROLE_LABEL = 'office_clerk_manager';
 
@@ -112,7 +108,10 @@ export class CrmRemittanceService extends BaseService {
         ${this.setSql(status, 'and a.status = ?', [Number(status)])}
         ${this.setSql(supplierEmail, 'and a.supplierEmail like ?', [`%${supplierEmail}%`])}
         ${restrictSql}
-      ORDER BY a.createTime DESC
+      ORDER BY
+        CASE WHEN a.status = 2 THEN 1 ELSE 0 END ASC,
+        a.createTime DESC,
+        a.id DESC
     `;
 
     const result: any = await this.sqlRenderPage(sql, query, false);
@@ -178,6 +177,8 @@ export class CrmRemittanceService extends BaseService {
 
     const remittanceNo = await this.resolveCreateRemittanceNo(param?.remittanceNo);
     const stages = this.normalizeStages(param?.stages || [], totalAmount, quoteOrderId);
+    this.applyQuoteOrdersToStages(stages);
+    await this.assertStageQuoteOrderAccess(stages);
     const salesmanId = quoteOrder?.salesmanId || this.ctx.admin?.userId || null;
     const scope = await this.getQuoteOptionScope();
     const uploadFiles = this.normalizeFileList(param?.uploadFiles);
@@ -267,6 +268,8 @@ export class CrmRemittanceService extends BaseService {
     }
 
     const stages = await this.normalizeStagesForUpdate(param?.stages || [], totalAmount, oldRow.id, quoteOrderId);
+    this.applyQuoteOrdersToStages(stages);
+    await this.assertStageQuoteOrderAccess(stages);
     const salesmanId = quoteOrder?.salesmanId || oldRow.salesmanId || this.ctx.admin?.userId || null;
     const scope = await this.getQuoteOptionScope();
     const uploadFiles = this.normalizeFileList(param?.uploadFiles);
@@ -342,6 +345,8 @@ export class CrmRemittanceService extends BaseService {
     if (idArr.length === 0) {
       return;
     }
+
+    await Promise.all(idArr.map(id => this.getRemittanceById(id)));
 
     const rows = await this.crmRemittanceEntity.findBy({
       id: In(idArr),
@@ -530,6 +535,7 @@ export class CrmRemittanceService extends BaseService {
       stages.map((item, index) => ({
         stageOrder: index + 1,
         quoteOrderId: this.toNullableNumber(item?.quoteOrderId) || defaultQuoteOrderId || null,
+        quoteOrderIds: this.normalizeQuoteOrderIds(item?.quoteOrderIds),
         stageName: String(item?.stageName || `階段${index + 1}`).trim(),
         ratio: 0,
         amount: this.toMoney(item?.amount),
@@ -588,6 +594,7 @@ export class CrmRemittanceService extends BaseService {
           id: stageId,
           stageOrder: index + 1,
           quoteOrderId: existing?.quoteOrderId || defaultQuoteOrderId || null,
+          quoteOrderIds: existing?.quoteOrderIds || null,
           stageName: existing?.stageName || String(item?.stageName || `階段${index + 1}`).trim(),
           ratio: existing?.ratio || 0,
           amount: existing?.amount || 0,
@@ -608,6 +615,7 @@ export class CrmRemittanceService extends BaseService {
         id: stageId > 0 ? stageId : undefined,
         stageOrder: index + 1,
         quoteOrderId: this.toNullableNumber(item?.quoteOrderId) || defaultQuoteOrderId || null,
+        quoteOrderIds: this.normalizeQuoteOrderIds(item?.quoteOrderIds),
         stageName: String(item?.stageName || `階段${index + 1}`).trim(),
         ratio: 0,
         amount: this.toMoney(item?.amount),
@@ -915,40 +923,35 @@ export class CrmRemittanceService extends BaseService {
       : [];
     const roleLabels = roles.map(item => item.label);
     const roleNames = roles.map(item => item.name);
-    const isBoss = roleLabels.some(label =>
-      this.SUPER_ROLE_LABELS.includes(label)
-    );
+    const isBoss =
+      this.ctx.admin?.username === 'admin' ||
+      roleLabels.some(label => this.SUPER_ROLE_LABELS.includes(label));
     const isFinance =
       roleLabels.some(label => this.FINANCE_ROLE_LABELS.includes(label)) ||
       roleNames.some(name => this.FINANCE_ROLE_NAMES.includes(name));
     const isOfficeClerkManager =
       isBoss || roleLabels.includes(this.INTERNAL_MANAGER_ROLE_LABEL);
-    const isOfficeClerk = roleLabels.includes(this.INTERNAL_ROLE_LABEL);
-    const departmentIds =
-      isOfficeClerkManager || isOfficeClerk
-        ? await this.getCurrentDepartmentIds(userId)
-        : [];
-    const departmentUserIds = departmentIds.length
-      ? await this.getDepartmentUserIds(departmentIds)
+    const departmentIds = isOfficeClerkManager
+      ? await this.getCurrentDepartmentIds(userId)
       : [];
-
     return {
       userId,
       departmentIds,
-      departmentUserIds,
       isBoss,
       isFinance,
       isOfficeClerkManager,
-      isOfficeClerk,
     };
   }
 
-  private buildQuoteOptionScopeCondition(scope: QuoteOptionScope) {
-    return this.buildQuoteScopeCondition(scope, 'a');
+  private buildQuoteOptionScopeCondition(
+    scope: QuoteOptionScope,
+    quoteAlias = 'a'
+  ) {
+    return this.buildQuoteScopeCondition(scope, quoteAlias);
   }
 
   private buildQuoteScopeSql(scope: QuoteOptionScope, quoteAlias = 'a') {
-    if (scope.isBoss || scope.isFinance) {
+    if (scope.isBoss) {
       return '';
     }
 
@@ -961,45 +964,32 @@ export class CrmRemittanceService extends BaseService {
             from crm_quote_order_department_audit da
             where da.quoteOrderId = ${quoteAlias}.id
               and da.isDeleted = 0
-              and (
-                da.departmentId in (?)
-                or da.assigneeId in (?)
-              )
+              and da.departmentId in (?)
           )
-          or ${quoteAlias}.currentAssigneeId in (?)
+          or exists (
+            select 1
+            from crm_quote_order_item qi
+            where qi.quoteOrderId = ${quoteAlias}.id
+              and qi.isDeleted = 0
+              and qi.departmentId in (?)
+          )
         )`,
         [
           scope.departmentIds.length ? scope.departmentIds : [null],
-          scope.departmentUserIds.length ? scope.departmentUserIds : [null],
-          scope.departmentUserIds.length ? scope.departmentUserIds : [null],
+          scope.departmentIds.length ? scope.departmentIds : [null],
         ]
       );
     }
 
-    if (scope.isOfficeClerk) {
-      return this.setSql(
-        true,
-        `and (
-          ${quoteAlias}.currentAssigneeId = ?
-          or exists (
-            select 1
-            from crm_quote_order_department_audit da
-            where da.quoteOrderId = ${quoteAlias}.id
-              and da.isDeleted = 0
-              and da.assigneeId = ?
-            )
-        )`,
-        [scope.userId, scope.userId]
-      );
-    }
-
-    return this.setSql(true, `and ${quoteAlias}.salesmanId = ?`, [
-      scope.userId,
-    ]);
+    return this.setSql(
+      true,
+      `and (${quoteAlias}.salesmanId = ? or ${quoteAlias}.accompanySalesmanId = ?)`,
+      [scope.userId, scope.userId]
+    );
   }
 
   private buildQuoteScopeCondition(scope: QuoteOptionScope, quoteAlias = 'a') {
-    if (scope.isBoss || scope.isFinance) {
+    if (scope.isBoss) {
       return {
         sql: '',
         params: [],
@@ -1008,7 +998,6 @@ export class CrmRemittanceService extends BaseService {
 
     if (scope.isOfficeClerkManager) {
       const departmentIds = this.toSqlNumberList(scope.departmentIds);
-      const departmentUserIds = this.toSqlNumberList(scope.departmentUserIds);
 
       return {
         sql: `and (
@@ -1017,37 +1006,25 @@ export class CrmRemittanceService extends BaseService {
             from crm_quote_order_department_audit da
             where da.quoteOrderId = ${quoteAlias}.id
               and da.isDeleted = 0
-              and (
-                da.departmentId in (${departmentIds})
-                or da.assigneeId in (${departmentUserIds})
-              )
+              and da.departmentId in (${departmentIds})
           )
-          or ${quoteAlias}.currentAssigneeId in (${departmentUserIds})
-        )`,
-        params: [],
-      };
-    }
-
-    if (scope.isOfficeClerk) {
-      const userId = this.toSqlNumber(scope.userId);
-
-      return {
-        sql: `and (
-          ${quoteAlias}.currentAssigneeId = ${userId}
           or exists (
             select 1
-            from crm_quote_order_department_audit da
-            where da.quoteOrderId = ${quoteAlias}.id
-              and da.isDeleted = 0
-              and da.assigneeId = ${userId}
-            )
+            from crm_quote_order_item qi
+            where qi.quoteOrderId = ${quoteAlias}.id
+              and qi.isDeleted = 0
+              and qi.departmentId in (${departmentIds})
+          )
         )`,
         params: [],
       };
     }
 
     return {
-      sql: `and ${quoteAlias}.salesmanId = ${this.toSqlNumber(scope.userId)}`,
+      sql: `and (
+        ${quoteAlias}.salesmanId = ${this.toSqlNumber(scope.userId)}
+        or ${quoteAlias}.accompanySalesmanId = ${this.toSqlNumber(scope.userId)}
+      )`,
       params: [],
     };
   }
@@ -1087,6 +1064,57 @@ export class CrmRemittanceService extends BaseService {
     }
   }
 
+  private async assertStageQuoteOrderAccess(stages: any[]) {
+    const quoteOrderIds = [
+      ...new Set(
+        (Array.isArray(stages) ? stages : [])
+          .flatMap(item => {
+            const ids = this.normalizeQuoteOrderIds(item?.quoteOrderIds);
+            return ids.length ? ids : [Number(item?.quoteOrderId || 0)];
+          })
+          .filter(id => Number.isFinite(id) && id > 0)
+      ),
+    ];
+    await Promise.all(quoteOrderIds.map(id => this.assertQuoteOrderAccess(id)));
+  }
+
+  private applyQuoteOrdersToStages(stages: any[]) {
+    const stageList = Array.isArray(stages) ? stages : [];
+    stageList.forEach((stage, index) => {
+      const quoteOrderIds = this.normalizeQuoteOrderIds(stage?.quoteOrderIds);
+
+      // 已匯款的舊資料可維持原關聯，避免歷史匯款單無法編輯。
+      if (!quoteOrderIds.length && Number(stage?.paymentStatus || 0) === 1) {
+        return;
+      }
+      if (!quoteOrderIds.length) {
+        throw new CoolCommException(
+          `第${index + 1}個匯款階段請選擇關聯報價單`
+        );
+      }
+
+      stage.quoteOrderId = quoteOrderIds[0];
+      stage.quoteOrderIds = JSON.stringify(quoteOrderIds);
+    });
+  }
+
+  private normalizeQuoteOrderIds(value: any): number[] {
+    let source = value;
+    if (typeof source === 'string') {
+      try {
+        source = JSON.parse(source);
+      } catch {
+        source = source.split(',');
+      }
+    }
+    const values = Array.isArray(source) ? source : [source];
+    return [...new Set(
+      values
+        .map(item => Number(item || 0))
+        .filter(item => Number.isFinite(item) && item > 0)
+    )];
+  }
+
   private async assertRemittanceAccess(remittanceId: number) {
     const scope = await this.getQuoteOptionScope();
     const restrict = this.buildQuoteScopeCondition(scope, 'q');
@@ -1116,17 +1144,6 @@ export class CrmRemittanceService extends BaseService {
       return [];
     }
     return this.getDepartmentAndChildrenIds(rootDepartmentId);
-  }
-
-  private async getDepartmentUserIds(departmentIds: number[]) {
-    const users = await this.baseSysUserEntity.find({
-      select: ['id'],
-      where: {
-        departmentId: In(departmentIds.length ? departmentIds : [0]),
-        status: 1,
-      },
-    });
-    return users.map(item => Number(item.id)).filter(id => id > 0);
   }
 
   private async getDepartmentAndChildrenIds(rootDepartmentId: number) {

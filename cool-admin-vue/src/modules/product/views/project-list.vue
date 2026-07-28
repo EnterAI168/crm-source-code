@@ -44,6 +44,10 @@
 					<template #column-finalAmount="{ scope }">
 						{{ toMoney(scope.row.finalAmount) }}
 					</template>
+
+					<template #column-grossProfitAmount="{ scope }">
+						{{ toMoney(getGrossProfitDisplay(scope.row)) }}
+					</template>
 				</cl-table>
 
 				<div
@@ -171,6 +175,11 @@ useTable({
 			minWidth: 120
 		},
 		{
+			label: '毛利',
+			prop: 'grossProfitAmount',
+			minWidth: 120
+		},
+		{
 			label: '項目狀況',
 			prop: 'projectStatus',
 			minWidth: 220,
@@ -195,6 +204,13 @@ useTable({
 		}
 	]
 });
+
+function getGrossProfitDisplay(row: any) {
+	const grossProfitAmount = row?.grossProfitAmount;
+	return grossProfitAmount === null || grossProfitAmount === undefined || grossProfitAmount === ''
+		? row?.finalAmount
+		: grossProfitAmount;
+}
 
 const Upsert = useUpsert({
 	dialog: {
