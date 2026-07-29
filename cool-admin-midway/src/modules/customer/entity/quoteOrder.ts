@@ -26,6 +26,10 @@ export class CrmQuoteOrderEntity extends BaseEntity {
   accompanySalesmanId: number;
 
   @Index()
+  @Column({ comment: '乙方存摺帳戶ID', nullable: true })
+  bankAccountId: number;
+
+  @Index()
   @Column({ comment: '當前內勤處理人ID', nullable: true })
   currentAssigneeId: number;
 

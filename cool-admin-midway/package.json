@@ -72,6 +72,7 @@
     "menu:performance": "node scripts/append-performance-menu.mjs",
     "menu:annual-assessment": "node scripts/append-annual-assessment-menu.mjs",
     "menu:quote-management": "node scripts/move-quote-menu.mjs",
+    "menu:quote-bank-account": "node scripts/append-quote-bank-account-menu.mjs",
     "menu:finance-management": "node scripts/move-finance-menu.mjs",
     "menu:performance-management": "node scripts/move-performance-menu.mjs",
     "menu:remittance-management": "node scripts/move-remittance-menu.mjs",

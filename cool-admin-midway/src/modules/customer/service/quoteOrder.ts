@@ -23,6 +23,7 @@ import { ProductSpecEntity } from '../../product/entity/spec';
 import { SALESMAN_ROLE_LABEL } from './info';
 import { BaseSysParamService } from '../../base/service/sys/param';
 import { CrmEcpayInvoiceService } from './ecpayInvoice';
+import { CrmQuoteBankAccountService } from './quoteBankAccount';
 import { pUploadPath } from '../../../comm/path';
 
 interface QuoteScope {
@@ -150,6 +151,9 @@ export class CrmQuoteOrderService extends BaseService {
 
   @Inject()
   crmEcpayInvoiceService: CrmEcpayInvoiceService;
+
+  @Inject()
+  crmQuoteBankAccountService: CrmQuoteBankAccountService;
 
   async isBoss(): Promise<boolean> {
     const roleIds = this.ctx.admin?.roleIds || [];
@@ -311,6 +315,7 @@ export class CrmQuoteOrderService extends BaseService {
       param?.accompanySalesmanId,
       salesmanId
     );
+    const bankAccountId = await this.normalizeBankAccountId(param?.bankAccountId);
     const quoteNoPrefix = await this.getQuoteNoPrefix(salesmanId);
     const contractFile = String(param?.contractFile || '').trim();
     const hasContract = !!contractFile;
@@ -327,6 +332,7 @@ export class CrmQuoteOrderService extends BaseService {
       quoteType: this.normalizeQuoteType(param?.quoteType),
       salesmanId,
       accompanySalesmanId,
+      bankAccountId,
       currentAssigneeId: null,
       status: 1,
       auditStatus: 0,
@@ -436,6 +442,11 @@ export class CrmQuoteOrderService extends BaseService {
           ? param?.accompanySalesmanId
           : oldRow.accompanySalesmanId,
         Number(customer.salesmanId || oldRow.salesmanId || this.ctx.admin?.userId || 0)
+      ),
+      bankAccountId: await this.normalizeBankAccountId(
+        Object.prototype.hasOwnProperty.call(param || {}, 'bankAccountId')
+          ? param?.bankAccountId
+          : oldRow.bankAccountId
       ),
       startDate: this.normalizeDate(param?.startDate),
       endDate: this.normalizeDate(param?.endDate),
@@ -619,6 +630,11 @@ export class CrmQuoteOrderService extends BaseService {
         : oldRow.accompanySalesmanId,
       Number(payload.salesmanId || 0)
     );
+    if (Object.prototype.hasOwnProperty.call(param || {}, 'bankAccountId')) {
+      payload.bankAccountId = await this.normalizeBankAccountId(
+        param?.bankAccountId
+      );
+    }
     const shouldResubmitDepartmentAudit =
       Number(oldRow.status || 0) === 3 || Number(oldRow.auditStatus || 0) === 3;
 
@@ -1924,6 +1940,7 @@ export class CrmQuoteOrderService extends BaseService {
       quoteType: order.quoteType,
       salesmanId: order.salesmanId,
       accompanySalesmanId: order.accompanySalesmanId || null,
+      bankAccountId: order.bankAccountId || null,
       currentAssigneeId: null,
       status: 1,
       auditStatus: 0,
@@ -2032,7 +2049,7 @@ export class CrmQuoteOrderService extends BaseService {
     });
     const duty = await this.baseSysParamService.dataByKey('duty');
     const quoteTerms = this.getOrderQuoteTerms(order);
-    const partyB = await this.quotePartyB();
+    const partyB = await this.quotePartyB(order?.salesmanId, order?.bankAccountId);
     const paymentCondition = this.renderQuotePaymentCondition(
       await this.quotePaymentCondition(),
       order,
@@ -2088,11 +2105,82 @@ export class CrmQuoteOrderService extends BaseService {
     return this.normalizeQuotePaymentCondition(value);
   }
 
-  async quotePartyB() {
+  async quotePartyB(salesmanId?: number, bankAccountId?: number) {
     const value = await this.baseSysParamService.dataByKey('quote_party_b');
     const bankCover = await this.baseSysParamService.dataByKey('quote_bank_cover');
     const companySeal = await this.baseSysParamService.dataByKey('quote_company_seal');
-    return this.normalizeQuotePartyB(value, bankCover, companySeal);
+    let partyB = this.normalizeQuotePartyB(value, bankCover, companySeal);
+    partyB = await this.applyBankAccountToQuotePartyB(partyB, bankAccountId);
+    return this.applySalesmanToQuotePartyB(partyB, salesmanId);
+  }
+
+  /**
+   * 乙方聯絡人 / 信箱 / 電話改為對應報價單業務員資訊
+   */
+  private async applySalesmanToQuotePartyB(partyB: any, salesmanId?: number) {
+    const id = Number(salesmanId || 0);
+    if (!id) {
+      return partyB;
+    }
+    const salesman = await this.baseSysUserEntity.findOneBy({ id });
+    if (!salesman) {
+      return partyB;
+    }
+    const contactName = String(
+      salesman.name || salesman.nickName || salesman.username || ''
+    ).trim();
+    const email = String(salesman.email || '').trim();
+    const mobile = String(salesman.phone || '').trim();
+    return {
+      ...partyB,
+      contactName: contactName || partyB.contactName,
+      email: email || partyB.email,
+      mobile: mobile || partyB.mobile,
+    };
+  }
+
+  /**
+   * 按報價單選擇的存摺帳戶覆蓋乙方匯款資訊
+   */
+  private async applyBankAccountToQuotePartyB(
+    partyB: any,
+    bankAccountId?: number
+  ) {
+    let account = await this.crmQuoteBankAccountService.getById(bankAccountId);
+    if (!account || Number(account.isEnabled) !== 1) {
+      account = await this.crmQuoteBankAccountService.getDefaultAccount();
+    }
+    if (!account) {
+      return partyB;
+    }
+    return {
+      ...partyB,
+      bankAccountName:
+        String(account.bankAccountName || '').trim() || partyB.bankAccountName,
+      bankCode: String(account.bankCode || '').trim() || partyB.bankCode,
+      bankName: String(account.bankName || '').trim() || partyB.bankName,
+      bankBranch: String(account.bankBranch || '').trim(),
+      bankAccountNo:
+        String(account.bankAccountNo || '').trim() || partyB.bankAccountNo,
+      bankCoverUrl:
+        String(account.bankCoverUrl || '').trim() || partyB.bankCoverUrl,
+      bankAccountId: account.id,
+      bankAccountLabel: account.name,
+    };
+  }
+
+  private async normalizeBankAccountId(value: any) {
+    const id = Number(value || 0);
+    if (!id) {
+      const defaultAccount =
+        await this.crmQuoteBankAccountService.getDefaultAccount();
+      return defaultAccount?.id || null;
+    }
+    const account = await this.crmQuoteBankAccountService.getById(id);
+    if (!account || Number(account.isEnabled) !== 1) {
+      throw new CoolCommException('存摺帳戶不存在或已停用');
+    }
+    return account.id;
   }
 
   private getOrderQuoteTerms(order: any) {
@@ -2192,7 +2280,7 @@ export class CrmQuoteOrderService extends BaseService {
     });
     const duty = await this.baseSysParamService.dataByKey('duty');
     const quoteTerms = this.getOrderQuoteTerms(order);
-    const partyB = await this.quotePartyB();
+    const partyB = await this.quotePartyB(order?.salesmanId, order?.bankAccountId);
     const paymentCondition = this.renderQuotePaymentCondition(
       await this.quotePaymentCondition(),
       order,

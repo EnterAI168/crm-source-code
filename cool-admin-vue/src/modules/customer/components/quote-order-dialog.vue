@@ -224,6 +224,24 @@
 						</el-form-item>
 					</el-col>
 					<el-col :span="12">
+						<el-form-item label="乙方存摺帳戶" required>
+							<el-select
+								v-model="quoteForm.bankAccountId"
+								filterable
+								:disabled="isQuoteBaseLocked"
+								placeholder="請選擇存摺帳戶"
+								style="width: 100%"
+							>
+								<el-option
+									v-for="item in bankAccountOptions"
+									:key="item.value"
+									:label="item.label"
+									:value="item.value"
+								/>
+							</el-select>
+						</el-form-item>
+					</el-col>
+					<el-col :span="12">
 						<el-form-item label="專案期間">
 							<div class="crm-quote-period">
 								<el-date-picker
@@ -844,6 +862,7 @@ import { computed, nextTick, reactive, ref, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import QuoteOrderService from '../service/quote';
 import CustomerFollowupService from '../service/followup';
+import QuoteBankAccountService from '../service/bankAccount';
 import { downloadBlob, downloadFileByUrl } from '../utils/download';
 import { getQuoteStatusLabel, quoteTypeOptions } from '../utils/quote';
 import QuoteHistoryPreview from '../views/quote-history-preview.vue';
@@ -865,6 +884,7 @@ const emit = defineEmits<{
 
 const quoteService = new QuoteOrderService();
 const followupService = new CustomerFollowupService();
+const bankAccountService = new QuoteBankAccountService();
 
 const visible = computed({
 	get: () => props.modelValue,
@@ -892,6 +912,7 @@ const presetCustomer = computed(() => props.customer || null);
 const customerOptions = ref<any[]>([]);
 const productOptions = ref<any[]>([]);
 const salesmanOptions = ref<any[]>([]);
+const bankAccountOptions = ref<any[]>([]);
 const quoteDutyValue = ref<any>(0);
 const followList = ref<any[]>([]);
 const followLoading = ref(false);
@@ -933,6 +954,7 @@ const quoteForm = reactive({
 	quoteType: 1,
 	salesmanId: undefined as number | undefined,
 	accompanySalesmanId: undefined as number | undefined,
+	bankAccountId: undefined as number | undefined,
 	startDate: '',
 	endDate: '',
 	execRemark: '',
@@ -2276,13 +2298,15 @@ function resolveCommission(detail: any, items: any[]) {
 }
 
 async function loadOptions() {
-	const [customers, products, salesmen, quoteTerms, quoteDiscountRate] = await Promise.allSettled([
-		quoteService.customerOptions(),
-		quoteService.productOptions(),
-		quoteService.salesmanOptions(),
-		quoteService.quoteTerms(),
-		quoteService.quoteDiscountRate()
-	]);
+	const [customers, products, salesmen, bankAccounts, quoteTerms, quoteDiscountRate] =
+		await Promise.allSettled([
+			quoteService.customerOptions(),
+			quoteService.productOptions(),
+			quoteService.salesmanOptions(),
+			bankAccountService.options(),
+			quoteService.quoteTerms(),
+			quoteService.quoteDiscountRate()
+		]);
 	customerOptions.value = customers.status === 'fulfilled' ? customers.value || [] : [];
 	productOptions.value = products.status === 'fulfilled' ? products.value || [] : [];
 	salesmanOptions.value =
@@ -2292,6 +2316,8 @@ async function loadOptions() {
 					value: Number(item.id)
 				}))
 			: [];
+	bankAccountOptions.value =
+		bankAccounts.status === 'fulfilled' ? bankAccounts.value || [] : [];
 	quoteDiscountRateThreshold.value =
 		quoteDiscountRate.status === 'fulfilled' ? normalizePercentValue(quoteDiscountRate.value) : 0;
 	defaultQuoteTermSections.value = normalizeQuoteTerms(
@@ -2305,6 +2331,17 @@ async function loadOptions() {
 	} catch {
 		quoteDutyValue.value = 0;
 	}
+}
+
+function ensureDefaultBankAccount() {
+	if (quoteForm.bankAccountId) {
+		return;
+	}
+	const defaultAccount = bankAccountOptions.value.find(
+		(item: any) => Number(item.isDefault) === 1
+	);
+	quoteForm.bankAccountId =
+		Number(defaultAccount?.value || bankAccountOptions.value[0]?.value || 0) || undefined;
 }
 
 async function loadFollowList() {
@@ -2334,6 +2371,7 @@ function resetDialog() {
 	quoteForm.quoteType = 1;
 	quoteForm.salesmanId = undefined;
 	quoteForm.accompanySalesmanId = undefined;
+	quoteForm.bankAccountId = undefined;
 	quoteForm.startDate = '';
 	quoteForm.endDate = '';
 	quoteForm.execRemark = '';
@@ -2367,6 +2405,7 @@ function resetDialog() {
 function openWithCustomer(customer?: Record<string, any> | null) {
 	resetDialog();
 	quoteTermSections.value = createDefaultQuoteTermSectionsForAdd();
+	ensureDefaultBankAccount();
 	if (customer?.id) {
 		quoteForm.customerId = Number(customer.id);
 		followSalesmanId.value = Number(customer.salesmanId || 0);
@@ -2412,6 +2451,10 @@ async function openWithQuote(id: number) {
 	quoteForm.accompanySalesmanId = detail?.accompanySalesmanId
 		? Number(detail.accompanySalesmanId)
 		: undefined;
+	quoteForm.bankAccountId = detail?.bankAccountId
+		? Number(detail.bankAccountId)
+		: undefined;
+	ensureDefaultBankAccount();
 	quoteForm.startDate = detail?.startDate || '';
 	quoteForm.endDate = detail?.endDate || '';
 	quoteForm.execRemark = detail?.execRemark || parsedRemark.execRemark;
@@ -2521,6 +2564,10 @@ async function submitDialog(options: { submitAudit?: boolean } = {}) {
 			ElMessage.warning('請選擇客戶');
 			return;
 		}
+		if (!quoteForm.bankAccountId) {
+			ElMessage.warning('請選擇乙方存摺帳戶');
+			return;
+		}
 		if (!String(quoteForm.quoteName || '').trim()) {
 			ElMessage.warning('請輸入專案名稱');
 			return;
@@ -2607,6 +2654,7 @@ async function submitDialog(options: { submitAudit?: boolean } = {}) {
 			quoteName: String(quoteForm.quoteName || '').trim(),
 			quoteType: quoteForm.quoteType,
 			accompanySalesmanId: quoteForm.accompanySalesmanId || undefined,
+			bankAccountId: quoteForm.bankAccountId || undefined,
 			startDate: quoteForm.startDate || undefined,
 			endDate: quoteForm.endDate || undefined,
 			remark: remarkParts.join('\n') || undefined,

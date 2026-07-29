@@ -36,7 +36,9 @@
 
 					<main class="quote-sheet__content">
 						<section class="quote-section quote-section--intro">
-							<p>為廣告主，以下簡稱甲方；</p>
+							<p>
+								{{ customer.companyName || customer.contactName || '' }}為廣告主，以下簡稱甲方；
+							</p>
 							<p>{{ partyB.companyName }}為委刊主，以下簡稱乙方。</p>
 						</section>
 

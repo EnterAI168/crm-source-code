@@ -10,11 +10,11 @@ export default {
     dataSource: {
       default: {
         type: 'mysql',
-        host: '127.0.0.1',
-        port: 3308,
-        username: 'root',
-        password: 'root',
-        database: 'cool-crm',
+        host: 'database-1.c7kmks6w84zb.ap-east-1.rds.amazonaws.com',
+        port: 3306,
+        username: 'admin',
+        password: 'vQQAoscnr6ee8cbH54hj',
+        database: 'cool-crm-test',
         // 自動建表 注意：線上部署的時候不要使用，有可能導致資料丟失
         synchronize: true,
         // 列印日誌

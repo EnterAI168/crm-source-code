@@ -1,4 +1,4 @@
-// 自動生成的檔案，請勿手動修改
+// 自动生成的文件，请勿手动修改
 import * as entity0 from './modules/user/entity/wx';
 import * as entity1 from './modules/user/entity/info';
 import * as entity2 from './modules/user/entity/address';
@@ -23,22 +23,23 @@ import * as entity20 from './modules/customer/entity/quoteItem';
 import * as entity21 from './modules/customer/entity/quoteInvoice';
 import * as entity22 from './modules/customer/entity/quoteHistory';
 import * as entity23 from './modules/customer/entity/quoteDepartmentAudit';
-import * as entity24 from './modules/customer/entity/performance';
-import * as entity25 from './modules/customer/entity/info';
-import * as entity26 from './modules/customer/entity/followup';
-import * as entity27 from './modules/customer/entity/contractReminder';
-import * as entity28 from './modules/customer/entity/bonusConfig';
-import * as entity29 from './modules/base/entity/base';
-import * as entity30 from './modules/base/entity/sys/user_role';
-import * as entity31 from './modules/base/entity/sys/user';
-import * as entity32 from './modules/base/entity/sys/role_menu';
-import * as entity33 from './modules/base/entity/sys/role_department';
-import * as entity34 from './modules/base/entity/sys/role';
-import * as entity35 from './modules/base/entity/sys/param';
-import * as entity36 from './modules/base/entity/sys/menu';
-import * as entity37 from './modules/base/entity/sys/log';
-import * as entity38 from './modules/base/entity/sys/department';
-import * as entity39 from './modules/base/entity/sys/conf';
+import * as entity24 from './modules/customer/entity/quoteBankAccount';
+import * as entity25 from './modules/customer/entity/performance';
+import * as entity26 from './modules/customer/entity/info';
+import * as entity27 from './modules/customer/entity/followup';
+import * as entity28 from './modules/customer/entity/contractReminder';
+import * as entity29 from './modules/customer/entity/bonusConfig';
+import * as entity30 from './modules/base/entity/base';
+import * as entity31 from './modules/base/entity/sys/user_role';
+import * as entity32 from './modules/base/entity/sys/user';
+import * as entity33 from './modules/base/entity/sys/role_menu';
+import * as entity34 from './modules/base/entity/sys/role_department';
+import * as entity35 from './modules/base/entity/sys/role';
+import * as entity36 from './modules/base/entity/sys/param';
+import * as entity37 from './modules/base/entity/sys/menu';
+import * as entity38 from './modules/base/entity/sys/log';
+import * as entity39 from './modules/base/entity/sys/department';
+import * as entity40 from './modules/base/entity/sys/conf';
 export const entities = [
   ...Object.values(entity0),
   ...Object.values(entity1),
@@ -80,4 +81,5 @@ export const entities = [
   ...Object.values(entity37),
   ...Object.values(entity38),
   ...Object.values(entity39),
+  ...Object.values(entity40),
 ];
