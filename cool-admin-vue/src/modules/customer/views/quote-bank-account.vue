@@ -38,6 +38,7 @@
 							v-if="row.bankCoverUrl"
 							:src="row.bankCoverUrl"
 							:preview-src-list="[row.bankCoverUrl]"
+							preview-teleported
 							fit="cover"
 							style="width: 48px; height: 32px"
 						/>
