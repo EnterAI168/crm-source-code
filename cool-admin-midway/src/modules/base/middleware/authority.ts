@@ -346,6 +346,35 @@ export class BaseAuthorityMiddleware
                 ],
                 'crmQuoteOrder/nextNo': ['crm/quoteOrder/add'],
                 /**
+                 * 存摺帳戶：業務新增/編輯報價單需拉 options；
+                 * 管理頁權限為 crm:quoteBankAccount:*
+                 */
+                'crmQuoteBankAccount/options': [
+                  'crm/quoteBankAccount/page',
+                  'crm/quoteOrder/page',
+                  'crm/quoteOrder/add',
+                  'crm/quoteOrder/info',
+                  'crm/quoteOrder/update',
+                  'crm/quoteOrder/applyAllowance',
+                  'crm/quoteOrder/departmentCost',
+                  'crm/customerList/quotationView',
+                ],
+                'crmQuoteBankAccount/page': ['crm/quoteBankAccount/page'],
+                'crmQuoteBankAccount/list': [
+                  'crm/quoteBankAccount/page',
+                  'crm/quoteBankAccount/list',
+                ],
+                'crmQuoteBankAccount/detail': [
+                  'crm/quoteBankAccount/page',
+                  'crm/quoteBankAccount/update',
+                ],
+                'crmQuoteBankAccount/add': ['crm/quoteBankAccount/add'],
+                'crmQuoteBankAccount/update': [
+                  'crm/quoteBankAccount/update',
+                  'crm/quoteBankAccount/add',
+                ],
+                'crmQuoteBankAccount/delete': ['crm/quoteBankAccount/delete'],
+                /**
                  * 供應商管理：控制器 prefix 為 crmSupplier，
                  * 選單權限為 crm:supplier:*，需要做路由別名對映
                  */

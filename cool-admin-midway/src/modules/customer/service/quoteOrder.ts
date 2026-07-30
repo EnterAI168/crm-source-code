@@ -974,7 +974,9 @@ export class CrmQuoteOrderService extends BaseService {
     const items = await this.crmQuoteOrderItemEntity.find({
       where: { quoteOrderId: order.id, isDeleted: 0 },
     });
-    await this.syncDepartmentAudits(order.id, items);
+    await this.syncDepartmentAudits(order.id, items, {
+      resetExisting: true,
+    });
 
     await this.crmQuoteOrderEntity.update(
       { id: order.id },
@@ -3237,6 +3239,14 @@ export class CrmQuoteOrderService extends BaseService {
         items.map(item => Number(item?.departmentId || 0)).filter(id => id > 0)
       )
     );
+    const order = await this.crmQuoteOrderEntity.findOneBy({
+      id: quoteOrderId,
+      isDeleted: 0,
+    });
+    // 僅業務送審後（或重送審）才進入「待部門審核」；新建/編輯跟進中報價單不計入待審
+    const pendingDepartmentAudit =
+      options.resetExisting || Number(order?.auditStatus || 0) === 1;
+    const initialAuditStatus = pendingDepartmentAudit ? 1 : 0;
     const oldRows = await this.crmQuoteOrderDepartmentAuditEntity.find({
       where: { quoteOrderId, isDeleted: 0 },
     });
@@ -3272,7 +3282,7 @@ export class CrmQuoteOrderService extends BaseService {
       await this.crmQuoteOrderDepartmentAuditEntity.save({
         quoteOrderId,
         departmentId,
-        auditStatus: 1,
+        auditStatus: initialAuditStatus,
         assignStatus: 0,
         costStatus: 0,
         isDeleted: 0,

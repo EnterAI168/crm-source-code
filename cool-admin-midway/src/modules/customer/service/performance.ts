@@ -677,7 +677,7 @@ export class CrmPerformanceService extends BaseService {
       this.nativeQuery(
         `
         SELECT
-          COUNT(DISTINCT CASE WHEN da.auditStatus = 1 THEN da.quoteOrderId END) AS pendingAuditCount,
+          COUNT(DISTINCT CASE WHEN da.auditStatus = 1 AND IFNULL(q.auditStatus, 0) = 1 THEN da.quoteOrderId END) AS pendingAuditCount,
           COUNT(DISTINCT CASE WHEN da.auditStatus = 2 AND da.assignStatus IN (0, 1) AND IFNULL(q.contractStatus, 0) = 1 THEN da.quoteOrderId END) AS pendingAssignCount,
           COUNT(DISTINCT CASE WHEN da.auditStatus = 2 AND da.assignStatus = 2 AND da.costStatus = 0 THEN da.quoteOrderId END) AS pendingCostCount,
           COUNT(DISTINCT CASE WHEN da.auditStatus = 2 AND da.assignStatus = 2 AND da.costStatus = 1 THEN da.quoteOrderId END) AS completedCount
@@ -823,7 +823,7 @@ export class CrmPerformanceService extends BaseService {
           label: '待審核案件',
           value: this.toMoney(flowSummary.pendingAuditCount),
           unit: '件',
-          hint: '等待部門主管審核',
+          hint: '業務已送審，等待部門主管審核',
         },
         {
           label: '待分配案件',
