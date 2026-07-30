@@ -61,7 +61,7 @@ export class CrmRemittanceService extends BaseService {
   async page(query: any) {
     const { remittanceName, status, supplierEmail } = query || {};
     const scope = await this.getQuoteOptionScope();
-    const restrictSql = this.buildQuoteScopeSql(scope, 'q');
+    const restrictSql = this.buildRemittanceScopeSql(scope, 'a');
 
     const sql = `
       SELECT
@@ -180,6 +180,7 @@ export class CrmRemittanceService extends BaseService {
     this.applyQuoteOrdersToStages(stages);
     await this.assertStageQuoteOrderAccess(stages);
     const salesmanId = quoteOrder?.salesmanId || this.ctx.admin?.userId || null;
+    const createUserId = Number(this.ctx.admin?.userId || 0) || null;
     const scope = await this.getQuoteOptionScope();
     const uploadFiles = this.normalizeFileList(param?.uploadFiles);
     const invoiceFiles = this.normalizeFileList(param?.invoiceFiles);
@@ -199,6 +200,7 @@ export class CrmRemittanceService extends BaseService {
       paidAmount: 0,
       status: 1,
       salesmanId,
+      createUserId,
       uploadFiles,
       invoiceFiles,
       receivedLaborInsurance: this.resolveReceivedStatusForCreate(
@@ -988,6 +990,34 @@ export class CrmRemittanceService extends BaseService {
     );
   }
 
+  /** 匯款單列表/操作：老闆看全部，其餘僅看自己建立的 */
+  private buildRemittanceScopeSql(scope: QuoteOptionScope, remittanceAlias = 'a') {
+    if (scope.isBoss) {
+      return '';
+    }
+    return this.setSql(
+      true,
+      `and ${remittanceAlias}.createUserId = ?`,
+      [scope.userId]
+    );
+  }
+
+  private buildRemittanceScopeCondition(
+    scope: QuoteOptionScope,
+    remittanceAlias = 'a'
+  ) {
+    if (scope.isBoss) {
+      return {
+        sql: '',
+        params: [],
+      };
+    }
+    return {
+      sql: `and ${remittanceAlias}.createUserId = ${this.toSqlNumber(scope.userId)}`,
+      params: [],
+    };
+  }
+
   private buildQuoteScopeCondition(scope: QuoteOptionScope, quoteAlias = 'a') {
     if (scope.isBoss) {
       return {
@@ -1117,7 +1147,7 @@ export class CrmRemittanceService extends BaseService {
 
   private async assertRemittanceAccess(remittanceId: number) {
     const scope = await this.getQuoteOptionScope();
-    const restrict = this.buildQuoteScopeCondition(scope, 'q');
+    const restrict = this.buildRemittanceScopeCondition(scope, 'a');
     if (!restrict.sql) {
       return;
     }
@@ -1125,7 +1155,6 @@ export class CrmRemittanceService extends BaseService {
       `
       SELECT COUNT(1) AS count
       FROM crm_remittance a
-      LEFT JOIN crm_quote_order q ON q.id = a.quoteOrderId
       WHERE a.id = ?
         AND a.isDeleted = 0
         ${restrict.sql}
