@@ -269,7 +269,7 @@ export class CrmQuoteOrderService extends BaseService {
       ),
       permissions: {
         canAudit: this.canAuditDepartment(audit, scope),
-        canAssign: this.canAssignDepartment(audit, scope),
+        canAssign: this.canAssignDepartment(audit, order, scope),
         canSubmitCost: this.canSubmitDepartmentCost(audit, scope),
       },
     }));
@@ -1160,7 +1160,7 @@ export class CrmQuoteOrderService extends BaseService {
       ),
       permissions: {
         canAudit: this.canAuditDepartment(audit, scope),
-        canAssign: this.canAssignDepartment(audit, scope),
+        canAssign: this.canAssignDepartment(audit, order, scope),
         canSubmitCost: this.canSubmitDepartmentCost(audit, scope),
       },
     }));
@@ -1209,7 +1209,16 @@ export class CrmQuoteOrderService extends BaseService {
       order.id,
       Number(param?.departmentId || 0)
     );
-    if (!this.canAssignDepartment(audit, scope)) {
+    if (!this.canAssignDepartment(audit, order, scope)) {
+      if (
+        scope.isOfficeClerkManager &&
+        Number(audit.auditStatus || 0) === 2 &&
+        Number(audit.assignStatus || 0) === 1 &&
+        this.canManageDepartment(Number(audit.departmentId || 0), scope) &&
+        Number(order.contractStatus || 0) !== 1
+      ) {
+        throw new CoolCommException('請等待業務回傳合約後再分配內勤人員');
+      }
       throw new CoolCommException('當前無權限分配內勤人員');
     }
 
@@ -1920,6 +1929,8 @@ export class CrmQuoteOrderService extends BaseService {
       subtotalAmount: item.subtotalAmount,
       subtotalCostAmount: item.subtotalCostAmount,
       grossProfitAmount: item.grossProfitAmount,
+      defaultRemark: item.defaultRemark,
+      sourceDefaultRemark: item.sourceDefaultRemark,
       remark: item.remark,
       sortNum: index + 1,
       isDeleted: 0,
@@ -2049,7 +2060,10 @@ export class CrmQuoteOrderService extends BaseService {
     });
     const duty = await this.baseSysParamService.dataByKey('duty');
     const quoteTerms = this.getOrderQuoteTerms(order);
-    const partyB = await this.quotePartyB(order?.salesmanId, order?.bankAccountId);
+    const partyB = this.applyQuoteCompanySealByAudit(
+      await this.quotePartyB(order?.salesmanId, order?.bankAccountId),
+      order
+    );
     const paymentCondition = this.renderQuotePaymentCondition(
       await this.quotePaymentCondition(),
       order,
@@ -2280,7 +2294,10 @@ export class CrmQuoteOrderService extends BaseService {
     });
     const duty = await this.baseSysParamService.dataByKey('duty');
     const quoteTerms = this.getOrderQuoteTerms(order);
-    const partyB = await this.quotePartyB(order?.salesmanId, order?.bankAccountId);
+    const partyB = this.applyQuoteCompanySealByAudit(
+      await this.quotePartyB(order?.salesmanId, order?.bankAccountId),
+      order
+    );
     const paymentCondition = this.renderQuotePaymentCondition(
       await this.quotePaymentCondition(),
       order,
@@ -2515,6 +2532,19 @@ export class CrmQuoteOrderService extends BaseService {
         productType = Number(product.isOneTimePayment) === 1 ? 2 : 1;
       }
 
+      const sourceDefaultRemark = Object.prototype.hasOwnProperty.call(
+        item || {},
+        'sourceDefaultRemark'
+      )
+        ? String(item?.sourceDefaultRemark ?? '').trim()
+        : String(product.defaultRemark || '').trim();
+      const defaultRemark = Object.prototype.hasOwnProperty.call(
+        item || {},
+        'defaultRemark'
+      )
+        ? String(item?.defaultRemark ?? '').trim()
+        : sourceDefaultRemark;
+
       return {
         productId,
         departmentId: product.departmentId
@@ -2530,6 +2560,8 @@ export class CrmQuoteOrderService extends BaseService {
         subtotalAmount,
         subtotalCostAmount,
         grossProfitAmount,
+        defaultRemark: defaultRemark || null,
+        sourceDefaultRemark: sourceDefaultRemark || null,
         remark: String(item?.remark || '').trim() || null,
         sortNum: index + 1,
         isDeleted: 0,
@@ -3408,13 +3440,32 @@ export class CrmQuoteOrderService extends BaseService {
     );
   }
 
-  private canAssignDepartment(audit: any, scope: QuoteScope) {
+  /**
+   * 內勤主管分配：部門審核通過 + 待分配 + 業務已回傳合約
+   */
+  private canAssignDepartment(audit: any, order: any, scope: QuoteScope) {
     return (
       scope.isOfficeClerkManager &&
       Number(audit.auditStatus || 0) === 2 &&
       Number(audit.assignStatus || 0) === 1 &&
+      Number(order?.contractStatus || 0) === 1 &&
       this.canManageDepartment(Number(audit.departmentId || 0), scope)
     );
+  }
+
+  /** 內勤審核通過後，下載/預覽報價單才蓋公司章 */
+  private canShowQuoteCompanySeal(order: any) {
+    return Number(order?.auditStatus || 0) === 2;
+  }
+
+  private applyQuoteCompanySealByAudit(partyB: any, order: any) {
+    if (this.canShowQuoteCompanySeal(order)) {
+      return partyB;
+    }
+    return {
+      ...partyB,
+      companySealUrl: '',
+    };
   }
 
   private canSubmitDepartmentCost(audit: any, scope: QuoteScope) {
@@ -4082,14 +4133,17 @@ export class CrmQuoteOrderService extends BaseService {
     orderId: number,
     scope: QuoteScope
   ) {
-    const audits = await this.crmQuoteOrderDepartmentAuditEntity.find({
-      where: { quoteOrderId: orderId, isDeleted: 0 },
-    });
+    const [audits, order] = await Promise.all([
+      this.crmQuoteOrderDepartmentAuditEntity.find({
+        where: { quoteOrderId: orderId, isDeleted: 0 },
+      }),
+      this.crmQuoteOrderEntity.findOneBy({ id: orderId, isDeleted: 0 }),
+    ]);
     const canDepartmentAudit = audits.some(audit =>
       this.canAuditDepartment(audit, scope)
     );
     const canDepartmentAssign = audits.some(audit =>
-      this.canAssignDepartment(audit, scope)
+      this.canAssignDepartment(audit, order, scope)
     );
     return {
       canDepartmentAudit,

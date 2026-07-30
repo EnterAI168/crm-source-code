@@ -58,6 +58,9 @@ export class ProductInfoEntity extends BaseEntity {
   @Column({ comment: '商品說明', type: 'text', nullable: true })
   description: string;
 
+  @Column({ comment: '預設備註', type: 'text', nullable: true })
+  defaultRemark: string;
+
   @Column({ comment: 'Logo圖', nullable: true })
   logo: string;
 

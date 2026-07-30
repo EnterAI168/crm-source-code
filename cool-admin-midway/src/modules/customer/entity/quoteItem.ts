@@ -72,14 +72,14 @@ export class CrmQuoteOrderItemEntity extends BaseEntity {
   })
   subtotalCostAmount: number;
 
-  @Column({
-    comment: '小計毛利',
-    type: 'decimal',
-    precision: 12,
-    scale: 2,
-    default: 0,
-  })
+  @Column({ comment: '小計毛利', type: 'decimal', precision: 12, scale: 2, default: 0 })
   grossProfitAmount: number;
+
+  @Column({ comment: '預設備註（業務可改）', nullable: true, type: 'text' })
+  defaultRemark: string;
+
+  @Column({ comment: '產品預設備註快照（用於判斷是否修改）', nullable: true, type: 'text' })
+  sourceDefaultRemark: string;
 
   @Column({ comment: '備註', nullable: true, length: 255 })
   remark: string;

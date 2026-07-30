@@ -342,6 +342,27 @@
 							/>
 						</template>
 					</el-table-column>
+					<el-table-column label="預設備註" min-width="180">
+						<template #default="{ row }">
+							<div class="crm-quote-cell">
+								<el-input
+									v-model="row.defaultRemark"
+									type="textarea"
+									:rows="2"
+									:disabled="isQuoteBaseLocked"
+									:readonly="isFieldLocked && !isCostAccountingMode"
+									placeholder="可修改預設備註"
+									@change="onDefaultRemarkChange(row)"
+								/>
+								<div
+									v-if="shouldShowDefaultRemarkTip(row)"
+									class="crm-quote-error"
+								>
+									預設備註修改注意查看
+								</div>
+							</div>
+						</template>
+					</el-table-column>
 					<el-table-column label="產品型別" width="110">
 						<template #default="{ row }">
 							<span>{{ getProductTypeLabel(row) }}</span>
@@ -1586,6 +1607,8 @@ function createQuoteItem() {
 		quantity: 1,
 		expectedGrossProfitRate: 0,
 		subtotalAmount: 0,
+		defaultRemark: '',
+		sourceDefaultRemark: '',
 		actualPriceError: ''
 	};
 }
@@ -1897,6 +1920,9 @@ function onProductChange(row: any) {
 	row.actualPrice = 0;
 	row.departmentId = product?.departmentId || undefined;
 	row.costPrice = getCostPrice(row);
+	const defaultRemark = String(product?.defaultRemark || '').trim();
+	row.defaultRemark = defaultRemark;
+	row.sourceDefaultRemark = defaultRemark;
 	recalcQuoteItem(row);
 	refreshStageAmounts();
 }
@@ -1908,6 +1934,24 @@ function onSpecChange(row: any) {
 	row.costPrice = getCostPrice(row);
 	recalcQuoteItem(row);
 	refreshStageAmounts();
+}
+
+function onDefaultRemarkChange(row: any) {
+	row.defaultRemark = String(row?.defaultRemark || '').trim();
+}
+
+function isDefaultRemarkModified(row: any) {
+	return (
+		String(row?.defaultRemark || '').trim() !==
+		String(row?.sourceDefaultRemark || '').trim()
+	);
+}
+
+function shouldShowDefaultRemarkTip(row: any) {
+	if (!isDefaultRemarkModified(row)) {
+		return false;
+	}
+	return isViewMode.value || isCostAccountingMode.value || isQuoteBaseLocked.value;
 }
 
 function onItemChange(row: any) {
@@ -2127,6 +2171,10 @@ function normalizeItems(list: any[]) {
 		return [createQuoteItem()];
 	}
 	return list.map(item => {
+		const sourceDefaultRemark = String(
+			item?.sourceDefaultRemark ?? item?.defaultRemark ?? ''
+		).trim();
+		const defaultRemark = String(item?.defaultRemark ?? sourceDefaultRemark).trim();
 		const row = {
 			...createQuoteItem(),
 			id: item?.id ? Number(item.id) : undefined,
@@ -2140,6 +2188,8 @@ function normalizeItems(list: any[]) {
 			costPrice: toNumber(item?.costPrice),
 			quantity: Math.max(1, Math.floor(toNumber(item?.quantity || 1))),
 			subtotalAmount: toNumber(item?.subtotalAmount),
+			defaultRemark,
+			sourceDefaultRemark,
 			isOneTimePayment: Number(item?.isOneTimePayment) === 1 ? 1 : 0
 		};
 		recalcQuoteItem(row);
@@ -2674,6 +2724,8 @@ async function submitDialog(options: { submitAudit?: boolean } = {}) {
 				productType: item.productType,
 				actualPrice: toNumber(item.actualPrice),
 				quantity: Math.max(1, Math.floor(toNumber(item.quantity || 1))),
+				defaultRemark: String(item.defaultRemark || '').trim() || undefined,
+				sourceDefaultRemark: String(item.sourceDefaultRemark || '').trim() || undefined,
 				sortNum: index + 1
 			})),
 			stages: quoteStageRows.value.map((item, index) => ({

@@ -632,6 +632,12 @@ useTable({
 		{ label: '排序', prop: 'orderNum', sortable: 'desc', minWidth: 100 },
 		{ label: '產品名稱', prop: 'name', minWidth: 180, showOverflowTooltip: true },
 		{
+			label: '預設備註',
+			prop: 'defaultRemark',
+			minWidth: 180,
+			showOverflowTooltip: true
+		},
+		{
 			label: '產品說明',
 			prop: 'description',
 			minWidth: 260,
@@ -766,6 +772,20 @@ const Upsert = useUpsert({
 				}
 			}
 		},
+		{
+			label: '預設備註',
+			prop: 'defaultRemark',
+			span: 24,
+			component: {
+				name: 'el-input',
+				props: {
+					type: 'textarea',
+					rows: 2,
+					clearable: true,
+					placeholder: '請輸入預設備註（報價單可帶入）'
+				}
+			}
+		},
 		{ label: '', prop: '_specTitle', span: 24, component: { name: 'slot-spec-title' } },
 		{
 			label: '',
@@ -846,6 +866,7 @@ const Upsert = useUpsert({
 		data.specs = normalizeSpecs(specRows.value);
 		data.status = Number(data.status ?? 1) === 0 ? 0 : 1;
 		data.description = data.description || '';
+		data.defaultRemark = data.defaultRemark || '';
 		data.remark = data.remark || '';
 
 		if (!data.name?.trim()) return stopSubmit('商品名稱必填');
