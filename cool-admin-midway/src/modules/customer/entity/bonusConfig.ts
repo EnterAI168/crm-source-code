@@ -4,7 +4,10 @@ import { BaseEntity } from '../../base/entity/base';
 @Entity('crm_bonus_config')
 export class CrmBonusConfigEntity extends BaseEntity {
   @Index()
-  @Column({ comment: '適用角色 sales-業務 internal-內勤', length: 32 })
+  @Column({
+    comment: '適用角色 sales-業務 sales_manager-業務主管 internal-內勤 integration_pm-整合PM',
+    length: 32,
+  })
   roleType: string;
 
   @Index()

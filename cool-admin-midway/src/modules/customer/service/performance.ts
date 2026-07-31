@@ -14,11 +14,20 @@ import { BaseSysRoleEntity } from '../../base/entity/sys/role';
 import { BaseSysDepartmentEntity } from '../../base/entity/sys/department';
 import { BaseSysPermsService } from '../../base/service/sys/perms';
 import { BaseSysParamService } from '../../base/service/sys/param';
-import { SALESMAN_ROLE_LABEL } from './info';
+import {
+  INTEGRATION_PM_ROLE_LABEL,
+  SALESMAN_ROLE_LABEL,
+  SALES_MANAGER_ROLE_LABEL,
+} from './info';
 import { CrmContractReminderService } from './contractReminder';
 
 type DetailType = 'expected' | 'actual';
 type InternalDepartmentType = 'koubei' | 'integration' | 'other';
+type BonusRoleType =
+  | 'sales'
+  | 'sales_manager'
+  | 'internal'
+  | 'integration_pm';
 
 interface EligibleUser {
   id: number;
@@ -30,7 +39,7 @@ interface EligibleUser {
   salary?: number;
   withholdingSalary?: number;
   remark?: string;
-  roleType: 'sales' | 'internal';
+  roleType: BonusRoleType;
 }
 
 interface BonusContext {
@@ -44,6 +53,12 @@ interface BonusContext {
   tierAddThreshold: number;
   tierAddRate: number;
   tierBonusList: { threshold: number; amount: number }[];
+  salesManagerMainThreshold: number;
+  salesManagerMainRate: number;
+  salesManagerSecondaryRate: number;
+  salesManagerTierBonusList: { threshold: number; amount: number }[];
+  integrationPmCaseThreshold: number;
+  integrationPmCaseBonus: number;
 }
 
 interface PerformanceScope {
@@ -72,11 +87,18 @@ export class CrmPerformanceService extends BaseService {
   private readonly INTERNAL_ROLE_LABELS = [
     'office_clerk',
     'office_clerk_manager',
+    INTEGRATION_PM_ROLE_LABEL,
   ];
 
   private readonly INTERNAL_ROLE_LABEL = 'office_clerk';
 
   private readonly INTERNAL_MANAGER_ROLE_LABEL = 'office_clerk_manager';
+
+  private readonly BONUS_ROLE_LABELS = [
+    SALESMAN_ROLE_LABEL,
+    SALES_MANAGER_ROLE_LABEL,
+    ...this.INTERNAL_ROLE_LABELS,
+  ];
 
   @InjectEntityModel(CrmPerformanceEntity)
   crmPerformanceEntity: Repository<CrmPerformanceEntity>;
@@ -983,7 +1005,7 @@ export class CrmPerformanceService extends BaseService {
         return {
           ...item,
           employeeName: item.userName,
-          departmentName: item.roleType === 'sales' ? '業務' : '內勤',
+          departmentName: this.getBonusRoleLabel(item.roleType),
           invoiceCount: metrics.invoiceCount,
           invoiceAmount: this.toMoney(item.invoiceAmount),
           grossProfitAmount: metrics.grossProfitAmount,
@@ -1087,8 +1109,8 @@ export class CrmPerformanceService extends BaseService {
   async internalDetail(param: any) {
     const row = await this.getPerformanceById(Number(param?.id || 0));
     await this.ensureCanReadPerformance(row);
-    if (row.roleType !== 'internal') {
-      throw new CoolCommException('僅內勤業績可檢視該詳情');
+    if (!this.isInternalLikeRole(row.roleType)) {
+      throw new CoolCommException('僅內勤/整合PM業績可檢視該詳情');
     }
     const result = await this.calcUserMonth(
       row.userId,
@@ -1207,6 +1229,10 @@ export class CrmPerformanceService extends BaseService {
     if (roleType === 'internal') {
       return await this.calcInternalUserMonth(userId, user, range, ctx);
     }
+    if (roleType === 'integration_pm') {
+      return await this.calcIntegrationPmUserMonth(userId, range, ctx);
+    }
+    const isSalesManager = roleType === 'sales_manager';
     const sourceRows = await this.fetchStageRows(userId, roleType, range, type);
     const quoteIds: number[] = Array.from(
       new Set<number>(sourceRows.map(item => Number(item.quoteOrderId)))
@@ -1240,8 +1266,11 @@ export class CrmPerformanceService extends BaseService {
       (sum, item) => sum + this.toMoney(item.mainPerformance),
       0
     );
-    const hasTierAdd = monthlyMainAmount > ctx.tierAddThreshold;
-    const passMainThreshold = monthlyMainAmount > ctx.mainMonthThreshold;
+    const hasTierAdd =
+      !isSalesManager && monthlyMainAmount > ctx.tierAddThreshold;
+    const passMainThreshold = isSalesManager
+      ? monthlyMainAmount >= ctx.salesManagerMainThreshold
+      : monthlyMainAmount > ctx.mainMonthThreshold;
     const discountDeductionMap = new Map<number, number>();
     rows.forEach(item => {
       const quoteId = Number(item.quoteOrderId);
@@ -1255,15 +1284,25 @@ export class CrmPerformanceService extends BaseService {
     let detailBonusTotal = 0;
     const detailRows = rows.map(item => {
       const oneTimeAddRate =
-        roleType === 'sales' && item.oneTimeEligibleMainPerformance > 0
+        !isSalesManager &&
+        roleType === 'sales' &&
+        item.oneTimeEligibleMainPerformance > 0
           ? ctx.oneTimeRate
           : 0;
       const tierAddRate =
-        roleType === 'sales' && hasTierAdd ? ctx.tierAddRate : 0;
+        !isSalesManager && roleType === 'sales' && hasTierAdd
+          ? ctx.tierAddRate
+          : 0;
       const mainRate = passMainThreshold
-        ? ctx.salesMainRate + tierAddRate + oneTimeAddRate
+        ? isSalesManager
+          ? ctx.salesManagerMainRate
+          : ctx.salesMainRate + tierAddRate + oneTimeAddRate
         : 0;
-      const secondaryRate = passMainThreshold ? ctx.salesSecondaryRate : 0;
+      const secondaryRate = passMainThreshold
+        ? isSalesManager
+          ? ctx.salesManagerSecondaryRate
+          : ctx.salesSecondaryRate
+        : 0;
       const mainBonusBaseAmount = this.toMoney(item.mainPerformance);
       const mainBonus = this.toMoney((mainBonusBaseAmount * mainRate) / 100);
       const secondaryBonus = this.toMoney(
@@ -1313,34 +1352,29 @@ export class CrmPerformanceService extends BaseService {
     });
 
     const previousTierRange = this.getPreviousMonthRange(month);
-    const previousTierBonusAmount =
-      roleType === 'sales'
-        ? await this.calcSalesTierBonusAmount(
-            userId,
-            roleType,
-            previousTierRange,
-            type,
-            ctx
-          )
-        : 0;
-    const tierBonus = this.resolveTierBonus(previousTierBonusAmount, ctx);
+    const previousTierBonusAmount = await this.calcSalesTierBonusAmount(
+      userId,
+      roleType,
+      previousTierRange,
+      type,
+      ctx
+    );
+    const tierBonus = this.resolveTierBonus(
+      previousTierBonusAmount,
+      isSalesManager ? ctx.salesManagerTierBonusList : ctx.tierBonusList
+    );
     const contractDeductionRows =
-      roleType === 'sales'
-        ? await this.crmContractReminderService.overdueDeductionRows(
-            userId,
-            range
-          )
-        : [];
+      await this.crmContractReminderService.overdueDeductionRows(userId, range);
     const contractDeductionTotal = this.toMoney(
       contractDeductionRows.reduce(
         (sum, item) => sum + this.toMoney(item.bonusAmount),
         0
       )
     );
-    const caseMeetingDeductionRows =
-      roleType === 'sales'
-        ? await this.fetchCaseMeetingDeductionRows(userId, range)
-        : [];
+    const caseMeetingDeductionRows = await this.fetchCaseMeetingDeductionRows(
+      userId,
+      range
+    );
     const caseMeetingDeductionTotal = this.toMoney(
       caseMeetingDeductionRows.reduce(
         (sum, item) => sum + this.toMoney(item.bonusAmount),
@@ -1366,10 +1400,16 @@ export class CrmPerformanceService extends BaseService {
         rows.reduce((sum, item) => sum + this.toMoney(item.sourceAmount), 0)
       ),
       mainAmount: this.toMoney(monthlyMainAmount),
-      mainThresholdAmount: this.toMoney(ctx.mainMonthThreshold),
+      mainThresholdAmount: this.toMoney(
+        isSalesManager
+          ? ctx.salesManagerMainThreshold
+          : ctx.mainMonthThreshold
+      ),
       expectedBonusNoticeBonus: passMainThreshold
         ? this.toMoney(detailBonusTotal + tierBonus)
-        : this.toMoney((monthlyMainAmount * ctx.salesMainRate) / 100),
+        : isSalesManager
+          ? 0
+          : this.toMoney((monthlyMainAmount * ctx.salesMainRate) / 100),
       secondaryAmount: this.toMoney(
         rows.reduce(
           (sum, item) => sum + this.toMoney(item.secondaryPerformance),
@@ -1417,8 +1457,9 @@ export class CrmPerformanceService extends BaseService {
         : `
         AND q.auditStatus = 2
         `;
+    const isSalesLike = this.isSalesLikeRole(roleType);
     const internalJoin =
-      roleType === 'internal'
+      roleType === 'internal' || roleType === 'integration_pm'
         ? `
           AND EXISTS (
             SELECT 1 FROM crm_quote_order_item qi
@@ -1428,8 +1469,9 @@ export class CrmPerformanceService extends BaseService {
           )
         `
         : '';
-    const salesWhere =
-      roleType === 'sales' ? 'AND q.salesmanId = ?' : 'AND u.id = ?';
+    const salesWhere = isSalesLike
+      ? 'AND q.salesmanId = ?'
+      : 'AND u.id = ?';
     return await this.nativeQuery(
       `
       SELECT
@@ -1472,9 +1514,7 @@ export class CrmPerformanceService extends BaseService {
         AND ${dateField} <= ?
       ORDER BY q.id ASC, s.sortNum ASC, s.id ASC
       `,
-      roleType === 'sales'
-        ? [userId, userId, range.start, range.end]
-        : [userId, userId, range.start, range.end]
+      [userId, userId, range.start, range.end]
     );
   }
 
@@ -1501,6 +1541,63 @@ export class CrmPerformanceService extends BaseService {
       return this.calcSalesStageMetrics(stage, profile, sourceAmount, ctx);
     });
     return this.calcSalesTierBonusAmountByRows(rows);
+  }
+
+  private async calcIntegrationPmUserMonth(
+    userId: number,
+    range: { start: string; end: string },
+    ctx: BonusContext
+  ) {
+    const sourceRows = await this.fetchInternalProductRows(userId, range, ctx);
+    const monthlyAllAmount = this.toMoney(
+      sourceRows.reduce((sum, item) => sum + this.toMoney(item.sourceAmount), 0)
+    );
+    const detailRows = sourceRows.map(item => ({
+      ...item,
+      mainRate: 0,
+      secondaryRate: 0,
+      hasTierAdd: 0,
+      tierAddRate: 0,
+      oneTimeAddRate: 0,
+      bonusAmount: 0,
+    }));
+    const tierBonus =
+      monthlyAllAmount >= ctx.integrationPmCaseThreshold
+        ? this.toMoney(ctx.integrationPmCaseBonus)
+        : 0;
+    const fixedBonusRows =
+      tierBonus > 0
+        ? [
+            {
+              bonusName: '整合PM執案達標獎金',
+              bonusAmount: tierBonus,
+            },
+          ]
+        : [];
+
+    return {
+      periodStart: range.start,
+      periodEnd: range.end,
+      amountTotal: monthlyAllAmount,
+      mainAmount: this.toMoney(
+        detailRows.reduce(
+          (sum, item) => sum + this.toMoney(item.mainPerformance),
+          0
+        )
+      ),
+      secondaryAmount: this.toMoney(
+        detailRows.reduce(
+          (sum, item) => sum + this.toMoney(item.secondaryPerformance),
+          0
+        )
+      ),
+      bonusTotal: tierBonus,
+      tierBonus,
+      fixedBonusRows,
+      hasTierAdd: 0,
+      tierAddRate: 0,
+      groups: this.groupDetailRows(detailRows),
+    };
   }
 
   private async calcInternalUserMonth(
@@ -2054,12 +2151,102 @@ export class CrmPerformanceService extends BaseService {
           amount: this.configValue(config, 'sales_tier_bonus_100w', 6000),
         },
       ],
+      salesManagerMainThreshold: this.configValue(
+        config,
+        'sales_manager_main_product_bonus_threshold',
+        700000
+      ),
+      salesManagerMainRate: this.configValue(
+        config,
+        'sales_manager_main_product_bonus_rate',
+        3
+      ),
+      salesManagerSecondaryRate: this.configValue(
+        config,
+        'sales_manager_secondary_product_bonus_rate',
+        3
+      ),
+      salesManagerTierBonusList: [
+        {
+          threshold: 2000000,
+          amount: this.configValue(
+            config,
+            'sales_manager_tier_bonus_200w',
+            32000
+          ),
+        },
+        {
+          threshold: 1500000,
+          amount: this.configValue(
+            config,
+            'sales_manager_tier_bonus_150w',
+            26000
+          ),
+        },
+        {
+          threshold: 1200000,
+          amount: this.configValue(
+            config,
+            'sales_manager_tier_bonus_120w',
+            18000
+          ),
+        },
+        {
+          threshold: 1000000,
+          amount: this.configValue(
+            config,
+            'sales_manager_tier_bonus_100w',
+            15000
+          ),
+        },
+      ],
+      integrationPmCaseThreshold: this.configValue(
+        config,
+        'integration_pm_case_200w_threshold',
+        2000000
+      ),
+      integrationPmCaseBonus: this.configValue(
+        config,
+        'integration_pm_case_200w_bonus',
+        5000
+      ),
     };
   }
 
-  private resolveTierBonus(amount: number, ctx: BonusContext) {
-    const match = ctx.tierBonusList.find(item => amount >= item.threshold);
+  private resolveTierBonus(
+    amount: number,
+    tierBonusList: { threshold: number; amount: number }[]
+  ) {
+    const match = tierBonusList.find(item => amount >= item.threshold);
     return this.toMoney(match?.amount || 0);
+  }
+
+  private isSalesLikeRole(roleType: string) {
+    return roleType === 'sales' || roleType === 'sales_manager';
+  }
+
+  private isInternalLikeRole(roleType: string) {
+    return roleType === 'internal' || roleType === 'integration_pm';
+  }
+
+  private getBonusRoleLabel(roleType: string) {
+    if (roleType === 'sales') return '業務';
+    if (roleType === 'sales_manager') return '業務主管';
+    if (roleType === 'integration_pm') return '整合PM';
+    return '內勤';
+  }
+
+  private resolveBonusRoleType(labels: string[]): BonusRoleType {
+    if (labels.includes(SALES_MANAGER_ROLE_LABEL)) {
+      return 'sales_manager';
+    }
+    if (labels.includes(SALESMAN_ROLE_LABEL)) {
+      return 'sales';
+    }
+    if (labels.includes(INTEGRATION_PM_ROLE_LABEL)) {
+      return 'integration_pm';
+    }
+    return 'internal';
   }
 
   private resolveInternalFixedBonus(amount: number, ctx: BonusContext) {
@@ -2377,10 +2564,13 @@ export class CrmPerformanceService extends BaseService {
       GROUP BY u.id
       ORDER BY u.id ASC
       `,
-      [[SALESMAN_ROLE_LABEL, ...this.INTERNAL_ROLE_LABELS]]
+      [this.BONUS_ROLE_LABELS]
     );
     return rows.map(row => {
-      const labels = String(row.roleLabels || '').split(',');
+      const labels = String(row.roleLabels || '')
+        .split(',')
+        .map(item => item.trim())
+        .filter(Boolean);
       return {
         id: Number(row.id),
         name: row.name || row.username || `使用者${row.id}`,
@@ -2391,7 +2581,7 @@ export class CrmPerformanceService extends BaseService {
         withholdingSalary: this.toMoney(row.withholdingSalary),
         level: row.level,
         remark: row.remark,
-        roleType: labels.includes(SALESMAN_ROLE_LABEL) ? 'sales' : 'internal',
+        roleType: this.resolveBonusRoleType(labels),
       };
     });
   }
@@ -2473,7 +2663,9 @@ export class CrmPerformanceService extends BaseService {
       roleLabels.some(label => this.SUPER_ROLE_LABELS.includes(label));
     const isOfficeClerkManager =
       isBoss || roleLabels.includes(this.INTERNAL_MANAGER_ROLE_LABEL);
-    const isOfficeClerk = roleLabels.includes(this.INTERNAL_ROLE_LABEL);
+    const isOfficeClerk =
+      roleLabels.includes(this.INTERNAL_ROLE_LABEL) ||
+      roleLabels.includes(INTEGRATION_PM_ROLE_LABEL);
     const departmentIds =
       isOfficeClerkManager || isOfficeClerk
         ? await this.getCurrentDepartmentIds(userId)
@@ -2712,16 +2904,15 @@ export class CrmPerformanceService extends BaseService {
     const renewalRate =
       amountTotal > 0 ? this.toMoney((renewalAmount / amountTotal) * 100) : 0;
     const salary = this.toMoney(user.withholdingSalary ?? user.salary);
-    const rule =
-      user.roleType === 'sales'
-        ? this.resolveSalesAnnualRule(averageAmount, newCaseAmount, user, ctx)
-        : await this.resolveInternalAnnualRule(
-            user.id,
-            averageAmount,
-            renewalRate,
-            ctx,
-            year
-          );
+    const rule = this.isSalesLikeRole(user.roleType)
+      ? this.resolveSalesAnnualRule(averageAmount, newCaseAmount, user, ctx)
+      : await this.resolveInternalAnnualRule(
+          user.id,
+          averageAmount,
+          renewalRate,
+          ctx,
+          year
+        );
     const annualBonus = this.toMoney(salary * rule.annualFactor);
     const midYearBonus = this.toMoney(salary * rule.midYearFactor);
 
@@ -2756,10 +2947,9 @@ export class CrmPerformanceService extends BaseService {
     month: string,
     ctx: BonusContext
   ) {
-    const result =
-      user.roleType === 'internal'
-        ? await this.calcInternalAnnualInvoiceMonth(user, month, ctx)
-        : await this.calcSalesAnnualInvoiceMonth(user, month, ctx);
+    const result = this.isInternalLikeRole(user.roleType)
+      ? await this.calcInternalAnnualInvoiceMonth(user, month, ctx)
+      : await this.calcSalesAnnualInvoiceMonth(user, month, ctx);
     const groups = Array.isArray(result.groups) ? result.groups : [];
     const newCaseAmount = this.toMoney(
       groups

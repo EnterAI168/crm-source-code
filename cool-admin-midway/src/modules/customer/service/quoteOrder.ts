@@ -20,7 +20,11 @@ import { CrmQuoteOrderHistoryEntity } from '../entity/quoteHistory';
 import { CrmQuoteInvoiceEntity } from '../entity/quoteInvoice';
 import { ProductInfoEntity } from '../../product/entity/info';
 import { ProductSpecEntity } from '../../product/entity/spec';
-import { SALESMAN_ROLE_LABEL } from './info';
+import {
+  INTEGRATION_PM_ROLE_LABEL,
+  SALESMAN_ROLE_LABEL,
+  SALES_LINE_ROLE_LABELS,
+} from './info';
 import { BaseSysParamService } from '../../base/service/sys/param';
 import { CrmEcpayInvoiceService } from './ecpayInvoice';
 import { CrmQuoteBankAccountService } from './quoteBankAccount';
@@ -924,10 +928,10 @@ export class CrmQuoteOrderService extends BaseService {
       INNER JOIN base_sys_role r ON r.id = ur.roleId
       WHERE a.status = 1
         AND a.username != 'admin'
-        AND r.label = ?
+        AND r.label IN (?)
       ORDER BY a.name ASC, a.id ASC
     `,
-      [SALESMAN_ROLE_LABEL]
+      [SALES_LINE_ROLE_LABELS]
     );
 
     return rows || [];
@@ -953,10 +957,16 @@ export class CrmQuoteOrderService extends BaseService {
       INNER JOIN base_sys_role r ON r.id = ur.roleId
       WHERE a.status = 1
         AND a.username != 'admin'
-        AND r.label IN (?, ?)
+        AND r.label IN (?)
       ORDER BY a.name ASC, a.id ASC
     `,
-      [this.INTERNAL_ROLE_LABEL, this.INTERNAL_MANAGER_ROLE_LABEL]
+      [
+        [
+          this.INTERNAL_ROLE_LABEL,
+          this.INTERNAL_MANAGER_ROLE_LABEL,
+          INTEGRATION_PM_ROLE_LABEL,
+        ],
+      ]
     );
 
     return rows || [];
@@ -3882,13 +3892,16 @@ export class CrmQuoteOrderService extends BaseService {
       );
     const isOfficeClerk =
       roleLabels.includes(this.INTERNAL_ROLE_LABEL) ||
+      roleLabels.includes(INTEGRATION_PM_ROLE_LABEL) ||
       (!isOfficeClerkManager &&
         roleKeys.some(name =>
           this.INTERNAL_ROLE_NAMES.some(item =>
             name.includes(item.toLowerCase())
           )
         ));
-    const isSalesperson = isBoss || roleLabels.includes(SALESMAN_ROLE_LABEL);
+    const isSalesperson =
+      isBoss ||
+      roleLabels.some(label => SALES_LINE_ROLE_LABELS.includes(label));
     const departmentIds =
       isOfficeClerkManager || isOfficeClerk
         ? await this.getCurrentDepartmentIds(userId)
@@ -4287,13 +4300,13 @@ export class CrmQuoteOrderService extends BaseService {
       FROM base_sys_user_role ur
       INNER JOIN base_sys_role r ON r.id = ur.roleId
       WHERE ur.userId = ?
-        AND r.label = ?
+        AND r.label IN (?)
       LIMIT 1
     `,
-      [userId, SALESMAN_ROLE_LABEL]
+      [userId, SALES_LINE_ROLE_LABELS]
     );
     if (!rows?.length) {
-      throw new CoolCommException('陪同管理業務必須為業務角色');
+      throw new CoolCommException('陪同管理業務必須為業務員/業務主管角色');
     }
     return user;
   }
@@ -4556,10 +4569,17 @@ export class CrmQuoteOrderService extends BaseService {
       FROM base_sys_user_role ur
       INNER JOIN base_sys_role r ON r.id = ur.roleId
       WHERE ur.userId = ?
-        AND r.label IN (?, ?)
+        AND r.label IN (?)
       LIMIT 1
     `,
-      [userId, this.INTERNAL_ROLE_LABEL, this.INTERNAL_MANAGER_ROLE_LABEL]
+      [
+        userId,
+        [
+          this.INTERNAL_ROLE_LABEL,
+          this.INTERNAL_MANAGER_ROLE_LABEL,
+          INTEGRATION_PM_ROLE_LABEL,
+        ],
+      ]
     );
 
     if (!rows?.length) {

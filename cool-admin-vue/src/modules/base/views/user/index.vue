@@ -255,6 +255,8 @@ let withholdingRateLoading: Promise<void> | null = null;
 const INTERNAL_ROLE_LABEL = 'office_clerk';
 const INTERNAL_MANAGER_ROLE_LABEL = 'office_clerk_manager';
 const SALESMAN_ROLE_LABEL = 'salesperson';
+const SALES_MANAGER_ROLE_LABEL = 'sales_manager';
+const INTEGRATION_PM_ROLE_LABEL = 'integration_pm';
 const FINANCE_ROLE_LABEL = 'finance';
 
 const CRM_ROOT_NAME = 'CRM';
@@ -634,7 +636,15 @@ function isOfficeManagerRole(role?: any) {
 }
 
 function isSalesRole(role?: any) {
-	return role?.label === SALESMAN_ROLE_LABEL || String(role?.name || '').includes('業務');
+	return role?.label === SALESMAN_ROLE_LABEL;
+}
+
+function isSalesManagerRole(role?: any) {
+	return role?.label === SALES_MANAGER_ROLE_LABEL;
+}
+
+function isIntegrationPmRole(role?: any) {
+	return role?.label === INTEGRATION_PM_ROLE_LABEL;
 }
 
 function isFinanceRole(role?: any) {
@@ -655,6 +665,14 @@ function getOfficeManagerRole() {
 
 function getSalesRole() {
 	return roles.value.find(isSalesRole);
+}
+
+function getSalesManagerRole() {
+	return roles.value.find(isSalesManagerRole);
+}
+
+function getIntegrationPmRole() {
+	return roles.value.find(isIntegrationPmRole);
 }
 
 function getFinanceRole() {
@@ -790,11 +808,11 @@ function getDepartmentRule(departmentId?: number) {
 function getAllowedRolesByRule(rule: string) {
 	switch (rule) {
 		case 'office':
-			return roles.value.filter(role => isOfficeRole(role) || isOfficeManagerRole(role));
-		case 'sales': {
-			const role = getSalesRole();
-			return role ? [role] : [];
-		}
+			return roles.value.filter(
+				role => isOfficeRole(role) || isOfficeManagerRole(role) || isIntegrationPmRole(role)
+			);
+		case 'sales':
+			return roles.value.filter(role => isSalesRole(role) || isSalesManagerRole(role));
 		case 'finance': {
 			const role = getFinanceRole();
 			return role ? [role] : [];
@@ -843,14 +861,15 @@ function applyDepartmentRoleRule(departmentId?: number, currentRoleId?: number, 
 	let nextRoleId = currentRoleId;
 
 	roleOptions.value = toRoleOptions(allowedRoles);
-	roleSelectDisabled.value = rule === 'sales' || rule === 'finance';
+	roleSelectDisabled.value = rule === 'finance';
 
 	if (rule === 'office' && !allowedRoles.some(e => Number(e.id) === Number(currentRoleId))) {
-		nextRoleId = getOfficeRole()?.id || getOfficeManagerRole()?.id;
+		nextRoleId =
+			getOfficeRole()?.id || getOfficeManagerRole()?.id || getIntegrationPmRole()?.id;
 	}
 
-	if (rule === 'sales') {
-		nextRoleId = getSalesRole()?.id;
+	if (rule === 'sales' && !allowedRoles.some(e => Number(e.id) === Number(currentRoleId))) {
+		nextRoleId = getSalesRole()?.id || getSalesManagerRole()?.id;
 	}
 
 	if (rule === 'finance') {

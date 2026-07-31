@@ -13,6 +13,18 @@ import { CrmMailService } from './mail';
 /** 可分配客戶的使用者須具備的角色標識（base_sys_role.label），與後台角色配置一致 */
 export const SALESMAN_ROLE_LABEL = 'salesperson';
 
+/** 業務主管 */
+export const SALES_MANAGER_ROLE_LABEL = 'sales_manager';
+
+/** 整合PM */
+export const INTEGRATION_PM_ROLE_LABEL = 'integration_pm';
+
+/** 業務線角色（業務員 / 業務主管） */
+export const SALES_LINE_ROLE_LABELS = [
+  SALESMAN_ROLE_LABEL,
+  SALES_MANAGER_ROLE_LABEL,
+];
+
 interface CustomerListScope {
   userId: number;
   isBoss: boolean;
@@ -60,11 +72,13 @@ export class CrmCustomerInfoService extends BaseService {
       return false;
     }
     const roles = await this.baseSysRoleEntity.findBy({ id: In(roleIds) });
-    return roles.some(item => item.label === SALESMAN_ROLE_LABEL);
+    return roles.some(item =>
+      SALES_LINE_ROLE_LABELS.includes(String(item.label || ''))
+    );
   }
 
   /**
-   * 分配客戶時可選擇的使用者：啟用狀態且擁有業務員角色（role.label = salesperson）
+   * 分配客戶時可選擇的使用者：啟用狀態且擁有業務員/業務主管角色
    */
   async listSalesmenForAssign(): Promise<
     Pick<BaseSysUserEntity, 'id' | 'name' | 'nickName' | 'username'>[]
@@ -81,14 +95,14 @@ export class CrmCustomerInfoService extends BaseService {
       SELECT DISTINCT a.id, a.name, a.nickName, a.username
       FROM base_sys_user a
       INNER JOIN base_sys_user_role ur ON ur.userId = a.id
-      INNER JOIN base_sys_role r ON r.id = ur.roleId AND r.label = ?
+      INNER JOIN base_sys_role r ON r.id = ur.roleId AND r.label IN (?)
       WHERE a.status = 1 AND a.username != 'admin'
         ${scope.isBoss ? '' : 'AND a.id in (?)'}
       ORDER BY a.id ASC
     `,
       scope.isBoss
-        ? [SALESMAN_ROLE_LABEL]
-        : [SALESMAN_ROLE_LABEL, scopedUserIds]
+        ? [SALES_LINE_ROLE_LABELS]
+        : [SALES_LINE_ROLE_LABELS, scopedUserIds]
     );
     return rows || [];
   }
@@ -381,13 +395,13 @@ export class CrmCustomerInfoService extends BaseService {
     const roleOk = await this.nativeQuery(
       `
       SELECT ur.userId FROM base_sys_user_role ur
-      INNER JOIN base_sys_role r ON r.id = ur.roleId AND r.label = ?
+      INNER JOIN base_sys_role r ON r.id = ur.roleId AND r.label IN (?)
       WHERE ur.userId = ? LIMIT 1
     `,
-      [SALESMAN_ROLE_LABEL, salesmanId]
+      [SALES_LINE_ROLE_LABELS, salesmanId]
     );
     if (!roleOk?.length) {
-      throw new CoolCommException('只能選擇業務員角色的使用者');
+      throw new CoolCommException('只能選擇業務員/業務主管角色的使用者');
     }
   }
 

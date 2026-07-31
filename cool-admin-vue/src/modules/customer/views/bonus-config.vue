@@ -4,16 +4,24 @@
 			<div>
 				<div class="bonus-hero__eyebrow">業績考核配置</div>
 				<h2>獎金配置</h2>
-				<p>按檔案拆成業務、內勤兩套規則，支援維護抽成比例、級距獎金、年終門檻和付款折扣。</p>
+				<p>按角色維護業務、業務主管、內勤、整合PM獎金規則，支援抽成比例、級距獎金與執案達標獎金。</p>
 			</div>
 			<div class="bonus-hero__cards">
 				<div class="bonus-stat">
 					<span>業務規則</span>
 					<strong>{{ salesCount }}</strong>
 				</div>
+				<div class="bonus-stat">
+					<span>業務主管</span>
+					<strong>{{ salesManagerCount }}</strong>
+				</div>
 				<div class="bonus-stat bonus-stat--green">
 					<span>內勤規則</span>
 					<strong>{{ internalCount }}</strong>
+				</div>
+				<div class="bonus-stat bonus-stat--green">
+					<span>整合PM</span>
+					<strong>{{ integrationPmCount }}</strong>
 				</div>
 			</div>
 		</div>
@@ -92,7 +100,14 @@
 				<el-table-column type="index" label="序號" width="64" fixed="left" />
 				<el-table-column label="適用物件" width="110">
 					<template #default="{ row }">
-						<el-tag :type="row.roleType === 'sales' ? 'warning' : 'success'" effect="plain">
+						<el-tag
+							:type="
+								row.roleType === 'sales' || row.roleType === 'sales_manager'
+									? 'warning'
+									: 'success'
+							"
+							effect="plain"
+						>
 							{{ getRoleLabel(row.roleType) }}
 						</el-tag>
 					</template>
@@ -228,7 +243,9 @@ const bonusService = new BonusConfigService();
 
 const roleOptions = [
 	{ label: '業務', value: 'sales' },
-	{ label: '內勤', value: 'internal' }
+	{ label: '業務主管', value: 'sales_manager' },
+	{ label: '內勤', value: 'internal' },
+	{ label: '整合PM', value: 'integration_pm' }
 ];
 
 const typeOptions = [
@@ -284,7 +301,13 @@ const canAdd = computed(() => checkPerm('crm:bonusConfig:add'));
 const canUpdate = computed(() => checkPerm('crm:bonusConfig:update'));
 const canDelete = computed(() => checkPerm('crm:bonusConfig:delete'));
 const salesCount = computed(() => allRows.value.filter(item => item.roleType === 'sales').length);
+const salesManagerCount = computed(() =>
+	allRows.value.filter(item => item.roleType === 'sales_manager').length
+);
 const internalCount = computed(() => allRows.value.filter(item => item.roleType === 'internal').length);
+const integrationPmCount = computed(() =>
+	allRows.value.filter(item => item.roleType === 'integration_pm').length
+);
 const groupOptions = computed(() => {
 	const map = new Map<string, string>();
 	allRows.value.forEach(item => {

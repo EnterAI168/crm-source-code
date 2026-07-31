@@ -40,8 +40,8 @@
 					<el-table-column label="考核人員" min-width="150" align="center">
 						<template #default="{ row }">
 							<div>{{ row.userName || '--' }}</div>
-							<el-tag :type="row.roleType === 'sales' ? 'warning' : 'success'" effect="plain">
-								{{ row.roleType === 'sales' ? '業務' : '內勤' }}
+							<el-tag :type="isSalesLikeRole(row.roleType) ? 'warning' : 'success'" effect="plain">
+								{{ getBonusRoleLabel(row.roleType) }}
 							</el-tag>
 						</template>
 					</el-table-column>
@@ -67,7 +67,7 @@
 					</el-table-column>
 					<el-table-column label="操作" width="260" fixed="right" align="center">
 						<template #default="{ row }">
-							<template v-if="row.roleType === 'sales'">
+							<template v-if="isSalesLikeRole(row.roleType)">
 								<el-button
 									v-if="canExpectedDetail"
 									type="primary"
@@ -275,7 +275,10 @@ const internalSpecialBonus = computed(() =>
 );
 const internalTierBonus = computed(() =>
 	internalFixedBonusRows.value
-		.filter((item: any) => String(item.bonusName || '').includes('級距'))
+		.filter((item: any) => {
+			const name = String(item.bonusName || '');
+			return name.includes('級距') || name.includes('達標');
+		})
 		.reduce((sum: number, item: any) => sum + toNumber(item.bonusAmount), 0)
 );
 const expectedBonusNotice = computed(() => {
@@ -292,15 +295,28 @@ const expectedBonusNotice = computed(() => {
 	if (amountTotal <= 0) {
 		return '';
 	}
-	return `當前主力產品審核通過未達 30 萬，預計獎金為 ${toMoney(noticeBonus)}（依主力產品業績 × 主力獎金比例計算，以實際為準）`;
+	const thresholdText = toMoney(thresholdAmount);
+	return `當前主力產品審核通過未達 ${thresholdText}，預計獎金為 ${toMoney(noticeBonus)}（依主力產品業績 × 主力獎金比例計算，以實際為準）`;
 });
 const detailTitle = computed(() => {
 	const month = detailData.value.performanceMonth ? `${Number(String(detailData.value.performanceMonth).slice(5, 7))}月` : '';
 	if (detailType.value === 'internal') {
-		return `${month}內勤業績詳情`;
+		const roleLabel = getBonusRoleLabel(detailData.value.roleType);
+		return `${month}${roleLabel}業績詳情`;
 	}
 	return `${month}${detailType.value === 'expected' ? '預計獎金詳情' : '實際獎金詳情'}`;
 });
+
+function isSalesLikeRole(roleType?: string) {
+	return roleType === 'sales' || roleType === 'sales_manager';
+}
+
+function getBonusRoleLabel(roleType?: string) {
+	if (roleType === 'sales') return '業務';
+	if (roleType === 'sales_manager') return '業務主管';
+	if (roleType === 'integration_pm') return '整合PM';
+	return '內勤';
+}
 
 function toNumber(value: any) {
 	const num = Number(value ?? 0);

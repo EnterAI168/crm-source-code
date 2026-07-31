@@ -12,6 +12,7 @@ import { CrmRemittanceEntity } from '../entity/remittance';
 import { CrmRemittanceStageEntity } from '../entity/remittanceStage';
 import { CrmQuoteOrderEntity } from '../entity/quoteOrder';
 import { CrmSupplierInfoEntity } from '../../supplier/entity/info';
+import { INTEGRATION_PM_ROLE_LABEL } from './info';
 
 interface QuoteOptionScope {
   userId: number;
@@ -19,6 +20,7 @@ interface QuoteOptionScope {
   isBoss: boolean;
   isFinance: boolean;
   isOfficeClerkManager: boolean;
+  isOfficeClerk: boolean;
 }
 
 @Provide()
@@ -30,6 +32,8 @@ export class CrmRemittanceService extends BaseService {
   private readonly FINANCE_ROLE_NAMES = ['財務', '財務', 'finance', 'financial', 'accountant'];
 
   private readonly INTERNAL_MANAGER_ROLE_LABEL = 'office_clerk_manager';
+
+  private readonly INTERNAL_ROLE_LABEL = 'office_clerk';
 
   @InjectEntityModel(CrmRemittanceEntity)
   crmRemittanceEntity: Repository<CrmRemittanceEntity>;
@@ -933,6 +937,9 @@ export class CrmRemittanceService extends BaseService {
       roleNames.some(name => this.FINANCE_ROLE_NAMES.includes(name));
     const isOfficeClerkManager =
       isBoss || roleLabels.includes(this.INTERNAL_MANAGER_ROLE_LABEL);
+    const isOfficeClerk =
+      roleLabels.includes(this.INTERNAL_ROLE_LABEL) ||
+      roleLabels.includes(INTEGRATION_PM_ROLE_LABEL);
     const departmentIds = isOfficeClerkManager
       ? await this.getCurrentDepartmentIds(userId)
       : [];
@@ -942,6 +949,7 @@ export class CrmRemittanceService extends BaseService {
       isBoss,
       isFinance,
       isOfficeClerkManager,
+      isOfficeClerk,
     };
   }
 
@@ -980,6 +988,23 @@ export class CrmRemittanceService extends BaseService {
           scope.departmentIds.length ? scope.departmentIds : [null],
           scope.departmentIds.length ? scope.departmentIds : [null],
         ]
+      );
+    }
+
+    if (scope.isOfficeClerk) {
+      return this.setSql(
+        true,
+        `and (
+          ${quoteAlias}.currentAssigneeId = ?
+          or exists (
+            select 1
+            from crm_quote_order_department_audit da
+            where da.quoteOrderId = ${quoteAlias}.id
+              and da.isDeleted = 0
+              and da.assigneeId = ?
+          )
+        )`,
+        [scope.userId, scope.userId]
       );
     }
 
@@ -1044,6 +1069,22 @@ export class CrmRemittanceService extends BaseService {
             where qi.quoteOrderId = ${quoteAlias}.id
               and qi.isDeleted = 0
               and qi.departmentId in (${departmentIds})
+          )
+        )`,
+        params: [],
+      };
+    }
+
+    if (scope.isOfficeClerk) {
+      return {
+        sql: `and (
+          ${quoteAlias}.currentAssigneeId = ${this.toSqlNumber(scope.userId)}
+          or exists (
+            select 1
+            from crm_quote_order_department_audit da
+            where da.quoteOrderId = ${quoteAlias}.id
+              and da.isDeleted = 0
+              and da.assigneeId = ${this.toSqlNumber(scope.userId)}
           )
         )`,
         params: [],

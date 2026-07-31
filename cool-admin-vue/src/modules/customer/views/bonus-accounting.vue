@@ -6,9 +6,11 @@
 					<el-input v-model="query.employeeName" clearable placeholder="請輸入員工名稱" />
 				</el-form-item>
 				<el-form-item label="部門">
-					<el-select v-model="query.roleType" clearable placeholder="請選擇部門" style="width: 150px">
+					<el-select v-model="query.roleType" clearable placeholder="請選擇部門" style="width: 160px">
 						<el-option label="業務" value="sales" />
+						<el-option label="業務主管" value="sales_manager" />
 						<el-option label="內勤" value="internal" />
+						<el-option label="整合PM" value="integration_pm" />
 					</el-select>
 				</el-form-item>
 				<el-form-item label="手機號碼">
@@ -30,8 +32,23 @@
 					</el-table-column>
 					<el-table-column prop="departmentName" label="部門" width="110" align="center">
 						<template #default="{ row }">
-							<el-tag :type="row.roleType === 'sales' ? 'warning' : 'success'" effect="plain">
-								{{ row.departmentName || (row.roleType === 'sales' ? '業務' : '內勤') }}
+							<el-tag
+								:type="
+									row.roleType === 'sales' || row.roleType === 'sales_manager'
+										? 'warning'
+										: 'success'
+								"
+								effect="plain"
+							>
+								{{
+									row.departmentName ||
+									({
+										sales: '業務',
+										sales_manager: '業務主管',
+										integration_pm: '整合PM',
+										internal: '內勤'
+									}[row.roleType] || '內勤')
+								}}
 							</el-tag>
 						</template>
 					</el-table-column>
