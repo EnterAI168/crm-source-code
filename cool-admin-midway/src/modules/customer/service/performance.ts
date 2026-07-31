@@ -1171,6 +1171,8 @@ export class CrmPerformanceService extends BaseService {
       inserted++;
     }
 
+    await this.refreshMonth(performanceMonth);
+
     return {
       month: performanceMonth,
       inserted,
