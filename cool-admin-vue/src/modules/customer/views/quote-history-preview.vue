@@ -202,7 +202,7 @@
 							<div class="quote-bank__info">
 								<div class="quote-bank__contact">
 									<p>聯絡人：{{ partyB.contactName }}</p>
-									<p>Email：{{ partyB.email }}</p>
+									<p>信箱：{{ partyB.email }}</p>
 								</div>
 								<div class="quote-bank__account-name">
 									<p>戶名：{{ partyB.bankAccountName || partyB.companyName }}</p>

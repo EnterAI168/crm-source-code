@@ -15,7 +15,7 @@ export class ProductProjectService extends BaseService {
 
   async page(query: any) {
     const scope = await this.crmQuoteOrderService.getScope();
-    const restrictSql = this.crmQuoteOrderService.buildPageScopeSql(scope);
+    const restrictSql = this.buildProjectScopeSql(scope);
     const { quoteNo, quoteName, customerCompanyName, salesmanName } = query || {};
 
     const sql = `
@@ -34,6 +34,21 @@ export class ProductProjectService extends BaseService {
         a.projectStatusImages,
         a.projectCueSheet,
         a.createTime,
+        (
+          SELECT
+            CASE
+              WHEN COUNT(1) = 0 THEN 0
+              WHEN SUM(CASE WHEN IFNULL(s.invoiceStatus, 0) = 1 THEN 1 ELSE 0 END) > 0 THEN 1
+              WHEN SUM(CASE WHEN IFNULL(s.invoiceStatus, 0) = 3 THEN 1 ELSE 0 END) = COUNT(1) THEN 3
+              WHEN SUM(CASE WHEN IFNULL(s.invoiceStatus, 0) = 3 THEN 1 ELSE 0 END) > 0 THEN 5
+              WHEN SUM(CASE WHEN IFNULL(s.invoiceStatus, 0) = 4 THEN 1 ELSE 0 END) > 0 THEN 4
+              WHEN SUM(CASE WHEN IFNULL(s.invoiceStatus, 0) = 2 THEN 1 ELSE 0 END) > 0 THEN 2
+              ELSE 0
+            END
+          FROM crm_quote_order_stage s
+          WHERE s.quoteOrderId = a.id
+            AND s.isDeleted = 0
+        ) AS invoiceStatus,
         c.companyName AS customerCompanyName,
         u.name AS salesmanName,
         u2.name AS accompanySalesmanName
@@ -43,7 +58,7 @@ export class ProductProjectService extends BaseService {
       LEFT JOIN base_sys_user u2 ON u2.id = a.accompanySalesmanId
       WHERE a.isDeleted = 0
         AND a.auditStatus = 2
-        ${restrictSql.sql}
+        ${restrictSql}
         ${this.setSql(quoteNo, 'and a.quoteNo like ?', [`%${quoteNo}%`])}
         ${this.setSql(quoteName, 'and a.quoteName like ?', [`%${quoteName}%`])}
         ${this.setSql(customerCompanyName, 'and c.companyName like ?', [
@@ -53,11 +68,7 @@ export class ProductProjectService extends BaseService {
       ORDER BY a.createTime DESC, a.id DESC
     `;
 
-    const result: any = await this.sqlRenderPage(
-      sql,
-      { ...query, ...restrictSql.params },
-      false
-    );
+    const result: any = await this.sqlRenderPage(sql, query, false);
 
     result.list = (result.list || []).map((item: any) => ({
       ...item,
@@ -74,7 +85,7 @@ export class ProductProjectService extends BaseService {
     }
 
     const scope = await this.crmQuoteOrderService.getScope();
-    const restrictSql = this.crmQuoteOrderService.buildPageScopeSql(scope);
+    const restrictSql = this.buildProjectScopeSql(scope);
     const rows = await this.nativeQuery(
       `
       SELECT
@@ -92,6 +103,21 @@ export class ProductProjectService extends BaseService {
         a.projectStatusImages,
         a.projectCueSheet,
         a.createTime,
+        (
+          SELECT
+            CASE
+              WHEN COUNT(1) = 0 THEN 0
+              WHEN SUM(CASE WHEN IFNULL(s.invoiceStatus, 0) = 1 THEN 1 ELSE 0 END) > 0 THEN 1
+              WHEN SUM(CASE WHEN IFNULL(s.invoiceStatus, 0) = 3 THEN 1 ELSE 0 END) = COUNT(1) THEN 3
+              WHEN SUM(CASE WHEN IFNULL(s.invoiceStatus, 0) = 3 THEN 1 ELSE 0 END) > 0 THEN 5
+              WHEN SUM(CASE WHEN IFNULL(s.invoiceStatus, 0) = 4 THEN 1 ELSE 0 END) > 0 THEN 4
+              WHEN SUM(CASE WHEN IFNULL(s.invoiceStatus, 0) = 2 THEN 1 ELSE 0 END) > 0 THEN 2
+              ELSE 0
+            END
+          FROM crm_quote_order_stage s
+          WHERE s.quoteOrderId = a.id
+            AND s.isDeleted = 0
+        ) AS invoiceStatus,
         c.companyName AS customerCompanyName,
         u.name AS salesmanName,
         u2.name AS accompanySalesmanName
@@ -102,7 +128,7 @@ export class ProductProjectService extends BaseService {
       WHERE a.id = ?
         AND a.isDeleted = 0
         AND a.auditStatus = 2
-        ${restrictSql.sql}
+        ${restrictSql}
       LIMIT 1
     `,
       [quoteOrderId]
@@ -126,7 +152,7 @@ export class ProductProjectService extends BaseService {
     }
 
     const scope = await this.crmQuoteOrderService.getScope();
-    const restrictSql = this.crmQuoteOrderService.buildPageScopeSql(scope);
+    const restrictSql = this.buildProjectScopeSql(scope);
     const rows = await this.nativeQuery(
       `
       SELECT a.id
@@ -134,7 +160,7 @@ export class ProductProjectService extends BaseService {
       WHERE a.id = ?
         AND a.isDeleted = 0
         AND a.auditStatus = 2
-        ${restrictSql.sql}
+        ${restrictSql}
       LIMIT 1
     `,
       [id]
@@ -151,6 +177,75 @@ export class ProductProjectService extends BaseService {
         projectStatusImages: this.normalizeImages(param?.projectStatusImages),
         projectCueSheet: this.toNullableText(param?.projectCueSheet),
       }
+    );
+  }
+
+  /**
+   * 專案列表資料權限：
+   * - 老闆：全部
+   * - 業務 / 業務主管：僅自己的（業務員或陪同業務）
+   * - 內勤主管：本部門相關
+   * - 內勤 / 整合PM：僅指派給自己的
+   */
+  private buildProjectScopeSql(scope: {
+    userId: number;
+    departmentIds: number[];
+    isBoss: boolean;
+    isOfficeClerkManager: boolean;
+    isOfficeClerk: boolean;
+  }) {
+    if (scope.isBoss) {
+      return '';
+    }
+
+    if (scope.isOfficeClerkManager) {
+      const departmentIds = scope.departmentIds.length
+        ? scope.departmentIds
+        : [null];
+      return this.setSql(
+        true,
+        `and (
+          exists (
+            select 1
+            from crm_quote_order_department_audit da
+            where da.quoteOrderId = a.id
+              and da.isDeleted = 0
+              and da.departmentId in (?)
+          )
+          or exists (
+            select 1
+            from crm_quote_order_item qi
+            where qi.quoteOrderId = a.id
+              and qi.isDeleted = 0
+              and qi.departmentId in (?)
+          )
+        )`,
+        [departmentIds, departmentIds]
+      );
+    }
+
+    if (scope.isOfficeClerk) {
+      return this.setSql(
+        true,
+        `and (
+          a.currentAssigneeId = ?
+          or exists (
+            select 1
+            from crm_quote_order_department_audit da
+            where da.quoteOrderId = a.id
+              and da.isDeleted = 0
+              and da.assigneeId = ?
+          )
+        )`,
+        [scope.userId, scope.userId]
+      );
+    }
+
+    // 業務線：只能看自己的專案
+    return this.setSql(
+      true,
+      `and (a.salesmanId = ? or a.accompanySalesmanId = ?)`,
+      [scope.userId, scope.userId]
     );
   }
 

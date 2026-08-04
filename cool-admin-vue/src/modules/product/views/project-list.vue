@@ -186,6 +186,12 @@ useTable({
 			showOverflowTooltip: true
 		},
 		{
+			label: '發票狀態',
+			prop: 'invoiceStatus',
+			minWidth: 130,
+			formatter: (row: any) => getInvoiceStatusLabel(row?.invoiceStatus)
+		},
+		{
 			label: '項目狀況圖片',
 			prop: 'projectStatusImages',
 			minWidth: 220
@@ -210,6 +216,16 @@ function getGrossProfitDisplay(row: any) {
 	return grossProfitAmount === null || grossProfitAmount === undefined || grossProfitAmount === ''
 		? row?.finalAmount
 		: grossProfitAmount;
+}
+
+function getInvoiceStatusLabel(value: any) {
+	const status = Number(value);
+	if (status === 1) return '待財務審核';
+	if (status === 2) return '已作廢';
+	if (status === 3) return '審核通過';
+	if (status === 4) return '審核駁回';
+	if (status === 5) return '部分已開票';
+	return '未申請';
 }
 
 const Upsert = useUpsert({

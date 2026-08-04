@@ -57,7 +57,7 @@ export class ProductSpecEntity extends BaseEntity {
   })
   grossProfitRate: number;
 
-  @Column({ comment: '備註', nullable: true })
+  @Column({ comment: '預設備註（報價單可帶入）', nullable: true })
   remark: string;
 
   @Column({ comment: '排序', default: 1 })

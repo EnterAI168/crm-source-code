@@ -886,7 +886,7 @@ export class CrmQuoteOrderService extends BaseService {
     const [products, specs, departments] = await Promise.all([
       this.productInfoEntity.find({
         where: { isDeleted: 0, status: 1 },
-        order: { createTime: 'DESC', id: 'DESC' },
+        order: { orderNum: 'DESC', id: 'DESC' },
       }),
       this.productSpecEntity.find({
         where: { isDeleted: 0 },
@@ -2131,37 +2131,17 @@ export class CrmQuoteOrderService extends BaseService {
     return this.normalizeQuotePaymentCondition(value);
   }
 
-  async quotePartyB(salesmanId?: number, bankAccountId?: number) {
+  async quotePartyB(_salesmanId?: number, bankAccountId?: number) {
     const value = await this.baseSysParamService.dataByKey('quote_party_b');
     const bankCover = await this.baseSysParamService.dataByKey('quote_bank_cover');
     const companySeal = await this.baseSysParamService.dataByKey('quote_company_seal');
     let partyB = this.normalizeQuotePartyB(value, bankCover, companySeal);
     partyB = await this.applyBankAccountToQuotePartyB(partyB, bankAccountId);
-    return this.applySalesmanToQuotePartyB(partyB, salesmanId);
-  }
-
-  /**
-   * 乙方聯絡人 / 信箱 / 電話改為對應報價單業務員資訊
-   */
-  private async applySalesmanToQuotePartyB(partyB: any, salesmanId?: number) {
-    const id = Number(salesmanId || 0);
-    if (!id) {
-      return partyB;
-    }
-    const salesman = await this.baseSysUserEntity.findOneBy({ id });
-    if (!salesman) {
-      return partyB;
-    }
-    const contactName = String(
-      salesman.name || salesman.nickName || salesman.username || ''
-    ).trim();
-    const email = String(salesman.email || '').trim();
-    const mobile = String(salesman.phone || '').trim();
+    // 聯絡人 / 信箱固定展示，不再使用業務員資訊
     return {
       ...partyB,
-      contactName: contactName || partyB.contactName,
-      email: email || partyB.email,
-      mobile: mobile || partyB.mobile,
+      contactName: this.DEFAULT_QUOTE_PARTY_B.contactName,
+      email: this.DEFAULT_QUOTE_PARTY_B.email,
     };
   }
 
@@ -2549,7 +2529,7 @@ export class CrmQuoteOrderService extends BaseService {
         'sourceDefaultRemark'
       )
         ? String(item?.sourceDefaultRemark ?? '').trim()
-        : String(product.defaultRemark || '').trim();
+        : String(spec?.remark || product.defaultRemark || '').trim();
       const defaultRemark = Object.prototype.hasOwnProperty.call(
         item || {},
         'defaultRemark'
@@ -4671,7 +4651,7 @@ export class CrmQuoteOrderService extends BaseService {
 
     addSection('乙方匯款資訊');
     addLine(`聯絡人：${quotePartyB.contactName || '-'}`);
-    addLine(`Email：${quotePartyB.email || '-'}`);
+    addLine(`信箱：${quotePartyB.email || '-'}`);
     addLine(`戶名：${quotePartyB.bankAccountName || quotePartyB.companyName || '-'}`);
     addLine(`銀行程式碼：${quotePartyB.bankCode || '-'}${quotePartyB.bankName ? `（${quotePartyB.bankName}）` : ''}`);
     addLine(`帳號：${quotePartyB.bankAccountNo || '-'}`);

@@ -179,9 +179,15 @@
 							</template>
 						</el-table-column>
 
-						<el-table-column label="備註" min-width="160">
+						<el-table-column label="預設備註" min-width="200">
 							<template #default="{ row }">
-								<el-input v-model="row.remark" clearable />
+								<el-input
+									v-model="row.remark"
+									type="textarea"
+									:rows="2"
+									clearable
+									placeholder="報價單可帶入，內勤可對照修改提示"
+								/>
 							</template>
 						</el-table-column>
 
@@ -266,7 +272,7 @@
 				<el-table-column label="保守毛利率" min-width="120">
 					<template #default="{ row }">{{ toPercent(row.grossProfitRate) }}</template>
 				</el-table-column>
-				<el-table-column label="備註" prop="remark" min-width="180" show-overflow-tooltip />
+				<el-table-column label="預設備註" prop="remark" min-width="180" show-overflow-tooltip />
 			</el-table>
 		</el-dialog>
 
@@ -632,13 +638,7 @@ useTable({
 		{ label: '排序', prop: 'orderNum', sortable: 'desc', minWidth: 100 },
 		{ label: '產品名稱', prop: 'name', minWidth: 180, showOverflowTooltip: true },
 		{
-			label: '預設備註',
-			prop: 'defaultRemark',
-			minWidth: 180,
-			showOverflowTooltip: true
-		},
-		{
-			label: '產品說明',
+			label: '產品備註',
 			prop: 'description',
 			minWidth: 260,
 			render: (row: any) => {
@@ -759,7 +759,7 @@ const Upsert = useUpsert({
 			component: { name: 'slot-logo' }
 		},
 		{
-			label: '產品說明',
+			label: '產品備註',
 			prop: 'description',
 			span: 24,
 			component: {
@@ -768,21 +768,7 @@ const Upsert = useUpsert({
 					type: 'textarea',
 					rows: 3,
 					clearable: true,
-					placeholder: '請輸入產品說明'
-				}
-			}
-		},
-		{
-			label: '預設備註',
-			prop: 'defaultRemark',
-			span: 24,
-			component: {
-				name: 'el-input',
-				props: {
-					type: 'textarea',
-					rows: 2,
-					clearable: true,
-					placeholder: '請輸入預設備註（報價單可帶入）'
+					placeholder: '請輸入產品備註'
 				}
 			}
 		},
@@ -866,7 +852,8 @@ const Upsert = useUpsert({
 		data.specs = normalizeSpecs(specRows.value);
 		data.status = Number(data.status ?? 1) === 0 ? 0 : 1;
 		data.description = data.description || '';
-		data.defaultRemark = data.defaultRemark || '';
+		// 預設備註改為規格維度維護，產品級欄位清空避免誤用
+		data.defaultRemark = '';
 		data.remark = data.remark || '';
 
 		if (!data.name?.trim()) return stopSubmit('商品名稱必填');

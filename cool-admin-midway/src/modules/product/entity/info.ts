@@ -55,10 +55,10 @@ export class ProductInfoEntity extends BaseEntity {
   })
   grossProfitRate: number;
 
-  @Column({ comment: '商品說明', type: 'text', nullable: true })
+  @Column({ comment: '產品備註', type: 'text', nullable: true })
   description: string;
 
-  @Column({ comment: '預設備註', type: 'text', nullable: true })
+  @Column({ comment: '預設備註（已遷移至規格 remark，保留相容）', type: 'text', nullable: true })
   defaultRemark: string;
 
   @Column({ comment: 'Logo圖', nullable: true })

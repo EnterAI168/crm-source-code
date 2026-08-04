@@ -1920,9 +1920,9 @@ function onProductChange(row: any) {
 	row.actualPrice = 0;
 	row.departmentId = product?.departmentId || undefined;
 	row.costPrice = getCostPrice(row);
-	const defaultRemark = String(product?.defaultRemark || '').trim();
-	row.defaultRemark = defaultRemark;
-	row.sourceDefaultRemark = defaultRemark;
+	// 預設備註改為跟隨規格，選產品時先清空
+	row.defaultRemark = '';
+	row.sourceDefaultRemark = '';
 	recalcQuoteItem(row);
 	refreshStageAmounts();
 }
@@ -1932,6 +1932,9 @@ function onSpecChange(row: any) {
 	row.specName = spec?.name || '';
 	row.actualPrice = 0;
 	row.costPrice = getCostPrice(row);
+	const defaultRemark = String(spec?.remark || '').trim();
+	row.defaultRemark = defaultRemark;
+	row.sourceDefaultRemark = defaultRemark;
 	recalcQuoteItem(row);
 	refreshStageAmounts();
 }
