@@ -2131,17 +2131,43 @@ export class CrmQuoteOrderService extends BaseService {
     return this.normalizeQuotePaymentCondition(value);
   }
 
-  async quotePartyB(_salesmanId?: number, bankAccountId?: number) {
+  async quotePartyB(salesmanId?: number, bankAccountId?: number) {
     const value = await this.baseSysParamService.dataByKey('quote_party_b');
     const bankCover = await this.baseSysParamService.dataByKey('quote_bank_cover');
     const companySeal = await this.baseSysParamService.dataByKey('quote_company_seal');
     let partyB = this.normalizeQuotePartyB(value, bankCover, companySeal);
     partyB = await this.applyBankAccountToQuotePartyB(partyB, bankAccountId);
-    // 聯絡人 / 信箱固定展示，不再使用業務員資訊
+    partyB = await this.applySalesmanToQuotePartyB(partyB, salesmanId);
+    // 甲乙方對照表用業務員資訊；匯款資訊區聯絡人/信箱固定
     return {
       ...partyB,
-      contactName: this.DEFAULT_QUOTE_PARTY_B.contactName,
-      email: this.DEFAULT_QUOTE_PARTY_B.email,
+      remittanceContactName: this.DEFAULT_QUOTE_PARTY_B.contactName,
+      remittanceEmail: this.DEFAULT_QUOTE_PARTY_B.email,
+    };
+  }
+
+  /**
+   * 乙方對照表聯絡人 / 信箱 / 電話使用報價單業務員資訊
+   */
+  private async applySalesmanToQuotePartyB(partyB: any, salesmanId?: number) {
+    const id = Number(salesmanId || 0);
+    if (!id) {
+      return partyB;
+    }
+    const salesman = await this.baseSysUserEntity.findOneBy({ id });
+    if (!salesman) {
+      return partyB;
+    }
+    const contactName = String(
+      salesman.name || salesman.nickName || salesman.username || ''
+    ).trim();
+    const email = String(salesman.email || '').trim();
+    const mobile = String(salesman.phone || '').trim();
+    return {
+      ...partyB,
+      contactName: contactName || partyB.contactName,
+      email: email || partyB.email,
+      mobile: mobile || partyB.mobile,
     };
   }
 
@@ -4650,8 +4676,12 @@ export class CrmQuoteOrderService extends BaseService {
     }
 
     addSection('乙方匯款資訊');
-    addLine(`聯絡人：${quotePartyB.contactName || '-'}`);
-    addLine(`信箱：${quotePartyB.email || '-'}`);
+    addLine(
+      `聯絡人：${quotePartyB.remittanceContactName || this.DEFAULT_QUOTE_PARTY_B.contactName || '-'}`
+    );
+    addLine(
+      `信箱：${quotePartyB.remittanceEmail || this.DEFAULT_QUOTE_PARTY_B.email || '-'}`
+    );
     addLine(`戶名：${quotePartyB.bankAccountName || quotePartyB.companyName || '-'}`);
     addLine(`銀行程式碼：${quotePartyB.bankCode || '-'}${quotePartyB.bankName ? `（${quotePartyB.bankName}）` : ''}`);
     addLine(`帳號：${quotePartyB.bankAccountNo || '-'}`);

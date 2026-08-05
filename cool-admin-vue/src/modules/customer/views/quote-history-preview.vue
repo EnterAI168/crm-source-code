@@ -201,8 +201,8 @@
 							/>
 							<div class="quote-bank__info">
 								<div class="quote-bank__contact">
-									<p>聯絡人：{{ partyB.contactName }}</p>
-									<p>信箱：{{ partyB.email }}</p>
+									<p>聯絡人：{{ partyB.remittanceContactName }}</p>
+									<p>信箱：{{ partyB.remittanceEmail }}</p>
 								</div>
 								<div class="quote-bank__account-name">
 									<p>戶名：{{ partyB.bankAccountName || partyB.companyName }}</p>
@@ -317,6 +317,8 @@ const partyB = reactive<any>({
 	contactName: 'vicky',
 	email: 'vicky@enterimc.com',
 	mobile: '',
+	remittanceContactName: 'vicky',
+	remittanceEmail: 'vicky@enterimc.com',
 	bankAccountName: '確認鍵智創科技股份有限公司',
 	bankCode: '012',
 	bankName: '臺北富邦銀行',
@@ -470,6 +472,12 @@ function normalizePartyB(value: any) {
 		contactName: String(source.contactName ?? partyB.contactName ?? ''),
 		email: String(source.email ?? partyB.email ?? ''),
 		mobile: String(source.mobile ?? partyB.mobile ?? ''),
+		remittanceContactName: String(
+			source.remittanceContactName ?? partyB.remittanceContactName ?? 'vicky'
+		),
+		remittanceEmail: String(
+			source.remittanceEmail ?? partyB.remittanceEmail ?? 'vicky@enterimc.com'
+		),
 		bankAccountName: String(source.bankAccountName ?? partyB.bankAccountName ?? ''),
 		bankCode: String(source.bankCode ?? partyB.bankCode ?? ''),
 		bankName: String(source.bankName ?? partyB.bankName ?? ''),
