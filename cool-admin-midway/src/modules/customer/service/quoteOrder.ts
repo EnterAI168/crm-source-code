@@ -99,6 +99,9 @@ export class CrmQuoteOrderService extends BaseService {
 
   private readonly VIP_MAX_DISCOUNT_RATE = 15;
 
+  /** 報價價格最低佔預設價格比例（%），可透過系統參數 quote_min_price_rate 配置 */
+  private readonly DEFAULT_QUOTE_MIN_PRICE_RATE = 85;
+
   private readonly VIP_DISCOUNT_AUDIT_REASON =
     '優惠比例超過VIP最大額度15%，需要老闆審批，審批是否扣除獎金';
 
@@ -2124,6 +2127,10 @@ export class CrmQuoteOrderService extends BaseService {
     return await this.getQuoteDiscountThreshold();
   }
 
+  async quoteMinPriceRate() {
+    return await this.getQuoteMinPriceRate();
+  }
+
   async quotePaymentCondition() {
     const value = await this.baseSysParamService.dataByKey(
       'quote_payment_condition'
@@ -2485,7 +2492,7 @@ export class CrmQuoteOrderService extends BaseService {
       .map(item => Number(item?.specId))
       .filter(id => !Number.isNaN(id) && id > 0);
 
-    const [products, specs] = await Promise.all([
+    const [products, specs, minPriceRate] = await Promise.all([
       this.productInfoEntity.findBy({
         id: In(productIds),
         isDeleted: 0,
@@ -2496,6 +2503,7 @@ export class CrmQuoteOrderService extends BaseService {
             isDeleted: 0,
           })
         : Promise.resolve([]),
+      this.getQuoteMinPriceRate(),
     ]);
 
     const productMap = new Map<number, ProductInfoEntity>();
@@ -2526,13 +2534,13 @@ export class CrmQuoteOrderService extends BaseService {
       );
       const costPrice = this.toMoney(spec?.costPrice ?? product.costPrice);
       const presetPrice = this.toMoney(spec?.price ?? product.price);
-      const minActualPrice = this.getMinActualPrice(presetPrice);
+      const minActualPrice = this.getMinActualPrice(presetPrice, minPriceRate);
       if (actualPrice <= 0) {
         throw new CoolCommException(`第${index + 1}條產品報價價格必須大於0`);
       }
       if (minActualPrice > 0 && actualPrice <= minActualPrice) {
         throw new CoolCommException(
-          `第${index + 1}條產品報價價格必須高於預設價格85%`
+          `第${index + 1}條產品報價價格必須高於預設價格${this.formatMinPriceRateLabel(minPriceRate)}`
         );
       }
       const quantity = Math.max(
@@ -3682,12 +3690,32 @@ export class CrmQuoteOrderService extends BaseService {
     return this.toMoney(rows?.[0]?.amount || 0);
   }
 
-  private getMinActualPrice(presetPrice: any) {
+  private async getQuoteMinPriceRate() {
+    const value = await this.baseSysParamService.dataByKey('quote_min_price_rate');
+    const rate = this.toRatePercent(value);
+    return rate > 0 ? rate : this.DEFAULT_QUOTE_MIN_PRICE_RATE;
+  }
+
+  private getMinActualPrice(presetPrice: any, minPriceRatePercent?: any) {
     const price = this.toMoney(presetPrice);
     if (price <= 0) {
       return 0;
     }
-    return this.toMoney(price * 0.85);
+    const ratePercent = this.toRatePercent(
+      minPriceRatePercent ?? this.DEFAULT_QUOTE_MIN_PRICE_RATE
+    );
+    const ratio =
+      (ratePercent > 0 ? ratePercent : this.DEFAULT_QUOTE_MIN_PRICE_RATE) / 100;
+    return this.toMoney(price * ratio);
+  }
+
+  private formatMinPriceRateLabel(minPriceRatePercent?: any) {
+    const ratePercent = this.toRatePercent(
+      minPriceRatePercent ?? this.DEFAULT_QUOTE_MIN_PRICE_RATE
+    );
+    const value =
+      ratePercent > 0 ? ratePercent : this.DEFAULT_QUOTE_MIN_PRICE_RATE;
+    return `${Number(value.toFixed(2))}%`;
   }
 
   private normalizeDate(value: any) {

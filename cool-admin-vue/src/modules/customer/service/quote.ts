@@ -36,6 +36,10 @@ export default class QuoteOrderService extends BaseService {
 		return this.request({ url: '/quoteDiscountRate', method: 'POST' });
 	}
 
+	async quoteMinPriceRate(): Promise<any> {
+		return this.request({ url: '/quoteMinPriceRate', method: 'POST' });
+	}
+
 	async submitAudit(data: { id: number }) {
 		return this.request({
 			url: '/submitAudit',

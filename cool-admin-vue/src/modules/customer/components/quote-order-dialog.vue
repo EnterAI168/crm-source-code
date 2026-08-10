@@ -955,6 +955,7 @@ const quotePdfPreviewLoadedId = ref(0);
 const quoteTermSections = ref<any[]>([]);
 const defaultQuoteTermSections = ref<any[]>([]);
 const quoteDiscountRateThreshold = ref(0);
+const quoteMinPriceRatePercent = ref(85);
 const applyingAudit = ref(false);
 const auditSubmitted = ref(false);
 const quotePermissions = ref<Record<string, any>>({});
@@ -1656,12 +1657,22 @@ function getProductTypeLabel(row: any) {
 	return Number(getProductTypeValue(row)) === 1 ? '主力產品' : '副位產品';
 }
 
+function getQuoteMinPriceRateRatio() {
+	const percent = normalizePercentValue(quoteMinPriceRatePercent.value);
+	return (percent > 0 ? percent : 85) / 100;
+}
+
+function getQuoteMinPriceRateLabel() {
+	const percent = normalizePercentValue(quoteMinPriceRatePercent.value);
+	return `${Number((percent > 0 ? percent : 85).toFixed(2))}%`;
+}
+
 function getMinActualPrice(row: any) {
 	const presetPrice = getPresetPrice(row);
 	if (presetPrice <= 0) {
 		return 0;
 	}
-	return Number((presetPrice * 0.85).toFixed(2));
+	return Number((presetPrice * getQuoteMinPriceRateRatio()).toFixed(2));
 }
 
 function recalcQuoteItem(row: any) {
@@ -1679,7 +1690,7 @@ function recalcQuoteItem(row: any) {
 	if (row.actualPrice <= 0) {
 		row.actualPriceError = '報價價格必須大於0';
 	} else if (minActualPrice > 0 && row.actualPrice <= minActualPrice) {
-		row.actualPriceError = '報價價格必須高於預設價格85%';
+		row.actualPriceError = `報價價格必須高於預設價格${getQuoteMinPriceRateLabel()}`;
 	} else {
 		row.actualPriceError = '';
 	}
@@ -2351,15 +2362,23 @@ function resolveCommission(detail: any, items: any[]) {
 }
 
 async function loadOptions() {
-	const [customers, products, salesmen, bankAccounts, quoteTerms, quoteDiscountRate] =
-		await Promise.allSettled([
-			quoteService.customerOptions(),
-			quoteService.productOptions(),
-			quoteService.salesmanOptions(),
-			bankAccountService.options(),
-			quoteService.quoteTerms(),
-			quoteService.quoteDiscountRate()
-		]);
+	const [
+		customers,
+		products,
+		salesmen,
+		bankAccounts,
+		quoteTerms,
+		quoteDiscountRate,
+		quoteMinPriceRate
+	] = await Promise.allSettled([
+		quoteService.customerOptions(),
+		quoteService.productOptions(),
+		quoteService.salesmanOptions(),
+		bankAccountService.options(),
+		quoteService.quoteTerms(),
+		quoteService.quoteDiscountRate(),
+		quoteService.quoteMinPriceRate()
+	]);
 	customerOptions.value = customers.status === 'fulfilled' ? customers.value || [] : [];
 	productOptions.value = products.status === 'fulfilled' ? products.value || [] : [];
 	salesmanOptions.value =
@@ -2373,6 +2392,11 @@ async function loadOptions() {
 		bankAccounts.status === 'fulfilled' ? bankAccounts.value || [] : [];
 	quoteDiscountRateThreshold.value =
 		quoteDiscountRate.status === 'fulfilled' ? normalizePercentValue(quoteDiscountRate.value) : 0;
+	const minPriceRate =
+		quoteMinPriceRate.status === 'fulfilled'
+			? normalizePercentValue(quoteMinPriceRate.value)
+			: 0;
+	quoteMinPriceRatePercent.value = minPriceRate > 0 ? minPriceRate : 85;
 	defaultQuoteTermSections.value = normalizeQuoteTerms(
 		quoteTerms.status === 'fulfilled' ? quoteTerms.value : []
 	);
