@@ -120,16 +120,16 @@
 		</el-dialog>
 
 		<cl-upsert ref="Upsert">
-			<template #slot-login-phone>
-				<div class="user-login-phone-field">
+			<template #slot-login-email>
+				<div class="user-login-email-field">
 					<el-input
-						:model-value="loginPhoneDisplayValue"
+						:model-value="loginEmailDisplayValue"
 						clearable
 						:disabled="isUpsertReadonly"
-						placeholder="請輸入手機號碼"
-						@input="onLoginPhoneInput"
+						placeholder="請輸入信箱"
+						@input="onLoginEmailInput"
 					/>
-					<div class="user-login-phone-tip">預設手機號碼為員工登入帳號</div>
+					<div class="user-login-email-tip">預設信箱為員工登入帳號</div>
 				</div>
 			</template>
 
@@ -206,7 +206,7 @@ const roles = ref<Eps.BaseSysRoleEntity[]>([]);
 const departments = ref<Eps.BaseSysDepartmentEntity[]>([]);
 const departmentTree = ref<any[]>([]);
 const searchForm = ref(createSearchForm());
-const loginPhoneValue = ref('');
+const loginEmailValue = ref('');
 const roleOptions = ref<{ label: string; value: number }[]>([]);
 const roleSelectDisabled = ref(false);
 const levelOptions = ref<{ label: string; value: string }[]>([]);
@@ -291,8 +291,12 @@ const currentWithholdingSalary = computed(() => {
 	}
 	return toMoney(storedValue);
 });
-const loginPhoneDisplayValue = computed(
-	() => loginPhoneValue.value || Upsert.value?.getForm('phone') || Upsert.value?.getForm('username') || ''
+const loginEmailDisplayValue = computed(
+	() =>
+		loginEmailValue.value ||
+		Upsert.value?.getForm('email') ||
+		Upsert.value?.getForm('username') ||
+		''
 );
 
 const Crud = useCrud({
@@ -349,11 +353,11 @@ const Table = useTable({
 				h('div', { class: 'user-info-cell' }, [
 					h('div', { class: 'user-info-cell__name' }, row?.name || '-'),
 					h('div', { class: 'user-info-cell__meta' }, `英文名稱：${row?.englishName || '-'}`),
-					h('div', { class: 'user-info-cell__meta' }, `信箱：${row?.email || '-'}`),
+					h('div', { class: 'user-info-cell__meta' }, `信箱：${row?.email || row?.username || '-'}`),
 					h(
 						'div',
 						{ class: 'user-info-cell__meta' },
-						`手機號碼：${row?.phone || row?.username || '-'}`
+						`手機號碼：${row?.phone || '-'}`
 					)
 				])
 		},
@@ -427,11 +431,19 @@ const Upsert = useUpsert({
 			component: { name: 'el-input' }
 		},
 		{
-			prop: 'username',
-			label: '手機號碼',
+			prop: 'email',
+			label: '信箱',
 			span: 12,
-			rules: [{ required: true, message: '請輸入手機號碼', trigger: 'blur' }],
-			component: { name: 'slot-login-phone' }
+			required: true,
+			rules: [
+				{ required: true, message: '請輸入信箱', trigger: 'blur' },
+				{
+					type: 'email',
+					message: '請輸入正確的信箱格式',
+					trigger: ['blur', 'change']
+				}
+			],
+			component: { name: 'slot-login-email' }
 		},
 		() => ({
 			prop: 'password',
@@ -455,6 +467,18 @@ const Upsert = useUpsert({
 				}
 			]
 		}),
+		{
+			prop: 'phone',
+			label: '手機號碼',
+			span: 12,
+			component: {
+				name: 'el-input',
+				props: {
+					clearable: true,
+					placeholder: '請輸入手機號碼（選填）'
+				}
+			}
+		},
 		{
 			prop: 'departmentId',
 			label: '部門',
@@ -499,12 +523,6 @@ const Upsert = useUpsert({
 			component: { name: 'slot-level' }
 		},
 		{
-			prop: 'email',
-			label: '信箱',
-			span: 12,
-			component: { name: 'el-input' }
-		},
-		{
 			prop: 'remark',
 			label: '備註',
 			component: {
@@ -526,12 +544,16 @@ const Upsert = useUpsert({
 		}
 	],
 	onSubmit(data, { next }) {
-		const phone = String(loginPhoneValue.value || data.username || '').trim();
+		const email = String(loginEmailValue.value || data.email || data.username || '').trim();
+		const phone = String(data.phone || '').trim();
 		const departmentId = Number(data.departmentId || 0);
 		const roleId = currentRoleId.value;
 		const selectedRole = getRoleById(roleId);
 
-		if (!phone) return ElMessage.warning('請輸入手機號碼');
+		if (!email) return ElMessage.warning('請輸入信箱');
+		if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+			return ElMessage.warning('請輸入正確的信箱格式');
+		}
 		if (!departmentId) return ElMessage.warning('請選擇部門');
 		if (!roleId || !selectedRole) return ElMessage.warning('請選擇角色');
 		if (isOfficeRole(selectedRole) && ![LEVEL_SENIOR, LEVEL_NORMAL].includes(String(data.level || '').trim())) {
@@ -542,8 +564,9 @@ const Upsert = useUpsert({
 			...data,
 			name: String(data.name || '').trim(),
 			nickName: String(data.name || '').trim(),
-			username: phone,
-			phone,
+			username: email,
+			email,
+			phone: phone || null,
 			level: isOfficeManagerRole(selectedRole)
 				? LEVEL_MANAGER
 				: isOfficeRole(selectedRole)
@@ -558,8 +581,9 @@ const Upsert = useUpsert({
 			ensureDepartmentsLoaded(),
 			...(canViewSalary.value ? [ensureWithholdingRateLoaded()] : [])
 		]);
-		loginPhoneValue.value = '';
+		loginEmailValue.value = '';
 		Upsert.value?.setForm('username', '');
+		Upsert.value?.setForm('email', '');
 		Upsert.value?.setForm('phone', '');
 		Upsert.value?.setForm('departmentId', undefined);
 		if (canViewSalary.value) {
@@ -581,11 +605,18 @@ const Upsert = useUpsert({
 
 		const roleId = normalizeSingleRoleId(detail?.roleIdList);
 		const departmentId = Number(detail?.departmentId || 0) || undefined;
-		const loginPhone = String(detail?.phone || detail?.username || '');
+		const username = String(detail?.username || '');
+		const emailFromDetail = String(detail?.email || '');
+		const loginEmail =
+			emailFromDetail || (username.includes('@') ? username : '');
+		const phone = String(
+			detail?.phone || (!username.includes('@') ? username : '') || ''
+		);
 
-		loginPhoneValue.value = loginPhone;
-		Upsert.value?.setForm('username', loginPhone);
-		Upsert.value?.setForm('phone', loginPhone);
+		loginEmailValue.value = loginEmail;
+		Upsert.value?.setForm('username', loginEmail);
+		Upsert.value?.setForm('email', loginEmail);
+		Upsert.value?.setForm('phone', phone);
 		Upsert.value?.setForm('departmentId', departmentId);
 		if (canViewSalary.value) {
 			Upsert.value?.setForm('salary', detail?.salary ?? undefined);
@@ -910,10 +941,10 @@ function onLevelSelect(value: string) {
 	Upsert.value?.setForm('level', value);
 }
 
-function onLoginPhoneInput(value: string) {
-	loginPhoneValue.value = value;
+function onLoginEmailInput(value: string) {
+	loginEmailValue.value = value;
 	Upsert.value?.setForm('username', value);
-	Upsert.value?.setForm('phone', value);
+	Upsert.value?.setForm('email', value);
 }
 
 function ensureRolesLoaded() {
@@ -1079,13 +1110,13 @@ ensureDepartmentsLoaded();
 	margin-right: 0;
 }
 
-.user-login-phone-field {
+.user-login-email-field {
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
 }
 
-.user-login-phone-tip {
+.user-login-email-tip {
 	font-size: 12px;
 	line-height: 1.2;
 	color: #909399;

@@ -204,14 +204,12 @@ export class BaseSysUserService extends BaseService {
       throw new CoolCommException('英文名稱不能為空');
     }
     param.nickName = param.name;
-    if (!_.isEmpty(param.username)) {
-      param.phone = param.username;
-    }
+    this.normalizeLoginAccount(param);
     const exists = await this.baseSysUserEntity.findOneBy({
       username: param.username,
     });
     if (!_.isEmpty(exists)) {
-      throw new CoolCommException('該手機號碼帳號已存在');
+      throw new CoolCommException('該信箱帳號已存在');
     }
     await this.validateRoleAndLevel(param);
     if (canManageSalary) {
@@ -316,8 +314,16 @@ export class BaseSysUserService extends BaseService {
       throw new CoolCommException('英文名稱不能為空');
     }
     param.nickName = param.name;
-    if (!_.isEmpty(param.username)) {
-      param.phone = param.username;
+    this.normalizeLoginAccount(param);
+    if (param.username !== 'admin') {
+      const exists = await this.baseSysUserEntity
+        .createQueryBuilder('a')
+        .where('a.username = :username', { username: param.username })
+        .andWhere('a.id != :id', { id: Number(param.id || 0) })
+        .getOne();
+      if (!_.isEmpty(exists)) {
+        throw new CoolCommException('該信箱帳號已存在');
+      }
     }
     await this.validateRoleAndLevel(param);
     if (!_.isEmpty(param.password)) {
@@ -468,6 +474,25 @@ export class BaseSysUserService extends BaseService {
     }
     const id = Number(roleIdList);
     return Number.isNaN(id) ? [] : [id];
+  }
+
+  /**
+   * 登入帳號改為信箱：username / email 同步，手機號碼改為選填
+   */
+  private normalizeLoginAccount(param: any) {
+    const email = String(param?.email || param?.username || '')
+      .trim()
+      .toLowerCase();
+    if (!email) {
+      throw new CoolCommException('信箱不能為空');
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && email !== 'admin') {
+      throw new CoolCommException('請輸入正確的信箱格式');
+    }
+    param.email = email;
+    param.username = email;
+    const phone = String(param?.phone || '').trim();
+    param.phone = phone || null;
   }
 
   private async validateRoleAndLevel(param) {
