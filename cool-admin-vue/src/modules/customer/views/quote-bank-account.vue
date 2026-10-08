@@ -118,7 +118,7 @@
 			</el-form>
 			<template #footer>
 				<el-button @click="dialogVisible = false">取消</el-button>
-				<el-button type="primary" :loading="saving" @click="submit">保存</el-button>
+				<el-button type="primary" :loading="saving" @click="submit">儲存</el-button>
 			</template>
 		</el-dialog>
 	</div>
@@ -248,11 +248,11 @@ async function submit() {
 		} else {
 			await bankAccountService.add(payload);
 		}
-		ElMessage.success('保存成功');
+		ElMessage.success('儲存成功');
 		dialogVisible.value = false;
 		await loadList();
 	} catch (error: any) {
-		ElMessage.error(error?.message || '保存失敗');
+		ElMessage.error(error?.message || '儲存失敗');
 	} finally {
 		saving.value = false;
 	}
