@@ -8,228 +8,232 @@
 					{{ detail?.createTime || '--' }}
 				</div>
 			</div>
-			<!-- <div class="quote-preview-toolbar__actions">
-				<el-button @click="router.back()">返回</el-button>
-				<el-button type="primary" @click="downloadPdf">下載PDF</el-button>
-				<el-button @click="windowPrint">列印</el-button>
-			</div> -->
 		</div>
 
 		<div v-loading="loading" class="quote-preview-canvas">
-			<article ref="sheetRef" class="quote-sheet" id="quote-history-preview-doc">
-				<header class="quote-sheet__title">
-					<img class="quote-sheet__header-logo" src="/quote-header-logo.png" alt="ENTER" />
-					<span>合作報價單</span>
-				</header>
-
-				<div class="quote-sheet__body">
-					<aside class="quote-sheet__rail" aria-hidden="true">
-						<div
-							v-for="(block, index) in railBlocks"
-							:key="index"
-							class="quote-sheet__rail-block"
-							:style="{ height: block }"
-						>
-							<span>報</span>
+			<article ref="sheetRef" id="quote-history-preview-doc" class="quote-doc-wrap">
+				<!-- 封面 -->
+				<section class="quote-doc-page">
+					<div class="cv-stripe" />
+					<div class="cv-hero">
+						<div>
+							<div class="cv-rule" />
+							<div class="cv-eye">SERVICE QUOTATION ｜ 合作報價單</div>
+							<h1 class="cv-h1">
+								{{ customerDisplayName }}<br />
+								<span>{{ order.quoteName || detail?.quoteName || '' }}</span><br />
+								合作報價單
+							</h1>
+							<div class="cv-sub">
+								<b>{{ customerDisplayName }}</b> 為廣告主，以下簡稱<b>甲方</b>；<br />
+								{{ partyB.companyName }}為委刊主，以下簡稱<b>乙方</b>。
+							</div>
 						</div>
-					</aside>
+						<div class="cv-la">
+							<img class="cv-la__logo" src="/quote-header-logo.png" alt="ENTER" />
+							<div class="cv-lt">
+								{{ partyB.companyName }}<br />
+								Enter Internet Marketing CO., LTD.
+							</div>
+						</div>
+					</div>
+					<div class="cv-band">
+						<div class="cv-st">
+							<div class="stn">{{ moneyCompact(finalAmount) }}</div>
+							<div class="stu">NT$ 含稅</div>
+							<div class="stl">專案總價</div>
+						</div>
+						<div class="cv-st">
+							<div class="stn">{{ moneyCompact(untaxedAmount) }}</div>
+							<div class="stu">NT$ 未稅</div>
+							<div class="stl">刊登未稅價</div>
+						</div>
+						<div class="cv-st">
+							<div class="stn">{{ moneyCompact(taxAmount) }}</div>
+							<div class="stu">NT$ {{ dutyPercentLabel }}</div>
+							<div class="stl">營業稅</div>
+						</div>
+						<div class="cv-st">
+							<div class="stn">{{ projectDurationMonths }}</div>
+							<div class="stu">個月</div>
+							<div class="stl">專案執行期</div>
+						</div>
+					</div>
+					<div class="cv-meta">
+						<div class="cv-mi">
+							委刊單號
+							<b>{{ commissionNo }}</b>
+						</div>
+						<div class="cv-mi">
+							委刊日期
+							<b>{{ commissionDate }}</b>
+						</div>
+						<div class="cv-mi">
+							專案名稱
+							<b>{{ order.quoteName || detail?.quoteName || '' }}</b>
+						</div>
+						<div class="cv-mi">
+							專案期間
+							<b>{{ projectPeriodText }}</b>
+						</div>
+					</div>
+					<div class="cv-foot">
+						<p>本報價單雙方簽署後視同正式合約　｜　自開立日起一個月內有效</p>
+						<p>© {{ copyrightYear }} Enter Internet Marketing CO., LTD.</p>
+					</div>
+				</section>
 
-					<main class="quote-sheet__content">
-						<section class="quote-section quote-section--intro">
-							<p>
-								{{ customer.companyName || customer.contactName || '' }}為廣告主，以下簡稱甲方；
-							</p>
-							<p>{{ partyB.companyName }}為委刊主，以下簡稱乙方。</p>
-						</section>
+				<!-- 內頁一 -->
+				<section class="quote-doc-page">
+					<div class="ph">
+						<span>{{ pageHeaderTitle }}</span>
+						<img class="ph__logo" src="/quote-header-logo.png" alt="ENTER" />
+					</div>
 
-						<table class="quote-table quote-table--party">
-							<colgroup>
-								<col class="quote-party__label" />
-								<col class="quote-party__value" />
-								<col class="quote-party__label" />
-								<col class="quote-party__value" />
-							</colgroup>
-							<tbody>
-								<tr>
-									<th colspan="2">甲方</th>
-									<th colspan="2">乙方</th>
-								</tr>
-								<tr>
-									<th>名稱</th>
-									<td>
-										{{ customer.companyName || customer.contactName || '' }}
-									</td>
-									<th>名稱</th>
-									<td>{{ partyB.companyName }}</td>
-								</tr>
-								<tr>
-									<th>地址</th>
-									<td>{{ customer.address || '' }}</td>
-									<th>地址</th>
-									<td>{{ partyB.address }}</td>
-								</tr>
-								<tr>
-									<th>統一編號</th>
-									<td>{{ customer.taxNumber || '' }}</td>
-									<th>統一編號</th>
-									<td>{{ partyB.taxNumber }}</td>
-								</tr>
-								<tr>
-									<th>匯款末五碼</th>
-									<td>{{ customer.remittanceLast5 || '' }}</td>
-									<th></th>
-									<td></td>
-								</tr>
-								<tr>
-									<th>聯絡人</th>
-									<td>{{ customer.contactName || '' }}</td>
-									<th>聯絡人</th>
-									<td>{{ partyB.contactName }}</td>
-								</tr>
-								<tr>
-									<th>信箱</th>
-									<td>{{ customer.email || '' }}</td>
-									<th>信箱</th>
-									<td>{{ partyB.email }}</td>
-								</tr>
-								<tr>
-									<th>電話</th>
-									<td>{{ customer.mobile || '' }}</td>
-									<th>電話</th>
-									<td>{{ partyB.mobile }}</td>
-								</tr>
-							</tbody>
-						</table>
-
-						<table class="quote-table quote-table--project">
-							<colgroup>
-								<col class="quote-project__label-col" />
-								<col class="quote-project__product-col" />
-								<col class="quote-project__spec-col" />
-								<col class="quote-project__qty-col" />
-								<col class="quote-project__price-col" />
-							</colgroup>
-							<tbody>
-								<tr>
-									<th class="quote-table__label">專案名稱</th>
-									<td colspan="4">
-										{{ order.quoteName || detail?.quoteName || '' }}
-									</td>
-								</tr>
-								<tr>
-									<th class="quote-table__label">專案期間</th>
-									<td colspan="4" class="quote-table__center">
-										{{ formatDateText(order.startDate) }} 至
-										{{ formatDateText(order.endDate) }} 止
-									</td>
-								</tr>
-								<tr>
-									<th class="quote-table__label">專案專案</th>
-									<th>產品</th>
-									<th>規格</th>
-									<th>數量</th>
-									<th>價格</th>
-								</tr>
-								<tr v-for="(item, index) in visibleItems" :key="index">
-									<th class="quote-table__label quote-table__number">
-										{{ index + 1 }}
-									</th>
-									<td>{{ item?.productName || '' }}</td>
-									<td>{{ item?.specName || '' }}</td>
-									<td class="quote-table__center">{{ item?.quantity || '' }}</td>
-									<td class="quote-table__right">
-										{{
-											item
-												? money(
-														item.subtotalAmount || item.actualPrice || 0
-													)
-												: ''
-										}}
-									</td>
-								</tr>
-								<tr>
-									<th class="quote-table__label quote-table__remark-label">
-										執行備註
-									</th>
-									<td colspan="4" class="quote-table__remark">
-										<div>{{ order.execRemark }}</div>
-									</td>
-								</tr>
-								<tr>
-									<td colspan="5" class="quote-table__label quote-table-total">
-										<div class="quote-total__amount">
-											專案總價 {{ money(finalAmount) }}
-										</div>
-										<div>本委刊內容仍依據實際操作調整</div>
-									</td>
-								</tr>
-							</tbody>
-						</table>
-
-
-
-
-
-
-						<div class="quote-bar">付款條件</div>
-						<table class="quote-table quote-table--payment">
-							<tbody>
-								<tr>
-									<th>刊登未稅價</th>
-									<td>{{ money(untaxedAmount) }}</td>
-									<th>營業稅</th>
-									<td>{{ money(taxAmount) }}</td>
-									<th>含稅總價</th>
-									<td>{{ money(finalAmount) }}</td>
-								</tr>
-								<tr v-for="(line, index) in paymentConditionLines" :key="index">
-									<td colspan="6">
-										{{ line }}
-									</td>
-								</tr>
-							</tbody>
-						</table>
-
-						<div class="quote-bar">乙方匯款資訊</div>
-						<section class="quote-bank">
-							<div class="quote-bank__title">乙方存摺封面</div>
-							<img
-								class="quote-bank__cover"
-								:src="partyB.bankCoverUrl || '/quote-bank-cover.jpg'"
-								crossorigin="anonymous"
-								alt="乙方存摺封面"
-							/>
-							<div class="quote-bank__info">
-								<div class="quote-bank__contact">
-									<p>聯絡人：{{ partyB.remittanceContactName }}</p>
-									<p>信箱：{{ partyB.remittanceEmail }}</p>
-								</div>
-								<div class="quote-bank__account-name">
-									<p>戶名：{{ partyB.bankAccountName || partyB.companyName }}</p>
-									<p>銀行代號：{{ partyB.bankCode }}{{ partyB.bankName ? `（${partyB.bankName}）` : '' }}</p>
-								</div>
-								<div class="quote-bank__account-no">
-									<p>帳號：</p>
-									<p>{{ partyB.bankAccountNo }}</p>
+					<div class="sec"><h2>一、合作雙方資訊</h2></div>
+					<div class="pc">
+						<div class="pty-g">
+							<div class="pty">
+								<div class="pty-h"><span>甲方</span>廣告主</div>
+								<div class="pty-b">
+									<div class="pk">名稱</div>
+									<div class="pv">{{ customerDisplayName }}</div>
+									<div class="pk">地址</div>
+									<div class="pv">{{ customer.address || '' }}</div>
+									<div class="pk">統一編號</div>
+									<div class="pv">{{ customer.taxNumber || '' }}</div>
+									<div class="pk">匯款末五碼</div>
+									<div class="pv">{{ customer.remittanceLast5 || '' }}</div>
+									<div class="pk">聯絡人</div>
+									<div class="pv">{{ customer.contactName || '' }}</div>
+									<div class="pk">信箱</div>
+									<div class="pv">{{ customer.email || '' }}</div>
+									<div class="pk">電話</div>
+									<div class="pv">{{ customer.mobile || '' }}</div>
 								</div>
 							</div>
-						</section>
+							<div class="pty">
+								<div class="pty-h"><span>乙方</span>委刊主</div>
+								<div class="pty-b">
+									<div class="pk">名稱</div>
+									<div class="pv">{{ partyB.companyName }}</div>
+									<div class="pk">地址</div>
+									<div class="pv">{{ partyB.address }}</div>
+									<div class="pk">統一編號</div>
+									<div class="pv">{{ partyB.taxNumber }}</div>
+									<div class="pk">聯絡人</div>
+									<div class="pv">{{ partyB.contactName }}</div>
+									<div class="pk">信箱</div>
+									<div class="pv">{{ partyB.email }}</div>
+									<div class="pk">電話</div>
+									<div class="pv">{{ partyB.mobile }}</div>
+								</div>
+							</div>
+						</div>
+					</div>
 
-						<div v-if="termSections.length" class="quote-bar">雙方合作條款約定</div>
-						<section v-if="termSections.length" class="quote-terms">
-							<div
-								v-for="(section, sectionIndex) in termSections"
-								:key="`${sectionIndex}-${section.title}`"
-								class="quote-terms__section"
-							>
-								<h3>{{ section.title }}</h3>
-								<div
+					<div class="sec"><h2>二、專案項目與報價</h2></div>
+					<div class="pc">
+						<table class="dt">
+							<thead>
+								<tr>
+									<th class="c" style="width: 6%">#</th>
+									<th style="width: 18%">產品</th>
+									<th style="width: 34%">規格</th>
+									<th class="c" style="width: 9%">數量</th>
+									<th class="r" style="width: 13%">單價</th>
+									<th class="r" style="width: 14%">小計</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr v-for="(item, index) in visibleItems" :key="index" class="it">
+									<td class="c">{{ index + 1 }}</td>
+									<td>{{ item?.productName || '' }}</td>
+									<td>{{ item?.specName || '' }}</td>
+									<td class="c">{{ item?.quantity ?? '' }}</td>
+									<td class="r">{{ item ? money(itemUnitPrice(item)) : '' }}</td>
+									<td class="r">{{ item ? money(itemSubtotal(item)) : '' }}</td>
+								</tr>
+								<tr class="sum">
+									<td colspan="5" class="r">刊登未稅價</td>
+									<td class="r">{{ money(untaxedAmount) }}</td>
+								</tr>
+								<tr class="sum">
+									<td colspan="5" class="r">營業稅（{{ dutyPercentLabel }}）</td>
+									<td class="r">{{ money(taxAmount) }}</td>
+								</tr>
+								<tr class="hl">
+									<td colspan="5" class="r"><b>專案總價（含稅）</b></td>
+									<td class="r">
+										<b>NT$ {{ money(finalAmount) }}</b>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+						<div class="ib ii">
+							<b>執行備註</b>：{{ execRemarkText }}
+						</div>
+					</div>
+
+					<div class="sec"><h2>三、付款條件與匯款資訊</h2></div>
+					<div class="pc">
+						<div class="ib io">
+							<template v-for="(line, index) in paymentConditionLines" :key="index">
+								<span v-if="index > 0"><br /></span>{{ line }}
+							</template>
+						</div>
+						<h3 class="sh">乙方匯款資訊</h3>
+						<div class="bank">
+							<div class="bk">
+								<div class="bkk">戶名</div>
+								<div class="bkv">
+									{{ partyB.bankAccountName || partyB.companyName }}
+								</div>
+							</div>
+							<div class="bk">
+								<div class="bkk">銀行</div>
+								<div class="bkv">{{ bankLineText }}</div>
+							</div>
+							<div v-if="branchCodeText" class="bk">
+								<div class="bkk">分行</div>
+								<div class="bkv">{{ branchCodeText }}</div>
+							</div>
+							<div class="bk bk--wide">
+								<div class="bkk">帳號</div>
+								<div class="bkv big">{{ partyB.bankAccountNo }}</div>
+							</div>
+						</div>
+						<div class="bank-c">
+							聯絡窗口：{{ partyB.remittanceContactName }}　｜　{{
+								partyB.remittanceEmail
+							}}
+						</div>
+					</div>
+					<div class="pf">{{ pageFooterLine(2) }}</div>
+				</section>
+
+				<!-- 內頁二：條款 -->
+				<section v-if="termSections.length" class="quote-doc-page">
+					<div class="ph">
+						<span>{{ pageHeaderTitle }}</span>
+						<img class="ph__logo" src="/quote-header-logo.png" alt="ENTER" />
+					</div>
+					<div class="sec"><h2>四、雙方合作條款約定</h2></div>
+					<div class="pc">
+						<div
+							v-for="(section, sectionIndex) in termSections"
+							:key="`${sectionIndex}-${section.title}`"
+							class="quote-terms-block"
+						>
+							<h3 class="sh">{{ section.title }}</h3>
+							<ol class="cls">
+								<li
 									v-for="(item, itemIndex) in section.items"
 									:key="`${sectionIndex}-${itemIndex}-${item.no}`"
 									class="quote-terms__item"
 								>
-									<div class="quote-terms__no">{{ item.no }}</div>
-									<p>
+									<span class="cn">{{ formatTermNo(item.no) }}</span>
+									<div>
 										<span
 											v-for="(part, partIndex) in splitTermText(item.text)"
 											:key="partIndex"
@@ -237,47 +241,82 @@
 										>
 											{{ part.text }}
 										</span>
-									</p>
-								</div>
-							</div>
-						</section>
+									</div>
+								</li>
+							</ol>
+						</div>
+					</div>
+					<div class="pf">{{ pageFooterLine(3) }}</div>
+				</section>
 
-						<section class="quote-sign">
-							<aside class="quote-sign__rail">
-								<div class="quote-sign__meta">
-									<div>
-										<span>委刊單號</span>
-									</div>
-									<div>
-										<span>委刊日期</span>
-									</div>
+				<!-- 內頁三：簽署 -->
+				<section class="quote-doc-page">
+					<div class="ph">
+						<span>{{ pageHeaderTitle }}</span>
+						<img class="ph__logo" src="/quote-header-logo.png" alt="ENTER" />
+					</div>
+					<div class="sec"><h2>五、簽署確認</h2></div>
+					<div class="pc">
+						<p class="bt">
+							甲乙雙方已詳閱並同意本報價單所載專案內容、報價及合作條款約定，特此簽署為憑。
+						</p>
+						<div class="sig-g">
+							<div class="sig">
+								<div class="sig-h">甲方簽章</div>
+								<div class="sig-box">公司大小章</div>
+								<div class="sig-l">
+									<span>名稱</span>{{ customerDisplayName }}
 								</div>
-								<img
-									class="quote-sign__logo"
-									src="/quote-enter-logo.png"
-									alt="ENTER"
-								/>
-							</aside>
-							<div class="quote-sign__content">
-								<div class="quote-sign__values">
-									<div>{{ commissionNo }}</div>
-									<div>{{ commissionDate }}</div>
-								</div>
-								<div class="quote-sign__names">
-									<span>甲方簽章</span>
-									<span>乙方簽章</span>
-								</div>
-								<img
-									v-if="partyB.companySealUrl"
-									class="quote-sign__company-seal"
-									:src="partyB.companySealUrl"
-									crossorigin="anonymous"
-									alt="乙方簽章"
-								/>
+								<div class="sig-l"><span>日期</span>&nbsp;</div>
 							</div>
-						</section>
-					</main>
-				</div>
+							<div class="sig">
+								<div class="sig-h">乙方簽章</div>
+								<div class="sig-box sig-box--seal">
+									<img
+										v-if="partyB.companySealUrl"
+										class="sig-box__seal"
+										:src="partyB.companySealUrl"
+										crossorigin="anonymous"
+										alt="乙方簽章"
+									/>
+									<span v-else>合約專用章</span>
+								</div>
+								<div class="sig-l">
+									<span>名稱</span>{{ partyB.companyName }}
+								</div>
+								<div class="sig-l">
+									<span>日期</span>{{ commissionDate }}
+								</div>
+							</div>
+						</div>
+						<table class="dt meta2">
+							<tbody>
+								<tr>
+									<td><b>委刊單號</b></td>
+									<td>{{ commissionNo }}</td>
+									<td><b>委刊日期</b></td>
+									<td>{{ commissionDate }}</td>
+								</tr>
+							</tbody>
+						</table>
+						<div class="agsig">
+							<img
+								class="agsig__logo"
+								src="/quote-enter-logo.png"
+								alt="ENTER"
+							/>
+							<div>
+								<div class="agsig__title">
+									{{ partyB.companyName }}　Enter Internet Marketing CO., LTD.
+								</div>
+								<div class="agsig__sub">
+									enterimc.com　｜　開立日期：{{ commissionDate }}　｜　本報價單自開立日起一個月內有效
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="pf">{{ pageFooterLine(signPageNumber) }}</div>
+				</section>
 			</article>
 		</div>
 	</div>
@@ -285,7 +324,7 @@
 
 <script lang="ts" setup>
 import { computed, nextTick, reactive, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { host as apiHost } from '/@/config/proxy';
 import { request } from '/@/cool/service/request';
@@ -303,7 +342,6 @@ const emit = defineEmits<{
 }>();
 
 const route = useRoute();
-const router = useRouter();
 const loading = ref(false);
 const detail = ref<any>(null);
 const sheetRef = ref<HTMLElement | null>(null);
@@ -322,26 +360,13 @@ const partyB = reactive<any>({
 	bankAccountName: '確認鍵智創科技股份有限公司',
 	bankCode: '012',
 	bankName: '臺北富邦銀行',
+	bankBranch: '',
 	bankAccountNo: '82110000259100',
-	bankCoverUrl: '/quote-bank-cover.jpg',
 	companySealUrl: ''
 });
 const items = ref<any[]>([]);
 const previewId = computed(() => Number(props.historyId || route.query.id || 0));
 const paymentConditionLines = ref<string[]>([]);
-
-const railBlocks = [
-	'620px',
-	'860px',
-	'720px',
-	'620px',
-	'520px',
-	'420px',
-	'380px',
-	'320px',
-	'260px'
-];
-
 const termSections = ref<any[]>([]);
 
 const visibleItems = computed(() => {
@@ -363,6 +388,68 @@ const untaxedAmount = computed(() => {
 });
 const taxAmount = computed(() => finalAmount.value - untaxedAmount.value);
 
+const customerDisplayName = computed(
+	() => customer.companyName || customer.contactName || ''
+);
+
+const pageHeaderTitle = computed(() => {
+	const name = order.quoteName || detail.value?.quoteName || '合作報價單';
+	return `${customerDisplayName.value || '甲方'}｜${name} 合作報價單`;
+});
+
+const projectPeriodText = computed(() => {
+	const start = formatDateText(order.startDate);
+	const end = formatDateText(order.endDate);
+	if (!order.startDate && !order.endDate) return '';
+	return `${start} 至 ${end}`;
+});
+
+const projectDurationMonths = computed(() => {
+	const startRaw = String(order.startDate || '').slice(0, 10);
+	const endRaw = String(order.endDate || '').slice(0, 10);
+	if (!startRaw || !endRaw) return '—';
+	const start = new Date(`${startRaw}T00:00:00`);
+	const end = new Date(`${endRaw}T00:00:00`);
+	if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) {
+		return '—';
+	}
+	const months =
+		(end.getFullYear() - start.getFullYear()) * 12 +
+		(end.getMonth() - start.getMonth()) +
+		1;
+	return String(Math.max(1, months));
+});
+
+const dutyPercentLabel = computed(() => {
+	if (dutyRate.value <= 0) return '0%';
+	const pct = dutyRate.value > 1 ? dutyRate.value : dutyRate.value * 100;
+	const rounded = Math.round(pct * 100) / 100;
+	return `${Number.isInteger(rounded) ? rounded : rounded.toFixed(2)}%`;
+});
+
+const copyrightYear = computed(() => {
+	const raw = order.createTime || detail.value?.createTime || '';
+	const year = String(raw).slice(0, 4);
+	return year && /^\d{4}$/.test(year) ? year : String(new Date().getFullYear());
+});
+
+const execRemarkText = computed(
+	() => String(order.execRemark || '').trim() || '本委刊內容仍依據實際操作調整'
+);
+
+const bankLineText = computed(() => {
+	const parts = [
+		partyB.bankName,
+		partyB.bankBranch,
+		partyB.bankCode ? `（代號 ${partyB.bankCode}）` : ''
+	].filter(Boolean);
+	return parts.join(' ') || '—';
+});
+
+const branchCodeText = computed(() => String(partyB.bankBranch || '').trim());
+
+const signPageNumber = computed(() => (termSections.value.length > 0 ? 4 : 3));
+
 watch(
 	previewId,
 	() => {
@@ -370,6 +457,26 @@ watch(
 	},
 	{ immediate: true }
 );
+
+function pageFooterLine(pageNo: number) {
+	return `${partyB.companyName}　｜　委刊單號 ${commissionNo.value}　｜　第 ${pageNo} 頁`;
+}
+
+function itemUnitPrice(item: any) {
+	const unit = toNumber(item?.actualPrice);
+	if (unit > 0) return unit;
+	const qty = Math.max(1, toNumber(item?.quantity || 1));
+	return toNumber(item?.subtotalAmount) / qty;
+}
+
+function itemSubtotal(item: any) {
+	return toNumber(item?.subtotalAmount || item?.actualPrice || 0);
+}
+
+function formatTermNo(value: any) {
+	const no = Number(value || 0);
+	return String(no > 0 ? no : 0).padStart(2, '0');
+}
 
 async function loadDetail() {
 	const id = previewId.value;
@@ -398,10 +505,6 @@ async function loadDetail() {
 	}
 }
 
-async function downloadPdf() {
-	await downloadPreviewPdf();
-}
-
 async function downloadPreviewPdf() {
 	const element =
 		sheetRef.value ||
@@ -424,14 +527,11 @@ async function downloadPreviewPdf() {
 		filename,
 		format: 'a4',
 		scale: 2,
-		safePageBreakSelector: '.quote-sheet__content',
-		safePageBreakSearch: 220,
-		avoidTextLineSelectors: ['.quote-sheet__content']
+		safePageBreakSelector: '.quote-doc-page',
+		safePageBreakSearch: 240,
+		avoidBreakSelectors: ['.quote-doc-page', '.sig', '.quote-terms__item', '.dt tr.it'],
+		avoidTextLineSelectors: ['.cls li', '.ib', '.pty']
 	});
-}
-
-function windowPrint() {
-	window.print();
 }
 
 function formatDateText(value: any) {
@@ -444,6 +544,13 @@ function formatDateText(value: any) {
 function money(value: any) {
 	return toNumber(value).toLocaleString('zh-TW', {
 		minimumFractionDigits: 2,
+		maximumFractionDigits: 2
+	});
+}
+
+function moneyCompact(value: any) {
+	return toNumber(value).toLocaleString('zh-TW', {
+		minimumFractionDigits: 0,
 		maximumFractionDigits: 2
 	});
 }
@@ -481,8 +588,8 @@ function normalizePartyB(value: any) {
 		bankAccountName: String(source.bankAccountName ?? partyB.bankAccountName ?? ''),
 		bankCode: String(source.bankCode ?? partyB.bankCode ?? ''),
 		bankName: String(source.bankName ?? partyB.bankName ?? ''),
+		bankBranch: String(source.bankBranch ?? partyB.bankBranch ?? ''),
 		bankAccountNo: String(source.bankAccountNo ?? partyB.bankAccountNo ?? ''),
-		bankCoverUrl: normalizePreviewImageUrl(source.bankCoverUrl ?? partyB.bankCoverUrl ?? ''),
 		companySealUrl: normalizePreviewImageUrl(source.companySealUrl ?? partyB.companySealUrl ?? '')
 	};
 }
@@ -500,7 +607,12 @@ function normalizePreviewImageUrl(value: any) {
 		}
 
 		const apiOrigin = apiHost ? new URL(apiHost).origin : '';
-		if (import.meta.env.DEV && apiOrigin && target.origin === apiOrigin && target.pathname.startsWith('/upload/')) {
+		if (
+			import.meta.env.DEV &&
+			apiOrigin &&
+			target.origin === apiOrigin &&
+			target.pathname.startsWith('/upload/')
+		) {
 			return `${getBaseUrl()}${target.pathname}${target.search}${target.hash}`;
 		}
 	} catch {
@@ -511,7 +623,7 @@ function normalizePreviewImageUrl(value: any) {
 }
 
 function normalizePaymentConditionLines(value: any) {
-	const fallback = `付款方式：專案金額(含營業稅)共計新台幣 ${money(finalAmount.value)} 元整，甲方於收到發票後，30 天內以匯款方式支付款項至乙方指定帳號，匯款後提供後五碼及匯款日期以便甲方核對。\n*本欄請注意：本單須雙方簽立完成後，送交乙方才會始得進行委刊作業。`;
+	const fallback = `付款方式：專案金額（含營業稅）共計新臺幣 ${money(finalAmount.value)} 元整，甲方於收到發票後 30 天內以匯款方式支付款項至乙方指定帳戶，匯款後請提供後五碼及匯款日期以便甲方核對。\n＊本單須雙方簽立完成後，送交乙方才會始得進行委刊作業。`;
 	const text = Array.isArray(value)
 		? value.join('\n')
 		: typeof value === 'object' && value !== null
@@ -595,9 +707,11 @@ defineExpose({
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap');
+
 .quote-preview-page {
 	min-height: 100%;
-	background: #f2f2f2;
+	background: #d8e4f5;
 	padding: 0 0 32px;
 }
 
@@ -631,448 +745,604 @@ defineExpose({
 	font-size: 12px;
 }
 
-.quote-preview-toolbar__actions {
-	display: flex;
-	gap: 8px;
-}
-
 .quote-preview-canvas {
 	width: 900px;
 	margin: 0 auto;
-	background: #fff;
+	padding: 20px 14px 40px;
 }
 
-.quote-sheet {
-	--quote-blue: #0036b3;
-	width: 900px;
-	background: #fff;
-	color: #111;
-	font-family: 'Microsoft JhengHei', 'PingFang TC', 'Noto Sans TC', sans-serif;
-	font-size: 17px;
-	line-height: 1.55;
-	box-shadow: 0 12px 28px rgba(0, 0, 0, 0.14);
-}
-
-.quote-sheet__title {
-	position: relative;
-	height: 76px;
-	line-height: 76px;
-	text-align: center;
-	color: #fff;
-	background: var(--quote-blue);
-	font-size: 34px;
-	font-weight: 700;
-	letter-spacing: 2px;
-}
-
-.quote-sheet__header-logo {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 64px;
-	height: 76px;
-	object-fit: cover;
-	display: block;
-}
-
-.quote-sheet__body {
-	display: grid;
-	grid-template-columns: 158px 1fr;
-	align-items: stretch;
-}
-
-.quote-sheet__rail {
-	background: var(--quote-blue);
-	border-right: 1px solid #111;
-}
-
-.quote-sheet__rail-block {
-	display: none;
-}
-
-.quote-sheet__rail-block span {
-	display: none;
-}
-
-.quote-sheet__content {
+.quote-preview-page--embedded .quote-preview-canvas {
 	padding: 0;
-	border-right: 2px solid #111;
+	width: 900px;
 }
 
-.quote-section--intro {
-	min-height: 58px;
-	padding: 10px 12px 7px;
-	text-align: center;
-	font-size: 16px;
-	line-height: 1.5;
-	border-bottom: 1px solid #111;
-}
-
-.quote-section--intro p {
-	margin: 0;
-}
-
-.quote-table {
-	width: 100%;
-	border-collapse: collapse;
-	table-layout: fixed;
-}
-
-.quote-table th,
-.quote-table td {
-	min-height: 34px;
-	padding: 4px 8px;
-	border: 1px solid #777;
-	vertical-align: middle;
-	word-break: break-word;
-}
-
-.quote-table th {
-	font-weight: 700;
-	background: #fff;
-}
-
-.quote-table--party {
-	border: 1px solid #111;
-	border-top: 0;
-	font-size: 14px;
-	line-height: 1.45;
-}
-
-.quote-table--party th,
-.quote-table--party td {
-	height: 29px;
-	min-height: 29px;
-	padding: 3px 4px;
-	border: 0;
-}
-
-.quote-table--party tr:first-child th {
-	height: 31px;
-	padding: 4px;
-	border-bottom: 1px solid #111;
-	text-align: left;
-	font-size: 15px;
-}
-
-.quote-table--party tr:first-child th + th {
-	border-left: 1px solid #111;
-}
-
-.quote-table--party tr:not(:first-child) th {
-	text-align: left;
-	font-size: 14px;
-}
-
-.quote-table--party tr:not(:first-child) th:nth-child(3) {
-	border-left: 1px solid #111;
-}
-
-.quote-party__label {
-	width: 72px;
-}
-
-.quote-party__value {
-	width: auto;
-}
-
-.quote-table--project {
-	width: calc(100% + 112px);
-	margin-left: -112px;
-	border-left: 1px solid #111;
-	border-right: 1px solid #111;
-	font-size: 16px;
-}
-
-.quote-table--project th,
-.quote-table--project td {
-	border-color: #111;
-}
-
-.quote-project__label-col {
-	width: 112px;
-}
-
-.quote-project__product-col {
-	width: 124px;
-}
-
-.quote-project__spec-col {
-	width: auto;
-}
-
-.quote-project__qty-col {
-	width: 124px;
-}
-
-.quote-project__price-col {
-	width: 124px;
-}
-
-.quote-table__label {
-	width: 112px;
-	text-align: center;
-	background: #d3d3d3 !important;
-	font-size: 20px;
-}
-.quote-table-total {
-	width: 112px;
-	text-align: center;
-	background: #fdfbfb !important;
-	font-size: 20px;
-}
-
-.quote-table__number {
-	font-size: 22px;
-}
-
-.quote-table__center {
-	text-align: center;
-}
-
-.quote-table__right {
-	text-align: right;
-}
-
-.quote-table__remark-label {
-	height: 116px;
-}
-
-.quote-table__remark {
-	text-align: center;
-	background: #d3d3d3;
-	font-size: 17px;
+.quote-doc-wrap {
+	--eb: #1b3a8c;
+	--eb2: #254bad;
+	--ed: #0a1628;
+	--ed2: #1a2b3c;
+	--el: #a8c8f8;
+	--el2: #4a90d9;
+	--em: #c5d5f0;
+	--elt: #f0f5ff;
+	--emut: #5c7aa8;
+	--org: #c75000;
+	--light: #f0f5ff;
+	--mid: #c5d5f0;
+	--text: #1a2b3c;
+	width: 900px;
+	color: var(--text);
+	font-family: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+	font-size: 13px;
 	line-height: 1.65;
 }
 
-.quote-total {
-	padding: 10px 12px 8px;
-	text-align: center;
-	border-left: 1px solid #777;
-	border-right: 1px solid #777;
-}
-
-.quote-total__amount {
-	color: #e60012;
-	font-size: 23px;
-	font-weight: 700;
-}
-
-.quote-bar {
-	padding: 4px 0;
-	text-align: center;
-	font-size: 20px;
-	font-weight: 700;
-	background: #d3d3d3;
-	border: 1px solid #d3d3d3;
-}
-
-.quote-table--payment th {
-	color: #e60012;
-	text-align: center;
-}
-
-.quote-table--payment {
-	border-left: 1px solid #777;
-	border-right: 1px solid #777;
-}
-
-.quote-table--payment th,
-.quote-table--payment td {
-	border: 0;
-}
-
-.quote-bank {
-	min-height: 462px;
-	padding: 0 0 28px;
+.quote-doc-page {
 	background: #fff;
-	border-left: 1px solid #777;
-	border-right: 1px solid #777;
+	border-radius: 8px;
+	box-shadow: 0 3px 20px rgba(0, 0, 0, 0.09);
+	margin-bottom: 28px;
+	overflow: hidden;
 }
 
-.quote-bank__title {
-	padding: 2px 0 22px;
-	text-align: center;
-	font-size: 16px;
+.quote-doc-page:last-child {
+	margin-bottom: 0;
+}
+
+.cv-stripe {
+	background: var(--eb);
+	height: 8px;
+}
+
+.cv-hero {
+	background: #fff;
+	padding: 40px 52px 32px;
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 32px;
+}
+
+.cv-rule {
+	width: 48px;
+	height: 4px;
+	background: var(--eb);
+	border-radius: 2px;
+	margin-bottom: 14px;
+}
+
+.cv-eye {
+	color: var(--eb);
+	font-size: 10px;
 	font-weight: 700;
-}
-
-.quote-bank__cover {
-	display: block;
-	width: 580px;
-	max-width: calc(100% - 180px);
-	margin: 0 auto 74px;
-	object-fit: contain;
-}
-
-.quote-bank__info {
-	display: grid;
-	grid-template-columns: 1.15fr 1.55fr 0.85fr;
-	column-gap: 12px;
-	padding: 0 12px 0 4px;
-	font-size: 16px;
-	font-weight: 700;
-	line-height: 1.55;
-}
-
-.quote-bank__info p {
-	margin: 0;
-}
-
-.quote-bank__contact,
-.quote-bank__account-name,
-.quote-bank__account-no {
-	min-width: 0;
-}
-
-.quote-bank__account-name,
-.quote-bank__account-no {
-	text-align: center;
-}
-
-.quote-terms {
-	padding: 10px 18px 18px;
-	border-left: 1px solid #777;
-	border-right: 1px solid #777;
-}
-
-.quote-terms__section {
+	letter-spacing: 3px;
 	margin-bottom: 12px;
 }
 
-.quote-terms__section h3 {
-	margin: 0 0 6px;
-	font-size: 19px;
+.cv-h1 {
+	color: var(--ed);
+	font-size: 28px;
+	font-weight: 900;
+	line-height: 1.25;
+	margin: 0 0 12px;
+}
+
+.cv-h1 span {
+	color: var(--eb);
+}
+
+.cv-sub {
+	color: var(--emut);
+	font-size: 12.5px;
+	line-height: 1.8;
+}
+
+.cv-sub b {
+	color: var(--ed2);
+}
+
+.cv-la {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 10px;
+	flex-shrink: 0;
+}
+
+.cv-la__logo {
+	width: 64px;
+	height: 76px;
+	object-fit: cover;
+	border-radius: 6px;
+}
+
+.cv-lt {
+	font-size: 9px;
+	color: var(--emut);
+	text-align: right;
+	line-height: 1.5;
+}
+
+.cv-band {
+	background: var(--eb);
+	padding: 20px 52px;
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 1px;
+}
+
+.cv-st {
+	text-align: center;
+	padding: 10px 4px;
+	border-right: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.cv-st:last-child {
+	border-right: none;
+}
+
+.stn {
+	font-size: 24px;
+	font-weight: 900;
+	color: #fff;
+	line-height: 1.1;
+}
+
+.stu {
+	font-size: 9px;
+	color: rgba(255, 255, 255, 0.7);
+}
+
+.stl {
+	font-size: 9px;
+	color: rgba(255, 255, 255, 0.5);
+	margin-top: 4px;
+	line-height: 1.4;
+}
+
+.cv-meta {
+	background: var(--elt);
+	padding: 18px 52px;
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 10px 32px;
+	border-top: 1px solid var(--em);
+}
+
+.cv-mi {
+	font-size: 11px;
+	color: var(--emut);
+}
+
+.cv-mi b {
+	color: var(--ed2);
+	display: block;
+	font-size: 11.5px;
+	margin-top: 2px;
 	font-weight: 700;
 }
 
-.quote-terms__item {
-	display: grid;
-	grid-template-columns: 54px 1fr;
-	gap: 10px;
-	margin: 6px 0;
+.cv-foot {
+	background: var(--eb);
+	padding: 11px 52px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 16px;
 }
 
-.quote-terms__no {
-	text-align: center;
-}
-
-.quote-terms__item p {
+.cv-foot p {
 	margin: 0;
-	text-align: justify;
+	font-size: 10px;
+	color: rgba(255, 255, 255, 0.45);
+}
+
+.ph {
+	background: var(--eb);
+	padding: 9px 28px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.ph span {
+	font-size: 10px;
+	color: rgba(255, 255, 255, 0.75);
+}
+
+.ph__logo {
+	height: 18px;
+	width: auto;
+	border-radius: 2px;
+}
+
+.pf {
+	background: var(--elt);
+	border-top: 1px solid var(--em);
+	padding: 7px 28px;
+	text-align: center;
+	font-size: 10px;
+	color: var(--emut);
+}
+
+.sec {
+	background: var(--eb);
+	border-left: 5px solid var(--el2);
+	padding: 13px 24px;
+}
+
+.sec h2 {
+	margin: 0;
+	color: #fff;
+	font-size: 14px;
+	font-weight: 700;
+}
+
+.pc {
+	padding: 22px 28px;
+}
+
+.sh {
+	font-size: 12.5px;
+	font-weight: 700;
+	color: var(--eb);
+	border-left: 3px solid var(--el2);
+	padding-left: 9px;
+	margin: 18px 0 8px;
+}
+
+.sh:first-child {
+	margin-top: 0;
+}
+
+.bt {
+	font-size: 12.5px;
+	line-height: 1.8;
+	color: var(--text);
+	margin: 0 0 14px;
+}
+
+.ib {
+	padding: 10px 14px;
+	border-radius: 0 5px 5px 0;
+	margin-bottom: 13px;
+	font-size: 11.5px;
 	line-height: 1.75;
 }
 
-.quote-term-date {
-	text-decoration: underline;
-	text-underline-offset: 3px;
-	text-decoration-thickness: 1px;
+.io {
+	background: #fff8f0;
+	border-left: 4px solid var(--org);
 }
 
-.quote-sign {
-	display: grid;
-	grid-template-columns: 158px 1fr;
-	width: calc(100% + 158px);
-	min-height: 360px;
-	margin-left: -158px;
-	border-right: 1px solid #111;
-	border-bottom: 1px solid #111;
-	background: #fff;
-	box-sizing: border-box;
+.ii {
+	background: #eef4ff;
+	border-left: 4px solid var(--el2);
 }
 
-.quote-sign__rail {
-	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-	background: var(--quote-blue);
+.dt {
+	width: 100%;
+	border-collapse: collapse;
+	margin: 0 0 14px;
+	font-size: 11.5px;
+}
+
+.dt th {
+	background: var(--eb);
 	color: #fff;
-	font-size: 16px;
+	font-weight: 700;
+	padding: 8px 10px;
+	text-align: left;
+	font-size: 11px;
+}
+
+.dt td {
+	padding: 9px 10px;
+	border-bottom: 1px solid var(--mid);
+	vertical-align: top;
+	line-height: 1.55;
+}
+
+.dt tr.it:nth-child(odd) td {
+	background: var(--light);
+}
+
+.dt tr.it td {
+	min-height: 38px;
+}
+
+.dt tr.sum td {
+	background: #fff;
+	color: var(--emut);
+	font-size: 11px;
+	padding: 6px 10px;
+}
+
+.dt tr.sum td:last-child {
+	color: var(--ed2);
 	font-weight: 700;
 }
 
-.quote-sign__meta {
-	width: 100%;
-	margin-top: 56px;
-	line-height: 1.4;
-	text-align: left;
+.dt tr.hl td {
+	background: var(--eb);
+	color: #fff;
+	font-weight: 700;
+	font-size: 13px;
 }
 
-.quote-sign__meta div {
-	display: flex;
-	align-items: center;
-	justify-content: flex-end;
-	min-height: 48px;
-	padding-left: 8px;
-	padding-right: 12px;
-	box-sizing: border-box;
-	text-align: right;
+.dt tr.hl td b {
+	color: #fff;
 }
 
-.quote-sign__values {
-	position: absolute;
-	top: 56px;
-	left: 10px;
-	width: 230px;
-	color: #111;
-	font-size: 14px;
-	font-weight: 600;
-	line-height: 1.4;
+.dt tr.hl td:last-child b {
+	color: #a8c8f8;
+	font-size: 15px;
 }
 
-.quote-sign__values div {
-	display: flex;
-	align-items: center;
-	min-height: 48px;
+.c {
+	text-align: center !important;
+}
+
+.r {
+	text-align: right !important;
+}
+
+.pty-g {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 14px;
+}
+
+.pty {
+	border: 1px solid var(--mid);
+	border-radius: 7px;
 	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
 }
 
-.quote-sign__logo {
-	width: 120px;
-	max-width: calc(100% - 12px);
-	margin-top: 8px;
-	margin-left: 10px;
+.pty-h {
+	background: var(--elt);
+	border-bottom: 1px solid var(--mid);
+	padding: 8px 14px;
+	font-size: 11px;
+	color: var(--emut);
+	font-weight: 700;
 }
 
-.quote-sign__content {
-	position: relative;
-	min-height: 360px;
+.pty-h span {
+	display: inline-block;
+	background: var(--eb);
+	color: #fff;
+	border-radius: 20px;
+	padding: 1px 10px;
+	margin-right: 8px;
+	font-size: 10.5px;
 }
 
-.quote-sign__names {
-	position: absolute;
-	top: 162px;
-	left: 70px;
-	right: 210px;
-	display: flex;
-	justify-content: space-between;
+.pty-b {
+	display: grid;
+	grid-template-columns: 72px 1fr;
+	padding: 8px 14px 10px;
+}
+
+.pk {
+	font-size: 10.5px;
+	color: var(--emut);
+	padding: 5px 0;
+	border-bottom: 1px dashed var(--mid);
+}
+
+.pv {
+	font-size: 11.5px;
+	color: var(--ed2);
+	font-weight: 500;
+	padding: 5px 0;
+	border-bottom: 1px dashed var(--mid);
+	word-break: break-all;
+}
+
+.pty-b > div:nth-last-child(-n + 2) {
+	border-bottom: none;
+}
+
+.bank {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 1px;
+	background: var(--mid);
+	border: 1px solid var(--mid);
+	border-radius: 7px;
+	overflow: hidden;
+}
+
+.bk {
+	background: #fff;
+	padding: 9px 13px;
+}
+
+.bk--wide {
+	grid-column: span 3;
+}
+
+.bkk {
+	font-size: 10px;
+	color: var(--emut);
+}
+
+.bkv {
+	font-size: 12px;
+	color: var(--ed2);
+	font-weight: 700;
+	margin-top: 2px;
+}
+
+.bkv.big {
 	font-size: 16px;
-	color: #111;
+	color: var(--eb);
+	letter-spacing: 1px;
 }
 
-.quote-sign__company-seal {
-	position: absolute;
-	top: 175px;
-	right: 109px;
-	width: 130px;
+.bank-c {
+	font-size: 11px;
+	color: var(--emut);
+	margin-top: 8px;
+}
+
+.cls {
+	list-style: none;
+	margin: 0 0 6px;
+	padding: 0;
+}
+
+.cls li {
+	display: flex;
+	gap: 11px;
+	padding: 7px 2px;
+	border-bottom: 1px dashed var(--mid);
+	font-size: 11.5px;
+	line-height: 1.75;
+	text-align: justify;
+}
+
+.cls li:last-child {
+	border-bottom: none;
+}
+
+.cn {
+	flex-shrink: 0;
+	width: 26px;
+	height: 20px;
+	border-radius: 4px;
+	background: var(--elt);
+	color: var(--eb);
+	font-weight: 900;
+	font-size: 10.5px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-top: 2px;
+}
+
+.quote-term-date {
+	font-weight: 700;
+}
+
+.sig-g {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 18px;
+	margin-bottom: 18px;
+}
+
+.sig {
+	border: 1px solid var(--mid);
+	border-radius: 7px;
+	overflow: hidden;
+}
+
+.sig-h {
+	background: var(--eb);
+	color: #fff;
+	font-weight: 700;
+	font-size: 12px;
+	padding: 8px 14px;
+}
+
+.sig-box {
+	margin: 14px;
 	height: 130px;
-	object-fit: contain;
-	pointer-events: none;
+	border: 1.5px dashed var(--em);
+	border-radius: 6px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--em);
+	font-size: 11px;
+	letter-spacing: 2px;
 }
 
+.sig-box--seal {
+	padding: 8px;
+}
+
+.sig-box__seal {
+	max-width: 100%;
+	max-height: 100%;
+	object-fit: contain;
+}
+
+.sig-l {
+	display: flex;
+	gap: 10px;
+	padding: 7px 14px;
+	border-top: 1px solid var(--elt);
+	font-size: 11.5px;
+	color: var(--ed2);
+}
+
+.sig-l span {
+	color: var(--emut);
+	width: 36px;
+	flex-shrink: 0;
+	font-size: 10.5px;
+}
+
+.meta2 td {
+	background: var(--light);
+}
+
+.agsig {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 18px;
+	padding: 14px;
+	background: var(--eb);
+	border-radius: 6px;
+	margin-top: 10px;
+}
+
+.agsig__logo {
+	height: 44px;
+	width: auto;
+	border-radius: 6px;
+	flex-shrink: 0;
+}
+
+.agsig__title {
+	color: #fff;
+	font-size: 12px;
+	font-weight: 700;
+}
+
+.agsig__sub {
+	color: rgba(255, 255, 255, 0.55);
+	font-size: 10.5px;
+	margin-top: 4px;
+	line-height: 1.5;
+}
+</style>
+
+<style>
 @media print {
-	.quote-preview-page {
-		padding: 0;
-		background: #fff;
+	.no-print {
+		display: none !important;
 	}
 
-	.quote-preview-canvas,
-	.quote-sheet {
-		width: 100%;
-		margin: 0;
-		box-shadow: none;
+	.quote-doc-page {
+		box-shadow: none !important;
+		margin-bottom: 0 !important;
+		page-break-after: always;
+		border-radius: 0 !important;
+	}
+
+	.quote-doc-page:last-child {
+		page-break-after: avoid;
+	}
+
+	.quote-doc-wrap,
+	.quote-doc-wrap * {
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
 	}
 }
 </style>
