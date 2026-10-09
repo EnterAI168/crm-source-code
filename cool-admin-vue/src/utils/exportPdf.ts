@@ -19,9 +19,6 @@ export type ExportElementToPdfOptions = {
 	safePageBreakSearch?: number;
 };
 
-const html2CanvasUrl = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
-const jsPdfUrl = 'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js';
-
 export async function exportElementToPdf(element: HTMLElement, options: ExportElementToPdfOptions) {
 	const {
 		filename,
@@ -439,74 +436,44 @@ async function waitForAssets(element: HTMLElement) {
 	await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 }
 
+let html2CanvasLoader: Promise<Html2Canvas> | null = null;
+let jsPdfLoader: Promise<JsPdfConstructor> | null = null;
+
 async function loadHtml2Canvas(): Promise<Html2Canvas> {
-	const globalAny = window as any;
-
-	if (globalAny.html2canvas) {
-		return globalAny.html2canvas;
+	if (!html2CanvasLoader) {
+		html2CanvasLoader = import('html2canvas')
+			.then(mod => {
+				const fn = (mod as { default?: Html2Canvas }).default ?? (mod as unknown as Html2Canvas);
+				if (typeof fn !== 'function') {
+					throw new Error('html2canvas 載入失敗');
+				}
+				return fn;
+			})
+			.catch(error => {
+				html2CanvasLoader = null;
+				throw error instanceof Error ? error : new Error('html2canvas 載入失敗');
+			});
 	}
-
-	await loadScriptOnce(html2CanvasUrl, 'html2canvas');
-
-	if (!globalAny.html2canvas) {
-		throw new Error('html2canvas 載入失敗');
-	}
-
-	return globalAny.html2canvas;
+	return html2CanvasLoader;
 }
 
 async function loadJsPdf(): Promise<JsPdfConstructor> {
-	const globalAny = window as any;
-
-	if (globalAny.jspdf?.jsPDF) {
-		return globalAny.jspdf.jsPDF;
-	}
-
-	if (globalAny.jsPDF) {
-		return globalAny.jsPDF;
-	}
-
-	await loadScriptOnce(jsPdfUrl, 'jspdf');
-
-	if (globalAny.jspdf?.jsPDF) {
-		return globalAny.jspdf.jsPDF;
-	}
-
-	if (globalAny.jsPDF) {
-		return globalAny.jsPDF;
-	}
-
-	throw new Error('jsPDF 載入失敗');
-}
-
-function loadScriptOnce(src: string, name: string) {
-	return new Promise<void>((resolve, reject) => {
-		const existing = document.querySelector(
-			`script[data-pdf-lib="${name}"]`
-		) as HTMLScriptElement | null;
-
-		if (existing) {
-			if (existing.getAttribute('data-ready') === '1') {
-				resolve();
-				return;
-			}
-
-			existing.addEventListener('load', () => resolve(), { once: true });
-			existing.addEventListener('error', () => reject(new Error(`${name} 載入失敗`)), {
-				once: true
+	if (!jsPdfLoader) {
+		jsPdfLoader = import('jspdf')
+			.then(mod => {
+				const jsPDF =
+					(mod as { jsPDF?: JsPdfConstructor }).jsPDF ??
+					(mod as { default?: { jsPDF?: JsPdfConstructor } }).default?.jsPDF ??
+					(mod as { default?: JsPdfConstructor }).default;
+				if (!jsPDF) {
+					throw new Error('jsPDF 載入失敗');
+				}
+				return jsPDF;
+			})
+			.catch(error => {
+				jsPdfLoader = null;
+				throw error instanceof Error ? error : new Error('jsPDF 載入失敗');
 			});
-			return;
-		}
-
-		const script = document.createElement('script');
-		script.src = src;
-		script.async = true;
-		script.dataset.pdfLib = name;
-		script.onload = () => {
-			script.setAttribute('data-ready', '1');
-			resolve();
-		};
-		script.onerror = () => reject(new Error(`${name} 載入失敗`));
-		document.head.appendChild(script);
-	});
+	}
+	return jsPdfLoader;
 }
